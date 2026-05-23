@@ -11,9 +11,16 @@ Makefile
 *.dylib
 
 # Binaries (in-source / installed). The shell wrapper at bin/prot2exon
-# is a checked-in source file and must NOT be ignored.
+# and the Python package at python/prot2exon/ are checked-in source and
+# must NOT be ignored.
 prot2exon
 !bin/prot2exon
+!python/prot2exon/
+!python/prot2exon/**
+
+# Python caches
+__pycache__/
+*.pyc
 
 # Editor/system
 *.log
