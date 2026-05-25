@@ -1,0 +1,2 @@
+input_id	protein_id	transcript_id	gene_id	gene_name	domain_id	chrom	strand	aa_start	aa_end	domain_length_aa	domain_length_nt	protein_length_aa	domain_genomic_start	domain_genomic_end	n_coding_segments	fully_mapped	no_domain_mode	input_id_type	is_mane_select	is_ensembl_canonical	cds_length_mismatch	cds_nt_remainder	status
+ENSP1	ENSP1	ENST1	ENSG1	TEST1	NA	chrA	+	NA	NA	NA	NA	44	NA	NA	NA	true	true	ENSP	true	true	false	0	structure_only

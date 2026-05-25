@@ -1,0 +1,2 @@
+input_id	protein_id	transcript_id	gene_id	gene_name	domain_id	chrom	strand	aa_start	aa_end	domain_length_aa	domain_length_nt	protein_length_aa	domain_genomic_start	domain_genomic_end	n_coding_segments	fully_mapped	no_domain_mode	input_id_type	is_mane_select	is_ensembl_canonical	cds_length_mismatch	cds_nt_remainder	status
+MULTI_MINUS	ENSP2	ENST2	ENSG2	TEST2	MULTI_MINUS	chrB	-	1	34	34	102	41	600	850	2	true	false	ENSP	false	false	false	0	ok
