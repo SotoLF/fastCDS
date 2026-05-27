@@ -54,8 +54,9 @@ The image bundles both the C++ binary and the Python wrapper.
 ## Smoke test
 
 ```bash
-./build/prot2exon --version
-python3 -m prot2exon.plot --help     # if the wrapper is installed
+prot2exon --version             # routes to the C++ binary via bin/prot2exon
+prot2exon plot --help           # the Python plotter (wrapped through bin/prot2exon)
+prot2exon fetch list            # available pre-built indexes + GTF-build presets
 ```
 
 Then run the end-to-end test suite:

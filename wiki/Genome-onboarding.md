@@ -34,11 +34,11 @@ Available pre-built indexes in the Zenodo bundle (full list + checksums in the d
 ## One-command rebuild from upstream: `prot2exon fetch`
 
 ```bash
-python3 -m prot2exon.fetch list                 # show what's built-in
-python3 -m prot2exon.fetch human --release 49   # GENCODE human 49
-python3 -m prot2exon.fetch mouse --release M34  # GENCODE mouse M34
-python3 -m prot2exon.fetch ensembl --species homo_sapiens --release 110
-python3 -m prot2exon.fetch refseq --preset yeast
+prot2exon fetch list                 # show what's built-in
+prot2exon fetch human --release 49   # GENCODE human 49
+prot2exon fetch mouse --release M34  # GENCODE mouse M34
+prot2exon fetch ensembl --species homo_sapiens --release 110
+prot2exon fetch refseq --preset yeast
 ```
 
 The script:
@@ -53,7 +53,7 @@ Re-running is a no-op — already-cached downloads and indexes are reused. Pass 
 Override the URL if you need a release prot2exon doesn't know about:
 
 ```bash
-python3 -m prot2exon.fetch human --gtf-url https://ftp.ensembl.org/.../Homo_sapiens.GRCh38.110.gtf.gz
+prot2exon fetch human --gtf-url https://ftp.ensembl.org/.../Homo_sapiens.GRCh38.110.gtf.gz
 ```
 
 ## Manual recipes

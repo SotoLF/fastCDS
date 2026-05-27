@@ -5,7 +5,7 @@ End-to-end in five commands. Assumes you've built the binary per [[Installation]
 ## 1. Fetch a stock index
 
 ```bash
-python3 -m prot2exon.fetch human --release 49 --cache-dir ~/.cache/prot2exon
+prot2exon fetch human --release 49 --cache-dir ~/.cache/prot2exon
 # prints the resulting .idx path on stdout
 ```
 

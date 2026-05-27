@@ -72,11 +72,14 @@ See [Installation](https://github.com/SotoLF/Prot2Exon/wiki/Installation) for Do
 
 ```bash
 # 1. Get an index (one-time per annotation)
-python3 -m prot2exon.fetch human --release 49
+#    Either: pre-built from Zenodo (~5 s download)
+prot2exon fetch index --preset human-v49
+#    Or: download GTF + build (~30 s on a fast box, handles any release)
+prot2exon fetch human --release 49
 
 # 2. Map a BED of domain queries
 prot2exon \
-    --index ~/.cache/prot2exon/gencode_human_v49.idx \
+    --index ~/.cache/prot2exon/human-v49.idx \
     --bed queries.bed --out-dir results --output all --threads 8
 
 # 3. Plot a single domain
@@ -87,24 +90,29 @@ prot2exon plot \
 ```
 
 `queries.bed` is whitespace-separated; see [Input format](https://github.com/SotoLF/Prot2Exon/wiki/Input-format) for the spec.
+Run `prot2exon fetch list` to see every available pre-built index + GTF-build preset.
 
-Python API:
+Python API (smoother for notebook workflows):
 
 ```python
 import prot2exon as p2e
 
-mapper = p2e.Mapper(index="human.idx")
+# 1. Get an index (one-time)
+idx = p2e.fetch_index("human", release="49")        # Path-returning
+
+# 2. Map queries
+mapper = p2e.Mapper(index=str(idx))
 result = mapper.map_batch([
     {"protein_id": "ENSP00000269305", "aa_start": 102, "aa_end": 292, "domain_id": "TP53_DBD"},
 ])
 result.summary       # one-row DataFrame
 result.isoform       # plot-ready DataFrame
 
-# Three rendering paths, same data
-p2e.plot(result, input_id="TP53_DBD", out="tp53_dbd.pdf")            # matplotlib
-p2e.plot(result, input_id="TP53_DBD", html="tp53_dbd.html")          # plotly
+# 3. Plot — three rendering paths, same data
+p2e.plot(result, input_id="TP53_DBD", out="tp53_dbd.pdf")                # matplotlib
+p2e.plot(result, input_id="TP53_DBD", html="tp53_dbd.html")              # plotly
 p2e.plot(result, input_id="TP53_DBD", html_interactive="tp53_dbd.html")  # vanilla JS
-p2e.render_interactive_jupyter(segs, plot_height=160)                   # inline in a notebook
+p2e.render_interactive_jupyter(segs, plot_height=160)                    # inline in a notebook
 ```
 
 Full API: [Python API wiki page](https://github.com/SotoLF/Prot2Exon/wiki/Python-API).
