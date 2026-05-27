@@ -550,6 +550,34 @@ ENSP99\t1\t10\tQ11_NOTFOUND
     assert_true("fetch index bad sha mentions mismatch",
                 "sha256 mismatch" in proc.stderr)
 
+    # `fetch list` lists both index presets and GTF-build presets.
+    proc = subprocess.run(
+        [sys.executable, "-m", "prot2exon.fetch", "list"],
+        env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "python")},
+        capture_output=True, text=True,
+    )
+    assert_eq("fetch list exit 0", 0, proc.returncode)
+    assert_true("fetch list shows pre-built indexes",
+                "Pre-built indexes" in proc.stdout)
+    assert_true("fetch list shows GTF-build presets",
+                "Build from GTF" in proc.stdout)
+    assert_true("fetch list shows the yeast index preset",
+                "yeast" in proc.stdout)
+
+    # `fetch index --preset` errors clearly when the Zenodo record id
+    # hasn't been published yet (URL still has `<RECORD>` placeholder).
+    proc = subprocess.run(
+        [sys.executable, "-m", "prot2exon.fetch", "index",
+         "--preset", "human-v49", "--out", str(work / "p49.idx")],
+        env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "python")},
+        capture_output=True, text=True,
+    )
+    # Either errors because `<RECORD>` is still a placeholder, OR succeeds
+    # if the URL has been updated post-Zenodo-upload. Both are valid.
+    pre_zenodo = "<RECORD>" in proc.stderr
+    assert_true("fetch index --preset gives a meaningful message either way",
+                pre_zenodo or proc.returncode == 0)
+
     # ---- _render_to_string + plot_height parametrisation ----------------
     # The render_to_string helper backs both the file writer and the
     # Jupyter wrapper, so we sanity-check it directly (no IPython needed).

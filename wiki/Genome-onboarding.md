@@ -7,14 +7,20 @@ There are two paths: **download a pre-built index** (instant, from our Zenodo de
 Skip the GTF parse + build (which can take ~20 s for human, less for smaller organisms) by downloading a pre-built `.idx` straight from the Zenodo data deposit.
 
 ```bash
-# Replace <RECORD> with the actual Zenodo record id once the deposit is published.
-python -m prot2exon.fetch index \
+# See what's available
+prot2exon fetch list
+
+# Download by preset name — URL + sha256 are baked in, --out defaults to ~/.cache/prot2exon/<preset>.idx
+prot2exon fetch index --preset human-v49
+
+# Or pass a custom URL (any HTTPS / Zenodo / file:// source)
+prot2exon fetch index \
     --url https://zenodo.org/record/<RECORD>/files/gencode_v49_human.idx \
     --out ~/.cache/prot2exon/human.idx \
     --sha256 ed848d78125dc795fa86a0af5402cb08ad679626fb153dda7a8ff2d6b47844f7
 ```
 
-The `--sha256` flag is optional but recommended — it verifies the downloaded file against the manifest. Re-running with `--out` already populated returns the cached path (pass `--force` to redownload).
+Re-running with `--out` already populated returns the cached path (pass `--force` to redownload). With `--url`, the `--sha256` flag is optional but strongly recommended — it verifies the downloaded file against the manifest.
 
 Available pre-built indexes in the Zenodo bundle (full list + checksums in the deposit's `MANIFEST.tsv`):
 

@@ -53,14 +53,27 @@ prot2exon plot --isoform results/isoform_structure.tsv \
 ### Pre-built indexes (instant, from Zenodo)
 
 ```bash
-# Download a pre-built .idx from a URL (Zenodo or any HTTPS source).
+# Discover what's available — both pre-built indexes AND GTF-build presets.
+prot2exon fetch list
+
+# Download a pre-built index by name — URL + sha256 are looked up internally.
+prot2exon fetch index --preset human-v49
+
+# Or pass a custom URL with --url (any Zenodo / HTTPS / file:// source).
 prot2exon fetch index \
     --url https://zenodo.org/record/<RECORD>/files/gencode_v49_human.idx \
     --out ~/.cache/prot2exon/human.idx \
     --sha256 <hex-from-MANIFEST.tsv>
 ```
 
-`--sha256` is optional but recommended. `file://` URLs work too — useful for testing or local mirrors.
+Available presets (also from `prot2exon fetch list`):
+
+- `human-v49`  · GENCODE v49 (~298 MB, current human)
+- `mouse-vM34` · GENCODE vM34 (~73 MB)
+- `human-v86`  · Ensembl 86 (~87 MB, for validation reproducibility)
+- `yeast`      · NCBI RefSeq S. cerevisiae R64 (~1.4 MB)
+
+With `--preset`, `--sha256` is baked in and `--out` defaults to `~/.cache/prot2exon/<preset>.idx`. With `--url`, both are user-supplied (`--sha256` is optional but strongly recommended).
 
 ### Build from a GTF
 

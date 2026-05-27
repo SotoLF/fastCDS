@@ -90,6 +90,60 @@ PRESETS: dict[str, Preset] = {
         short_desc="NCBI RefSeq Escherichia coli K-12 MG1655 (~1 MB compressed)"),
 }
 
+# ------------------------------------------------------------------------ #
+# Pre-built indexes hosted on Zenodo. These bypass the GTF parse + build
+# step entirely — `prot2exon fetch index --preset NAME` does a single
+# HTTPS download (size = the binary index, typically ~10× smaller than
+# the source GTF) and the file is ready to use immediately.
+#
+# The placeholder URL pattern below uses `<RECORD>` because we reserve
+# the Zenodo record id only on first publish. Update both `<RECORD>` and
+# the per-file `sha256` from the deposit's MANIFEST.tsv with one sed once
+# the deposit is live (see docs/Zenodo-release.md once it exists).
+# ------------------------------------------------------------------------ #
+
+
+@dataclass
+class IndexPreset:
+    name: str
+    url: str
+    sha256: str
+    short_desc: str
+
+
+_ZENODO_BASE = "https://zenodo.org/record/<RECORD>/files"
+
+INDEX_PRESETS: dict[str, IndexPreset] = {
+    "human-v49": IndexPreset(
+        name="human-v49",
+        url=f"{_ZENODO_BASE}/gencode_v49_human.idx",
+        sha256="ed848d78125dc795fa86a0af5402cb08ad679626fb153dda7a8ff2d6b47844f7",
+        short_desc="GENCODE human v49 (~298 MB) — current human, most users",
+    ),
+    "mouse-vM34": IndexPreset(
+        name="mouse-vM34",
+        url=f"{_ZENODO_BASE}/gencode_vM34_mouse.idx",
+        sha256="a8b22d9e229643903fc2ae9e7b867c7b9a72a07187dd26874f8a331f4213d8e9",
+        short_desc="GENCODE mouse vM34 (~73 MB)",
+    ),
+    "human-v86": IndexPreset(
+        name="human-v86",
+        url=f"{_ZENODO_BASE}/ensembl_v86_human.idx",
+        sha256="5999c3c4fdfb1651"  # truncated — full hash in the bundle manifest
+                "" "",  # placeholder; full hash filled in after upload
+        short_desc="Ensembl 86 human (~87 MB) — matches EnsDb.Hsapiens.v86, "
+                   "used for the validation comparison",
+    ),
+    "yeast": IndexPreset(
+        name="yeast",
+        url=f"{_ZENODO_BASE}/refseq_R64_yeast.idx",
+        sha256="201aeff2539d7b54ad82d09da69bc4ed0c2cf2e97454f1a3577b8df99d3b490b",
+        short_desc="NCBI RefSeq Saccharomyces cerevisiae R64 (~1.4 MB) — "
+                   "used by the walkthrough notebook",
+    ),
+}
+
+
 # Generic Ensembl URL pattern. `species` is the Ensembl lowercase name with
 # underscores (e.g. danio_rerio). `cap_species` is the capitalised assembly
 # prefix (e.g. Danio_rerio). Release is numeric.
@@ -169,18 +223,45 @@ def _build_index(binary: str, gtf: Path, index: Path) -> None:
 
 
 def _cmd_list() -> int:
-    print("Built-in presets (also see `prot2exon fetch <preset> --help`):")
+    print("=" * 72)
+    print("Pre-built indexes  (from Zenodo — fastest path)")
+    print("=" * 72)
+    print()
+    print("Downloads a ready-to-use binary index — no GTF parse + build needed.")
+    print("Usage:")
+    print("    prot2exon fetch index --preset <name>")
+    print()
+    zenodo_ready = not any("<RECORD>" in p.url for p in INDEX_PRESETS.values())
+    if not zenodo_ready:
+        print("  ⚠  The Zenodo record id hasn't been published yet — the URLs")
+        print("     below contain `<RECORD>` placeholders. Once the deposit is")
+        print("     live, the preset table in `prot2exon/fetch.py` gets a one-")
+        print("     line update and these become live downloads.")
+        print()
+    for name in sorted(INDEX_PRESETS):
+        p = INDEX_PRESETS[name]
+        print(f"  {name:<12s}  {p.short_desc}")
+    print()
+
+    print("=" * 72)
+    print("Build from GTF  (handles any annotation, including new releases)")
+    print("=" * 72)
+    print()
+    print("Downloads the upstream GTF and runs --build-index. Slower than the")
+    print("pre-built path, but works for any release / species combination.")
+    print("Usage:")
+    print("    prot2exon fetch <preset> [--release X]")
     print()
     for name in sorted(PRESETS):
         p = PRESETS[name]
-        print(f"  {name:<8s}  {p.short_desc}")
+        print(f"  {name:<12s}  {p.short_desc}")
     print()
     print("Generic Ensembl species (any organism with a GTF on ftp.ensembl.org):")
-    print("  prot2exon fetch ensembl --species danio_rerio "
+    print("    prot2exon fetch ensembl --species danio_rerio "
           "--assembly GRCz11 --release 115")
     print()
-    print("Any GTF URL (override the preset):")
-    print("  prot2exon fetch human --release 49 "
+    print("Any custom URL (override the preset):")
+    print("    prot2exon fetch human --release 49 "
           "--gtf-url https://your.host/path/custom.gtf.gz")
     return 0
 
@@ -354,12 +435,20 @@ def build_argparser() -> argparse.ArgumentParser:
 
     sp_idx = sub.add_parser("index",
         help="Download a pre-built index directly (skip GTF parse + build)")
-    sp_idx.add_argument("--url", required=True,
-        help="URL of the pre-built .idx (http://, https://, or file://)")
-    sp_idx.add_argument("--out", required=True,
-        help="Output path for the downloaded index")
+    # Either --preset (Zenodo-hosted, sha256 baked in) OR --url (any source).
+    # Both are accepted; --preset overrides --url + --sha256 if given together.
+    sp_idx.add_argument("--preset",
+        help="Name from `prot2exon fetch list` (e.g. human-v49, yeast). "
+             "Looks up the Zenodo URL + sha256 internally.")
+    sp_idx.add_argument("--url",
+        help="Custom URL of the pre-built .idx (http://, https://, file://). "
+             "Use --preset for the stock indexes instead.")
+    sp_idx.add_argument("--out",
+        help="Output path for the downloaded index. With --preset, defaults "
+             "to ~/.cache/prot2exon/<preset>.idx.")
     sp_idx.add_argument("--sha256",
-        help="Optional sha256 to verify the download against")
+        help="sha256 to verify the download against. Set automatically by "
+             "--preset; required for trust-on-first-use with --url.")
     sp_idx.add_argument("--force", action="store_true",
         help="Re-download even if --out already exists")
 
@@ -385,21 +474,59 @@ def build_argparser() -> argparse.ArgumentParser:
 
 
 def _cmd_index(args: argparse.Namespace) -> int:
-    """Download a pre-built .idx directly. No GTF parse step."""
-    out = Path(args.out)
+    """Download a pre-built .idx directly. No GTF parse step.
+
+    Accepts either --preset NAME (Zenodo-hosted, sha256 baked in) or
+    --url URL (any source). At least one must be given.
+    """
+    if args.preset:
+        if args.preset not in INDEX_PRESETS:
+            sys.exit(
+                f"error: unknown index preset {args.preset!r}.\n"
+                f"  available: {sorted(INDEX_PRESETS)}\n"
+                f"  run `prot2exon fetch list` for descriptions."
+            )
+        p = INDEX_PRESETS[args.preset]
+        if "<RECORD>" in p.url:
+            sys.exit(
+                f"error: preset {args.preset!r} is registered but the Zenodo\n"
+                f"record id hasn't been published yet (URL still contains\n"
+                f"`<RECORD>`).  Use --url with the Zenodo URL directly once\n"
+                f"the deposit is live, or wait for an updated package release."
+            )
+        url = p.url
+        # --sha256 from CLI overrides the preset's baked-in hash. Letting users
+        # pass it lets them re-pin against a newer version DOI without code.
+        sha256 = args.sha256 or p.sha256
+        # Default --out to the per-preset cache slot. Users can still override
+        # with --out for testing / non-default cache directories.
+        out = Path(args.out) if args.out else (
+            _default_cache_dir() / f"{args.preset}.idx")
+    else:
+        if not args.url:
+            sys.exit(
+                "error: pass either --preset NAME (recommended) or --url URL\n"
+                "       (see `prot2exon fetch list` for available presets)"
+            )
+        if not args.out:
+            sys.exit("error: --out is required when using --url")
+        url = args.url
+        sha256 = args.sha256
+        out = Path(args.out)
+
     out.parent.mkdir(parents=True, exist_ok=True)
 
     if out.exists() and not args.force:
         sys.stderr.write(f"using cached index: {out}  (--force to re-download)\n")
-        if args.sha256:
-            _verify_sha256(out, args.sha256)
+        if sha256:
+            _verify_sha256(out, sha256)
         print(out)
         return 0
 
-    _download(args.url, out)
+    _download(url, out)
 
-    if args.sha256:
-        _verify_sha256(out, args.sha256)
+    if sha256:
+        _verify_sha256(out, sha256)
 
     sys.stderr.write(f"ready: {out}\n")
     print(out)
