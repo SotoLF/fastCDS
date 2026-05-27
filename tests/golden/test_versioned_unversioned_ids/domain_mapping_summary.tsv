@@ -1,3 +1,3 @@
-input_id	protein_id	transcript_id	gene_id	gene_name	domain_id	chrom	strand	aa_start	aa_end	domain_length_aa	domain_length_nt	protein_length_aa	domain_genomic_start	domain_genomic_end	n_coding_segments	fully_mapped	no_domain_mode	input_id_type	is_mane_select	is_ensembl_canonical	cds_length_mismatch	cds_nt_remainder	status
-V_PLAIN	ENSP1	ENST1	ENSG1	TEST1	V_PLAIN	chrA	+	1	10	10	30	44	120	149	1	true	false	ENSP	true	true	false	0	ok
-V_VERSIONED	ENSP1	ENST1	ENSG1	TEST1	V_VERSIONED	chrA	+	1	10	10	30	44	120	149	1	true	false	ENSP	true	true	false	0	ok
+input_id	protein_id	transcript_id	gene_id	gene_name	domain_id	chrom	strand	aa_start	aa_end	domain_length_aa	domain_length_nt	protein_length_aa	domain_genomic_start	domain_genomic_end	n_coding_segments	fully_mapped	no_domain_mode	input_id_type	is_mane_select	is_ensembl_canonical	cds_length_mismatch	cds_nt_remainder	n_coding_exons_touched	n_introns_spanned	is_single_exon_domain	fraction_domain_in_largest_exon	intron_burden_nt	status
+V_PLAIN	ENSP1	ENST1	ENSG1	TEST1	V_PLAIN	chrA	+	1	10	10	30	44	120	149	1	true	false	ENSP	true	true	false	0	1	0	true	1.0000	0	ok
+V_VERSIONED	ENSP1	ENST1	ENSG1	TEST1	V_VERSIONED	chrA	+	1	10	10	30	44	120	149	1	true	false	ENSP	true	true	false	0	1	0	true	1.0000	0	ok
