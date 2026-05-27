@@ -14,7 +14,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "prot2exon"
-version = "2.2.0"
+version = "2.3.0"
 description = "Map protein-domain coordinates to genomic CDS/UTR/intron structure at proteome scale."
 readme = "README.md"
 requires-python = ">=3.9"

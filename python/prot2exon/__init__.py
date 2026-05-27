@@ -67,7 +67,7 @@ render_tfregdb2_html_stack = _make_alias(render_interactive_html_stack, "render_
 render_tfregdb2_jupyter_stack = _make_alias(render_interactive_jupyter_stack, "render_tfregdb2_jupyter_stack")
 
 
-__version__ = "2.2.0"
+__version__ = "2.3.0"
 __all__ = [
     "Mapper",
     "MappingResult",
