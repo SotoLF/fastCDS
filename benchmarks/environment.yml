@@ -1,0 +1,45 @@
+name: prot2exon-val
+# Env for reproducing the correctness + scaling benchmarks in
+# benchmarks/README.md (and on the Validation / Benchmarks wiki pages).
+#
+# Usage:
+#   conda env create -f benchmarks/environment.yml
+#   conda activate prot2exon-val
+#   Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org"); \
+#               BiocManager::install(c("ensembldb", "EnsDb.Hsapiens.v86", "AnnotationHub"), \
+#                                     ask = FALSE, update = FALSE)'
+#
+# Bioconductor packages are installed via BiocManager rather than pinned
+# in this YAML — bioconda's `bioconductor-ensembldb` has a known metadata
+# bug (r-rjson declares r=3.3.1 as a hard dep) that prevents conda from
+# solving the env. BiocManager + CRAN/Bioconductor compiles from source
+# but works.
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # R toolchain
+  - r-base=4.4
+  - gcc_linux-64=13         # gcc 15+ rejects rtracklayer's bundled UCSC C code
+  - gxx_linux-64=13
+  - libxml2=2.13.9          # newer conda-forge libxml2 is runtime-only — XML R pkg needs headers
+  - libpng
+  - libcurl
+  - openssl
+  - zlib
+  - bzip2
+  - xz
+  - pkg-config
+
+  # Python side of the benchmark harness
+  - python=3.11
+  - pandas>=2.0
+  - matplotlib-base>=3.7
+  - numpy>=1.24
+  - requests>=2.30          # benchmarks/run_ensembl_rest.py
+  - tqdm
+  - pip
+  - pip:
+    - prot2exon              # the Python wrapper — uncomment once published
