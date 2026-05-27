@@ -2,6 +2,7 @@
 # Top-level entry point for the prot2exon toolkit.
 #
 #   prot2exon plot ...     -> python plotter (python/prot2exon/plot.py)
+#   prot2exon fetch ...    -> download + build a stock index (python/prot2exon/fetch.py)
 #   prot2exon <other>...   -> the C++ binary that does the mapping
 #
 # The C++ binary is discovered in this order:
@@ -18,6 +19,15 @@ if [[ "${1:-}" == "plot" ]]; then
     shift
     export PYTHONPATH="$repo_root/python${PYTHONPATH:+:$PYTHONPATH}"
     exec python3 -m prot2exon.plot "$@"
+fi
+
+if [[ "${1:-}" == "fetch" ]]; then
+    shift
+    # `fetch` is stdlib-only, so invoke the file directly to avoid loading
+    # the package __init__.py (which imports pandas/matplotlib for the
+    # mapper / plotter — not needed here, and absent in the system Python
+    # used by this wrapper on dev machines).
+    exec python3 "$repo_root/python/prot2exon/fetch.py" "$@"
 fi
 
 binary="${PROT2EXON_BIN:-}"

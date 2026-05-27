@@ -133,12 +133,19 @@ class Mapper:
         docstring for the search order).
     threads : int
         Forwarded to `--threads N` for parallel batch mapping.
+    batch_size : int
+        Forwarded to `--batch-size N`. 0 (default) processes all queries
+        at once with the lowest overhead and the highest peak RAM. A
+        positive N streams results to disk in chunks of N queries, bounding
+        peak memory at roughly O(N * per-query result size). Useful for
+        million-query runs on memory-constrained machines.
     verbose : bool
         If True, the binary's stderr is streamed to this process's stderr;
         otherwise it's captured and only surfaced on failure.
     """
 
     def __init__(self, index, binary=None, *, threads: int = 1,
+                 batch_size: int = 0,
                  verbose: bool = False) -> None:
         self.index = os.fspath(index)
         if not os.path.exists(self.index):
@@ -148,6 +155,9 @@ class Mapper:
             raise FileNotFoundError(
                 f"Binary not executable: {self.binary}")
         self.threads = int(threads)
+        if int(batch_size) < 0:
+            raise ValueError(f"batch_size must be >= 0, got {batch_size!r}")
+        self.batch_size = int(batch_size)
         self.verbose = bool(verbose)
 
     # ------------------------------------------------------------------ #
@@ -253,6 +263,8 @@ class Mapper:
         ]
         if self.threads > 1:
             cmd += ["--threads", str(self.threads)]
+        if self.batch_size > 0:
+            cmd += ["--batch-size", str(self.batch_size)]
         if self.verbose:
             cmd += ["--verbose"]
         proc = subprocess.run(
