@@ -1,0 +1,85 @@
+# Top-level pyproject so `pip install .` and `python -m build` from the repo
+# root just work. The Python source lives under `python/prot2exon/`; this
+# file re-declares it here with the right package_dir so build tools find it.
+#
+# Note for packagers: this file does NOT build the C++ binary. The Python
+# wrapper subprocess-calls the binary at runtime — bioconda + the Dockerfile
+# build it via CMake separately. End-users with `pip install prot2exon` get
+# the wrapper; they're expected to install the compiled binary via bioconda
+# or build from source per the README.
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prot2exon"
+version = "2.2.0"
+description = "Map protein-domain coordinates to genomic CDS/UTR/intron structure at proteome scale."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Luis F. Soto Ugaldi" },
+    { name = "George D. Muñoz Esquivel" },
+]
+keywords = [
+    "bioinformatics", "protein-domain", "genomics", "exon", "intron",
+    "mapping", "GTF", "Ensembl", "GENCODE", "RefSeq", "Pfam", "InterPro",
+    "visualization",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "pandas>=1.4",
+    "matplotlib>=3.5",
+]
+
+[project.optional-dependencies]
+# Interactive HTML output (plot --html / p2e.plot(..., html=...))
+html = ["plotly>=5.0"]
+# Reproducing the validation suite (R + ensembldb live in environment.yml).
+benchmarks = ["scipy>=1.7", "numpy>=1.21"]
+# Building + executing the worked-example notebooks.
+notebooks = ["jupyter>=1.0", "nbconvert>=7.0", "nbclient>=0.7"]
+# Everything above.
+all = [
+    "plotly>=5.0",
+    "scipy>=1.7",
+    "numpy>=1.21",
+    "jupyter>=1.0",
+    "nbconvert>=7.0",
+    "nbclient>=0.7",
+]
+
+[project.urls]
+Homepage      = "https://github.com/SotoLF/Prot2Exon"
+Repository    = "https://github.com/SotoLF/Prot2Exon"
+Documentation = "https://github.com/SotoLF/Prot2Exon/wiki"
+Issues        = "https://github.com/SotoLF/Prot2Exon/issues"
+Changelog     = "https://github.com/SotoLF/Prot2Exon/blob/main/CHANGELOG.md"
+
+[project.scripts]
+# Direct entry-point to the plotter. The bash wrapper `bin/prot2exon`
+# remains the unified CLI dispatching to the C++ binary + the Python
+# subcommands; this entry is for users who only need the Python plotter.
+"prot2exon-plot" = "prot2exon.plot:main"
+
+# ----------------------------------------------------------------------
+# Package discovery — source lives under python/.
+# ----------------------------------------------------------------------
+[tool.setuptools]
+package-dir = {"" = "python"}
+
+[tool.setuptools.packages.find]
+where = ["python"]
+include = ["prot2exon*"]
