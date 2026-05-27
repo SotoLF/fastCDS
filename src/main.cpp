@@ -20,6 +20,9 @@ struct Config {
     bool use_index = false;
     bool verbose = false;
     int threads = 1;
+    // 0 = process all queries at once (current default; lowest overhead,
+    // highest peak RAM). > 0 = stream results to disk in chunks of N queries.
+    size_t batch_size = 0;
 };
 
 void print_usage(const char* program_name) {
@@ -54,6 +57,10 @@ void print_usage(const char* program_name) {
 << "\n"
 << "  Other:\n"
 << "    --threads NUM    Process queries in parallel via OpenMP. Default: 1.\n"
+<< "    --batch-size N   Stream results to disk in chunks of N queries instead\n"
+<< "                     of holding the full result set in RAM. Bounds peak\n"
+<< "                     memory at roughly O(N * per-query result size).\n"
+<< "                     0 (default) = process all queries at once.\n"
 << "    --verbose        Log progress to stderr.\n"
 << "    --version        Print version and exit.\n"
 << "    --help           This message.\n"
@@ -280,6 +287,7 @@ int parse_arguments(int argc, char* argv[], Config& config) {
         {"build-index", no_argument,       0, 'i'},
         {"index",       required_argument, 0, 'x'},
         {"threads",     required_argument, 0, 't'},
+        {"batch-size",  required_argument, 0, 'B'},
         {"verbose",     no_argument,       0, 'v'},
         {"help",        no_argument,       0, 'h'},
         {"version",     no_argument,       0, 'V'},
@@ -287,7 +295,7 @@ int parse_arguments(int argc, char* argv[], Config& config) {
     };
     int option_index = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "g:b:O:o:ix:t:vhV", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "g:b:O:o:ix:t:B:vhV", long_options, &option_index)) != -1) {
         switch (c) {
             case 'g': config.gtf_file = optarg; break;
             case 'b': config.bed_file = optarg; break;
@@ -306,6 +314,12 @@ int parse_arguments(int argc, char* argv[], Config& config) {
                 config.threads = std::stoi(optarg);
                 if (config.threads < 1) { std::cerr << "Error: --threads must be >= 1\n"; return 1; }
                 break;
+            case 'B': {
+                long long b = std::stoll(optarg);
+                if (b < 0) { std::cerr << "Error: --batch-size must be >= 0\n"; return 1; }
+                config.batch_size = static_cast<size_t>(b);
+                break;
+            }
             case 'v': config.verbose = true; break;
             case 'h': print_usage(argv[0]); return 0;
             case 'V': print_version(); return 0;
@@ -404,19 +418,34 @@ int main(int argc, char* argv[]) {
             ErrorCode rc = mapper.load_domains(config.bed_file);
             if (rc != ErrorCode::SUCCESS) return 1;
         }
-        {
-            Timer t("Domain mapping");
-            ErrorCode rc = mapper.process_domains();
-            if (rc != ErrorCode::SUCCESS) return 1;
-        }
 
         std::vector<std::string> cli_args;
         for (int i = 0; i < argc; ++i) cli_args.emplace_back(argv[i]);
         std::string source = config.use_index ? config.index_file : config.gtf_file;
 
-        ErrorCode rc = output::write_all(config.out_dir, config.output_kind,
-                                         mapper.results(), source, cli_args);
-        if (rc != ErrorCode::SUCCESS) return 1;
+        if (config.batch_size == 0) {
+            {
+                Timer t("Domain mapping");
+                ErrorCode rc = mapper.process_domains();
+                if (rc != ErrorCode::SUCCESS) return 1;
+            }
+            ErrorCode rc = output::write_all(config.out_dir, config.output_kind,
+                                             mapper.results(), source, cli_args);
+            if (rc != ErrorCode::SUCCESS) return 1;
+        } else {
+            Timer t("Domain mapping (streaming)");
+            output::StreamingWriter writer(config.out_dir, config.output_kind);
+            ErrorCode rc = writer.open();
+            if (rc != ErrorCode::SUCCESS) return 1;
+            rc = mapper.process_domains_streaming(
+                config.batch_size,
+                [&writer](std::vector<DomainResult>& chunk) {
+                    writer.append(chunk);
+                });
+            if (rc != ErrorCode::SUCCESS) return 1;
+            rc = writer.finalize(source, cli_args);
+            if (rc != ErrorCode::SUCCESS) return 1;
+        }
 
         if (config.verbose) {
             std::cerr << "\n=== Final ===\n"

@@ -3,6 +3,7 @@
 
 #include "common.hpp"
 #include "gtf_parser.hpp"
+#include <functional>
 
 struct ProteinDomain {
     std::string input_id;
@@ -114,6 +115,15 @@ struct MappingSummaryRow {
     bool fully_mapped;
     bool no_domain_mode;
 
+    // Derived architecture metrics (zero/false in no_domain or unmapped rows).
+    // Cheap to compute alongside the mapping; useful for atlas-scale analyses
+    // so users don't have to re-aggregate from the segment TSVs every time.
+    uint32_t n_coding_exons_touched = 0;        // distinct GTF CDS exons that overlap the domain
+    uint32_t n_introns_spanned      = 0;        // introns between two coding_overlap CDS rows
+    bool     is_single_exon_domain  = false;    // n_coding_exons_touched == 1
+    double   fraction_domain_in_largest_exon = 0.0;  // [0,1]; sums of overlap_fraction_of_domain
+    uint32_t intron_burden_nt       = 0;        // sum of lengths of the introns spanned
+
     // New in v2.2: transcript-level flags & CDS-mismatch.
     TriBool is_mane_select = TriBool::NA;
     TriBool is_ensembl_canonical = TriBool::NA;
@@ -154,6 +164,19 @@ public:
     ErrorCode load_domains(const std::string& bed_filename);
     ErrorCode process_domains();
 
+    // Process queries in chunks of `batch_size`, invoking `on_chunk` once per
+    // chunk with the results for that slice of the input. After the callback
+    // returns, the chunk is destroyed. Use this path to bound peak RAM at
+    // roughly O(batch_size * per-query result size); the one-shot
+    // process_domains() keeps O(N) like before.
+    //
+    // results() is NOT populated by the streaming path; the streaming caller
+    // is expected to consume each chunk inside on_chunk. mapped/unmapped
+    // counts ARE tracked so the same accessors keep working afterwards.
+    ErrorCode process_domains_streaming(
+        size_t batch_size,
+        const std::function<void(std::vector<DomainResult>&)>& on_chunk);
+
     const std::vector<DomainResult>& results() const { return results_; }
     size_t domain_count() const { return domains_.size(); }
     size_t mapped_count() const;
@@ -164,6 +187,11 @@ private:
     OutputKind output_kind_;
     std::vector<ProteinDomain> domains_;
     std::vector<DomainResult> results_;
+    // Tracked separately so the streaming path (which never populates
+    // results_) can still answer mapped_count() / unmapped_count().
+    size_t streamed_mapped_ = 0;
+    size_t streamed_unmapped_ = 0;
+    bool streamed_ = false;
 
     DomainResult process_one(const ProteinDomain& d) const;
 };

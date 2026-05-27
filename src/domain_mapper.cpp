@@ -595,6 +595,33 @@ DomainResult DomainMapper::process_one(const ProteinDomain& d) const {
         r.plot_group = plot_group_for(r.feature_type, r.overlap);
     }
 
+    // ----- Derived architecture metrics on the summary row -----
+    // Computed here (not in the summary block above) because they need the
+    // fully classified `rows2`. Zero/false for no-domain or unmapped queries.
+    if (d.has_domain()) {
+        std::unordered_map<uint32_t, double> fraction_by_exon;   // source_cds_index → Σ fraction_of_domain
+        uint32_t n_introns_spanned = 0;
+        uint32_t intron_burden_nt = 0;
+        for (const auto& r : rows2) {
+            if (r.overlap == DomainOverlapKind::CODING_OVERLAP) {
+                fraction_by_exon[r.source_cds_index] += r.domain_overlap_fraction_of_domain;
+            } else if (r.overlap == DomainOverlapKind::INSIDE_DOMAIN_GENOMIC_SPAN
+                       && r.feature_type == PlotFeatureType::INTRON) {
+                ++n_introns_spanned;
+                intron_burden_nt += r.feature_length_nt;
+            }
+        }
+        double max_fraction = 0.0;
+        for (const auto& kv : fraction_by_exon) {
+            if (kv.second > max_fraction) max_fraction = kv.second;
+        }
+        R.summary.n_coding_exons_touched = static_cast<uint32_t>(fraction_by_exon.size());
+        R.summary.n_introns_spanned = n_introns_spanned;
+        R.summary.is_single_exon_domain = (fraction_by_exon.size() == 1);
+        R.summary.fraction_domain_in_largest_exon = max_fraction;
+        R.summary.intron_burden_nt = intron_burden_nt;
+    }
+
     R.isoform_segments = std::move(rows2);
     return R;
 }
@@ -619,7 +646,42 @@ ErrorCode DomainMapper::process_domains() {
 }
 
 size_t DomainMapper::mapped_count() const {
+    if (streamed_) return streamed_mapped_;
     size_t n = 0;
     for (const auto& r : results_) if (r.mapped) ++n;
     return n;
+}
+
+ErrorCode DomainMapper::process_domains_streaming(
+    size_t batch_size,
+    const std::function<void(std::vector<DomainResult>&)>& on_chunk) {
+    if (batch_size == 0) batch_size = domains_.size();
+    streamed_ = true;
+    streamed_mapped_ = 0;
+    streamed_unmapped_ = 0;
+    results_.clear();
+
+    const size_t N = domains_.size();
+    auto t0 = std::chrono::high_resolution_clock::now();
+    for (size_t start = 0; start < N; start += batch_size) {
+        const size_t end = std::min(start + batch_size, N);
+        std::vector<DomainResult> chunk(end - start);
+#ifdef USE_OPENMP
+        #pragma omp parallel for schedule(dynamic, 64)
+#endif
+        for (size_t i = start; i < end; ++i) {
+            chunk[i - start] = process_one(domains_[i]);
+        }
+        for (const auto& r : chunk) {
+            if (r.mapped) ++streamed_mapped_; else ++streamed_unmapped_;
+        }
+        on_chunk(chunk);
+        // chunk goes out of scope at end of iteration, freeing per-result rows.
+    }
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    std::cerr << "Mapped " << streamed_mapped_ << "/" << N
+              << " queries (" << streamed_unmapped_ << " unmapped) in "
+              << ms << "ms (batch_size=" << batch_size << ")" << std::endl;
+    return ErrorCode::SUCCESS;
 }
