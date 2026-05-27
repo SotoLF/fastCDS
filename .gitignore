@@ -38,3 +38,8 @@ python/dist/
 # Packaging build artifacts (re-buildable via `python -m build`)
 packaging/pypi/*.whl
 packaging/pypi/*.tar.gz
+
+# Python build artifacts
+dist/
+*.egg-info/
+*.egg
