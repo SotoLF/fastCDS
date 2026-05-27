@@ -230,6 +230,106 @@ def _draw_genomic(ax, segs: list[Segment], *, show_introns: bool,
     ax.spines["left"].set_visible(False)
 
 
+def _draw_compact_genomic(ax, segs: list[Segment], *, show_utr: bool,
+                          highlight_domain: bool) -> None:
+    """Genomic-style layout with introns clamped to a fixed visual width.
+
+    Use this when one long intron dwarfs the rest of the transcript — full
+    genomic coords would render every exon as a hair-thin sliver. We keep
+    CDS / UTR at their true bp scale (so domain proportions stay honest) and
+    replace each intron's width with `intron_disp_w`. A small "//" marker on
+    the intron line flags compression, and the x-axis ticks carry the true
+    genomic coordinate at each segment boundary.
+    """
+    # Genomic-order draw; sentinel introns get the clamped width.
+    ordered = sorted(segs, key=lambda s: s.feature_genomic_start)
+    if not show_utr:
+        ordered = [s for s in ordered if s.feature_type not in
+                   ("five_prime_UTR", "three_prime_UTR")]
+
+    # Display width of an intron — fixed fraction of the largest non-intron
+    # feature so the figure stays balanced.
+    nonintron_widths = [
+        s.feature_genomic_end - s.feature_genomic_start + 1
+        for s in ordered if s.feature_type != "intron"
+    ]
+    if not nonintron_widths:
+        return
+    intron_disp_w = max(max(nonintron_widths) * 0.15, 50.0)
+
+    y_center = 0.5
+    cursor = 0.0
+    # display_x_of_boundary[i] = display cursor at the *start* of ordered[i].
+    boundaries = []
+    for s in ordered:
+        boundaries.append((cursor, s))
+        true_w = s.feature_genomic_end - s.feature_genomic_start + 1
+        disp_w = intron_disp_w if s.feature_type == "intron" else true_w
+        color = PLOT_GROUP_COLORS.get(s.plot_group, "#777777")
+        if not highlight_domain:
+            if s.plot_group == "CDS_domain":
+                color = PLOT_GROUP_COLORS["CDS"]
+            elif s.plot_group == "intron_domain_span":
+                color = PLOT_GROUP_COLORS["intron"]
+        if s.feature_type == "intron":
+            ax.plot([cursor, cursor + disp_w], [y_center, y_center],
+                    color=color, lw=1.2, solid_capstyle="butt", zorder=1)
+            # "//" compression marker — only when we actually compressed.
+            if disp_w < true_w:
+                ax.text(cursor + disp_w / 2.0, y_center + 0.04, "//",
+                        ha="center", va="bottom", fontsize=8, color="#444444",
+                        zorder=3)
+        else:
+            h = feature_height(s.feature_type)
+            rect = mpatches.Rectangle(
+                (cursor, y_center - h / 2.0), disp_w, h,
+                facecolor=color, edgecolor="black", linewidth=0.4, zorder=2,
+            )
+            ax.add_patch(rect)
+        cursor += disp_w
+
+    # Strand arrow at the top.
+    xmin, xmax = 0.0, cursor
+    arrow_y = y_center + 0.55
+    pad = (xmax - xmin) * 0.04 if xmax > xmin else 1
+    if (ordered[0].strand or "+") == "+":
+        ax.annotate("", xy=(xmax - pad, arrow_y), xytext=(xmin + pad, arrow_y),
+                    arrowprops=dict(arrowstyle="->", color="#444444", lw=1))
+        ax.text(xmin, arrow_y + 0.05, "5'", color="#444444", va="bottom")
+        ax.text(xmax, arrow_y + 0.05, "3'", color="#444444", va="bottom",
+                ha="right")
+    else:
+        ax.annotate("", xy=(xmin + pad, arrow_y), xytext=(xmax - pad, arrow_y),
+                    arrowprops=dict(arrowstyle="->", color="#444444", lw=1))
+        ax.text(xmax, arrow_y + 0.05, "5'", color="#444444", va="bottom",
+                ha="right")
+        ax.text(xmin, arrow_y + 0.05, "3'", color="#444444", va="bottom")
+
+    # X-axis ticks at segment boundaries, labelled with the true genomic
+    # coord (5' end of each feature in display order; plus the 3' end of the
+    # last feature so the right edge is anchored).
+    ticks, labels = [], []
+    for (disp_x, seg) in boundaries:
+        ticks.append(disp_x)
+        labels.append(str(seg.feature_genomic_start))
+    ticks.append(cursor)
+    labels.append(str(ordered[-1].feature_genomic_end))
+    # Thin out if too many ticks (cap at ~10).
+    if len(ticks) > 10:
+        step = max(1, len(ticks) // 10)
+        ticks = ticks[::step]
+        labels = labels[::step]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels, fontsize=7, rotation=30, ha="right")
+    ax.set_xlim(xmin - (xmax - xmin) * 0.02, xmax + (xmax - xmin) * 0.02)
+    ax.set_ylim(0, 1.6)
+    ax.set_yticks([])
+    ax.set_xlabel(f"genomic position, introns compressed ({ordered[0].chrom})")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+
+
 def _draw_spliced(ax, segs: list[Segment], *, show_utr: bool,
                   highlight_domain: bool) -> None:
     """Concatenate non-intron features in translation order. Useful when
@@ -306,12 +406,19 @@ def render_one(segs: list[Segment], *, out: str | None = None,
                show_utr: bool = True,
                highlight_domain: bool = True,
                spliced: bool = False,
+               compact_genomic: bool = False,
                fig=None):
     """Render one query. If `fig` is provided we draw into it (PdfPages).
 
     Uses constrained_layout so the bottom legend, the xlabel and the title
     don't compete for space. constrained_layout supersedes tight_layout and
     handles fig.legend() positioning correctly out of the box.
+
+    Layout modes (mutually exclusive — first true one wins):
+        spliced=True          -> introns dropped, exons concatenated
+        compact_genomic=True  -> genomic order, introns clamped to a fixed
+                                 display width (best for long-intron genes)
+        otherwise             -> full genomic layout (1 bp = 1 unit)
     """
     own_fig = fig is None
     if own_fig:
@@ -327,10 +434,15 @@ def render_one(segs: list[Segment], *, out: str | None = None,
     if spliced:
         _draw_spliced(ax, segs, show_utr=show_utr,
                       highlight_domain=highlight_domain)
+    elif compact_genomic:
+        _draw_compact_genomic(ax, segs, show_utr=show_utr,
+                              highlight_domain=highlight_domain)
     else:
         _draw_genomic(ax, segs, show_introns=show_introns, show_utr=show_utr,
                       highlight_domain=highlight_domain)
-    _legend(fig, ax, show_introns=show_introns and not spliced, show_utr=show_utr,
+    _legend(fig, ax,
+            show_introns=show_introns and not spliced,
+            show_utr=show_utr,
             highlight_domain=highlight_domain)
     ax.set_title(title or _title_for(segs))
     if own_fig and out:
@@ -344,8 +456,37 @@ def render_one(segs: list[Segment], *, out: str | None = None,
 # Optional plotly HTML export
 # --------------------------------------------------------------------------- #
 
+from ._interactive_html import render_interactive_html
+
+
+def _expand_link_template(template: str, s0: Segment) -> str | None:
+    """Fill `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`,
+    `{start}`, `{end}` placeholders from the first plottable segment. Returns
+    None if any referenced placeholder is empty (so we don't generate a dead
+    link to TFRegDB2 etc.)."""
+    fields = {
+        "protein_id":   s0.protein_id,
+        "gene_name":    s0.gene_name,
+        "transcript_id": s0.transcript_id,
+        "chrom":        s0.chrom,
+        "start":        s0.feature_genomic_start,
+        "end":          s0.feature_genomic_end,
+    }
+    try:
+        url = template.format(**fields)
+    except (KeyError, IndexError):
+        return None
+    # If any used field was empty, the template will contain `''` substrings
+    # that defeat the purpose of a linkout. Heuristic: bail if the URL still
+    # looks broken (`//`, trailing `/`, etc. after host).
+    if "/{" in url or "}" in url:
+        return None
+    return url
+
+
 def render_html(segs: list[Segment], out: str, *, highlight_domain: bool = True,
-                show_introns: bool = True, show_utr: bool = True) -> None:
+                show_introns: bool = True, show_utr: bool = True,
+                link_template: str | None = None) -> None:
     """Render an interactive HTML view with a bottom rangeslider.
 
     The output uses ``go.Bar`` (horizontal) for UTR/CDS segments and
@@ -499,6 +640,16 @@ def render_html(segs: list[Segment], out: str, *, highlight_domain: bool = True,
     if s0.is_ensembl_canonical == "true": flags.append("Ensembl_canonical")
     if flags: title_bits.append("[" + ",".join(flags) + "]")
     title_bits.append(f"({s0.chrom} {strand})")
+    # Optional clickable linkout (e.g. TFRegDB2 entry page, UniProt, UCSC).
+    # Rendered as an `<a href>` inside the plotly title — plotly title text
+    # accepts a small set of HTML tags including `<a>`.
+    if link_template:
+        url = _expand_link_template(link_template, s0)
+        if url:
+            title_bits.append(
+                f'<a href="{url}" target="_blank" '
+                f'style="color:#1f77b4;text-decoration:underline">↗ link</a>'
+            )
     title = "   ".join(title_bits)
 
     fig.update_layout(
@@ -645,7 +796,10 @@ def plot(source, *, input_id: str | None = None,
          show_introns: bool = True,
          show_utr: bool = True,
          highlight_domain: bool = True,
-         spliced: bool = False):
+         spliced: bool = False,
+         compact_genomic: bool = False,
+         link_template: str | None = None,
+         html_interactive: str | None = None):
     """Render one query (or every query) from a mapping result.
 
     Parameters
@@ -700,11 +854,16 @@ def plot(source, *, input_id: str | None = None,
 
     fig = render_one(by_id[input_id], out=out, width=width, height=height,
                      title=title, show_introns=show_introns, show_utr=show_utr,
-                     highlight_domain=highlight_domain, spliced=spliced)
+                     highlight_domain=highlight_domain, spliced=spliced,
+                     compact_genomic=compact_genomic)
     if html:
         render_html(by_id[input_id], html,
                     highlight_domain=highlight_domain,
-                    show_introns=show_introns, show_utr=show_utr)
+                    show_introns=show_introns, show_utr=show_utr,
+                    link_template=link_template)
+    if html_interactive:
+        render_interactive_html(by_id[input_id], html_interactive,
+                             link_template=link_template)
     return fig
 
 
@@ -715,7 +874,10 @@ def plot_all(source, *, out: str,
              show_introns: bool = True,
              show_utr: bool = True,
              highlight_domain: bool = True,
-             spliced: bool = False) -> int:
+             spliced: bool = False,
+             compact_genomic: bool = False,
+             link_template: str | None = None,
+             html_interactive: str | None = None) -> int:
     """Render every input_id in ``source``. With a ``.pdf`` output the result
     is a multipage PDF; otherwise one file per ``input_id`` is written
     (``base.<input_id>.ext``).
@@ -734,7 +896,8 @@ def plot_all(source, *, out: str,
                                  constrained_layout=True)
                 render_one(by_id[i], fig=fig, width=width, height=height,
                            show_introns=show_introns, show_utr=show_utr,
-                           highlight_domain=highlight_domain, spliced=spliced)
+                           highlight_domain=highlight_domain, spliced=spliced,
+                           compact_genomic=compact_genomic)
                 pdf.savefig(fig)
                 plt.close(fig)
         print(f"Wrote {out} ({len(ids)} pages)", file=sys.stderr)
@@ -744,13 +907,20 @@ def plot_all(source, *, out: str,
             render_one(by_id[i], out=f"{base}.{i}{ext}",
                        width=width, height=height,
                        show_introns=show_introns, show_utr=show_utr,
-                       highlight_domain=highlight_domain, spliced=spliced)
+                       highlight_domain=highlight_domain, spliced=spliced,
+                       compact_genomic=compact_genomic)
     if html:
         base, ext = os.path.splitext(html)
         for i in ids:
             render_html(by_id[i], f"{base}.{i}{ext}",
                         highlight_domain=highlight_domain,
-                        show_introns=show_introns, show_utr=show_utr)
+                        show_introns=show_introns, show_utr=show_utr,
+                        link_template=link_template)
+    if html_interactive:
+        base, ext = os.path.splitext(html_interactive)
+        for i in ids:
+            render_interactive_html(by_id[i], f"{base}.{i}{ext}",
+                                 link_template=link_template)
     return len(ids)
 
 
@@ -786,12 +956,35 @@ def _argparser() -> argparse.ArgumentParser:
                    help="Hide UTR boxes.")
     p.add_argument("--spliced", action="store_true",
                    help="Concatenate non-intron features in translation order.")
+    p.add_argument("--compact-genomic", action="store_true",
+                   help="Keep genomic order, but clamp every intron to a "
+                        "fixed display width (best for long-intron genes).")
+    p.add_argument("--link-template", default=None,
+                   help="URL template for an external linkout shown next to "
+                        "the title in --html / --html-interactive output. "
+                        "Placeholders: {protein_id}, {gene_name}, "
+                        "{transcript_id}, {chrom}, {start}, {end}. Example: "
+                        "'https://www.ensembl.org/Homo_sapiens/Transcript/"
+                        "ProteinSummary?p={protein_id}'")
+    # Primary flag — `dest=html_interactive` so the kwarg/attribute matches.
+    p.add_argument("--html-interactive", dest="html_interactive", default=None,
+                   help="Write a self-contained interactive HTML viewer "
+                        "(vanilla JS — no external dependencies, no CDN). "
+                        "Pass alongside --html to compare against plotly.")
+    # Deprecated alias — old --html-tfregdb2 still works for one release.
+    p.add_argument("--html-tfregdb2", dest="html_interactive",
+                   default=argparse.SUPPRESS,
+                   help=argparse.SUPPRESS)
     p.set_defaults(highlight=True, introns=True, utr=True)
     return p
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _argparser().parse_args(argv)
+    if args.spliced and args.compact_genomic:
+        print("error: --spliced and --compact-genomic are mutually exclusive",
+              file=sys.stderr)
+        return 2
     by_id = load_isoform_tsv(args.isoform)
     if not by_id:
         print(f"No rows in {args.isoform}", file=sys.stderr)
@@ -818,7 +1011,8 @@ def main(argv: list[str] | None = None) -> int:
                                title=(args.title if len(ids) == 1 else None),
                                show_introns=args.introns, show_utr=args.utr,
                                highlight_domain=args.highlight,
-                               spliced=args.spliced)
+                               spliced=args.spliced,
+                               compact_genomic=args.compact_genomic)
                     pdf.savefig(fig)
                     plt.close(fig)
             print(f"Wrote {args.out} ({len(ids)} pages)", file=sys.stderr)
@@ -833,7 +1027,8 @@ def main(argv: list[str] | None = None) -> int:
                                title=args.title,
                                show_introns=args.introns, show_utr=args.utr,
                                highlight_domain=args.highlight,
-                               spliced=args.spliced)
+                               spliced=args.spliced,
+                               compact_genomic=args.compact_genomic)
             else:
                 render_one(by_id[ids[0]], out=args.out,
                            width=args.width, height=args.height,
@@ -848,14 +1043,28 @@ def main(argv: list[str] | None = None) -> int:
             for i in ids:
                 render_html(by_id[i], f"{base}.{i}{ext}",
                             highlight_domain=args.highlight,
-                            show_introns=args.introns, show_utr=args.utr)
+                            show_introns=args.introns, show_utr=args.utr,
+                            link_template=args.link_template)
         else:
             render_html(by_id[ids[0]], args.html,
                         highlight_domain=args.highlight,
-                        show_introns=args.introns, show_utr=args.utr)
+                        show_introns=args.introns, show_utr=args.utr,
+                        link_template=args.link_template)
 
-    if not args.out and not args.html:
-        print("Nothing to do: pass --out and/or --html.", file=sys.stderr)
+    if args.html_interactive:
+        if len(ids) > 1:
+            base, ext = os.path.splitext(args.html_interactive)
+            for i in ids:
+                render_interactive_html(by_id[i], f"{base}.{i}{ext}",
+                                     link_template=args.link_template)
+        else:
+            render_interactive_html(by_id[ids[0]], args.html_interactive,
+                                 link_template=args.link_template)
+        print(f"Wrote {args.html_interactive}", file=sys.stderr)
+
+    if not args.out and not args.html and not args.html_interactive:
+        print("Nothing to do: pass --out, --html, or --html-interactive.",
+              file=sys.stderr)
         return 1
     return 0
 
