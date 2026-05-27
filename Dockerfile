@@ -70,7 +70,7 @@ RUN prot2exon-core --help > /dev/null \
 LABEL org.opencontainers.image.title="prot2exon" \
       org.opencontainers.image.description="Map protein domain coords to genomic/transcript structure." \
       org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.source="https://github.com/SotoLF/protein2genomic"
+      org.opencontainers.image.source="https://github.com/SotoLF/Prot2Exon"
 
 ENTRYPOINT ["prot2exon"]
 CMD ["--help"]

@@ -1,0 +1,48 @@
+cff-version: 1.2.0
+message: "If you use Prot2Exon in your research, please cite it as below."
+title: "Prot2Exon: map protein-domain amino-acid coordinates to genomic exon/intron structure at proteome scale"
+abstract: >
+  Prot2Exon is a C++17 + Python tool that converts protein-domain
+  amino-acid ranges (from InterProScan, HMMER/Pfam, UniProt features,
+  or any BED-like input) into exact genomic coordinates, exon/intron
+  decomposition, and plot-ready isoform structure tables. It is
+  validated against ensembldb to 100 % exact match on a 5,000-query
+  stratified set and runs ~900× faster than ensembldb at proteome
+  scale.
+authors:
+  - family-names: "Soto Ugaldi"
+    given-names: "Luis F."
+    affiliation: "SeqLab"
+    alias: "SotoLF"
+  - family-names: "Muñoz Esquivel"
+    given-names: "George D."
+    alias: "george123ya"
+url: "https://github.com/SotoLF/Prot2Exon"
+repository-code: "https://github.com/SotoLF/Prot2Exon"
+license: MIT
+type: software
+version: "2.2.0"
+keywords:
+  - bioinformatics
+  - protein-domain
+  - genomics
+  - exon
+  - intron
+  - mapping
+  - GTF
+  - Ensembl
+  - GENCODE
+  - RefSeq
+  - Pfam
+  - InterPro
+  - visualization
+preferred-citation:
+  type: software
+  title: "Prot2Exon"
+  authors:
+    - family-names: "Soto Ugaldi"
+      given-names: "Luis F."
+    - family-names: "Muñoz Esquivel"
+      given-names: "George D."
+  url: "https://github.com/SotoLF/Prot2Exon"
+  version: "2.2.0"

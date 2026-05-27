@@ -9,7 +9,7 @@ The recipe is **not yet submitted** — it requires:
    `source.url` resolves.
 2. Updating `meta.yaml`'s `sha256:` with the actual tarball hash:
    ```bash
-   curl -sL https://github.com/SotoLF/protein2genomic/archive/refs/tags/v2.2.0.tar.gz \
+   curl -sL https://github.com/SotoLF/Prot2Exon/archive/refs/tags/v2.2.0.tar.gz \
        | shasum -a 256
    ```
 3. A fork of `bioconda/bioconda-recipes` and a PR adding this directory at

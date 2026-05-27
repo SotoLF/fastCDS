@@ -1,6 +1,6 @@
 # prot2exon — Python client + plotter
 
-Python wrapper around the [prot2exon](https://github.com/SotoLF/protein2genomic)
+Python wrapper around the [prot2exon](https://github.com/SotoLF/Prot2Exon)
 C++ mapper. Provides a friendly Python API plus the `prot2exon plot`
 subcommand for rendering domain-overlay isoform figures.
 
@@ -20,7 +20,7 @@ p2g.plot(result, html="TP53_DBD.html")        # interactive (needs plotly)
 
 - The `prot2exon` C++ binary must be available on `PATH` as either
   `prot2exon` or `prot2exon-core`, or pointed to via `$PROT2EXON_BIN`.
-  Build it from the [main repo](https://github.com/SotoLF/protein2genomic)
+  Build it from the [main repo](https://github.com/SotoLF/Prot2Exon)
   or install via `mamba install -c bioconda prot2exon`.
 - A binary index produced by `prot2exon --build-index --gtf X --index X.idx`.
 
@@ -35,7 +35,7 @@ pip install "prot2exon[html]"
 ## See also
 
 - Full documentation, CLI examples, output schemas, and CI/test details:
-  <https://github.com/SotoLF/protein2genomic#readme>
+  <https://github.com/SotoLF/Prot2Exon#readme>
 - Validation against ensembldb / TransVar / Ensembl REST: `PHASES.md` in the repo.
 
 License: MIT.
