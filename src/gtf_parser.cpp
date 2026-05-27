@@ -107,14 +107,28 @@ std::string GTFParser::extract_attribute(const std::string& attributes, const st
     return attributes.substr(start, end - start);
 }
 
+// True iff position `pos` in `attributes` begins a fresh `key "...";` entry
+// rather than the tail of another key (locus_tag, db_xref, ...). GTF attribute
+// entries are separated by "; " (or the start of the string), so an attribute
+// genuinely named `tag` is preceded by "; " or by string start.
+static bool is_attribute_start(const std::string& attributes, size_t pos) {
+    if (pos == 0) return true;
+    if (pos >= 2 && attributes[pos - 2] == ';' && attributes[pos - 1] == ' ') return true;
+    if (attributes[pos - 1] == ';') return true; // tolerate single ';' separator
+    return false;
+}
+
 std::vector<std::string> GTFParser::extract_tags(const std::string& attributes) const {
     // A GTF attributes field may contain multiple `tag "VALUE"` entries:
     //   tag "MANE_Select"; tag "Ensembl_canonical"; tag "basic";
     // extract_attribute() only returns the first match — we need all of them.
+    // We must use an attribute-boundary check so we don't also pick up
+    // `locus_tag "..."` (NCBI RefSeq), `_tag "..."` etc.
     std::vector<std::string> tags;
     const std::string needle = "tag \"";
     size_t pos = 0;
     while ((pos = attributes.find(needle, pos)) != std::string::npos) {
+        if (!is_attribute_start(attributes, pos)) { pos += needle.size(); continue; }
         size_t s = pos + needle.size();
         size_t e = attributes.find('"', s);
         if (e == std::string::npos) break;
@@ -124,6 +138,16 @@ std::vector<std::string> GTFParser::extract_tags(const std::string& attributes) 
     return tags;
 }
 
+bool GTFParser::attributes_have_tag_key(const std::string& attributes) const {
+    const std::string needle = "tag \"";
+    size_t pos = 0;
+    while ((pos = attributes.find(needle, pos)) != std::string::npos) {
+        if (is_attribute_start(attributes, pos)) return true;
+        pos += needle.size();
+    }
+    return false;
+}
+
 void GTFParser::process_record(const GTFRecord& record) {
     FeatureType feature_type = string_to_feature_type(record.feature);
 
@@ -131,6 +155,12 @@ void GTFParser::process_record(const GTFRecord& record) {
     std::string transcript_id = extract_attribute(record.attributes, "transcript_id");
     std::string protein_id = extract_attribute(record.attributes, "protein_id");
     std::string gene_name = extract_attribute(record.attributes, "gene_name");
+    if (gene_name.empty()) {
+        // NCBI RefSeq GTF uses `gene "SYMBOL"` instead of `gene_name "SYMBOL"`.
+        // Fall back to that so HGNC/SGD/MGI-style symbols still populate the
+        // gene_name column on non-Ensembl GTFs.
+        gene_name = extract_attribute(record.attributes, "gene");
+    }
     std::string exon_number_str = extract_attribute(record.attributes, "exon_number");
 
     if (gene_id.empty() || transcript_id.empty()) return;
@@ -171,7 +201,7 @@ void GTFParser::process_record(const GTFRecord& record) {
     // any line of this transcript says MANE_Select, the transcript carries it.
     // Also track whether the GTF carries any `tag "..."` at all — if not we
     // emit NA later instead of false.
-    if (record.attributes.find("tag \"") != std::string::npos) {
+    if (attributes_have_tag_key(record.attributes)) {
         gtf_has_tags_ = true;
         auto tags = extract_tags(record.attributes);
         if (!tags.empty()) {

@@ -108,8 +108,12 @@ private:
 
     bool parse_line(const std::string& line, GTFRecord& record) const;
     std::string extract_attribute(const std::string& attributes, const std::string& key) const;
-    // Returns every `tag "VALUE"` value found in the attributes string.
+    // Returns every `tag "VALUE"` value found in the attributes string,
+    // skipping similarly-named keys like `locus_tag` via word-boundary check.
     std::vector<std::string> extract_tags(const std::string& attributes) const;
+    // True iff the attributes string contains a genuine `tag` key (not a
+    // longer key whose name happens to end with `tag`).
+    bool attributes_have_tag_key(const std::string& attributes) const;
     std::vector<std::string> split_fast(const std::string& str, char delimiter) const;
 
     void process_record(const GTFRecord& record);
