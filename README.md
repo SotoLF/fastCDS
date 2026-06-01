@@ -41,8 +41,6 @@ The workflow is four commands — `fetch`/`index` to get an index, `map` to proj
 ```bash
 # 1. Get an index (one-time per annotation)
 prot2exon fetch human                         # pre-built index from Zenodo (~5 s)
-#   ...or point fetch at a different source:
-prot2exon fetch human --release 50            # build a specific GENCODE release
 prot2exon index --gtf my.gtf --out my.idx     # build from a GTF you already have
 
 # 2. Map a BED of domain queries
