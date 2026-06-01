@@ -88,12 +88,12 @@ def main() -> int:
 
     # ---- Build the with-tags index ---------------------------------------
     idx = work / "with_tags.idx"
-    run(BIN, "--gtf", WITH_TAGS_GTF, "--build-index", "--index", idx)
+    run(BIN, "index", "--gtf", WITH_TAGS_GTF, "--out", idx)
     assert_true("with_tags index exists", idx.exists())
 
     # ---- Build the no-tags index -----------------------------------------
     idx_no = work / "no_tags.idx"
-    run(BIN, "--gtf", NO_TAGS_GTF, "--build-index", "--index", idx_no)
+    run(BIN, "index", "--gtf", NO_TAGS_GTF, "--out", idx_no)
     assert_true("no_tags index exists", idx_no.exists())
 
     # ---- BED 1: cover ENSP vs ENST, MANE flags, structure_only, beyond,
@@ -127,7 +127,7 @@ ENSP99\t1\t10\tQ11_NOTFOUND
 """)
 
     out = work / "out_all"
-    run(BIN, "--index", idx, "--bed", bed, "--out-dir", out, "--output", "all")
+    run(BIN, "map", "--index", idx, "--bed", bed, "--out-dir", out, "--output", "all")
 
     summary = {r["input_id"]: r for r in read_tsv(out / "domain_mapping_summary.tsv")}
     unmapped = {r["input_id"]: r for r in read_tsv(out / "unmapped_domains.tsv")}
@@ -239,7 +239,7 @@ ENSP99\t1\t10\tQ11_NOTFOUND
     bed2 = work / "queries_notags.bed"
     bed2.write_text("ENSP7\t1\t10\tQ_NOTAGS\n")
     out2 = work / "out_notags"
-    run(BIN, "--index", idx_no, "--bed", bed2, "--out-dir", out2, "--output", "all")
+    run(BIN, "map", "--index", idx_no, "--bed", bed2, "--out-dir", out2, "--output", "all")
     no_summary = {r["input_id"]: r for r in
                   read_tsv(out2 / "domain_mapping_summary.tsv")}
     qn = no_summary["Q_NOTAGS"]
@@ -270,11 +270,11 @@ ENSP99\t1\t10\tQ11_NOTFOUND
         'exon_number "1";\n'
     )
     refseq_idx = work / "refseq_style.idx"
-    run(BIN, "--gtf", refseq_gtf, "--build-index", "--index", refseq_idx)
+    run(BIN, "index", "--gtf", refseq_gtf, "--out", refseq_idx)
     refseq_bed = work / "refseq_q.bed"
     refseq_bed.write_text("NP_000001.1\t1\t10\tRSQ_TEST\n")
     refseq_out = work / "refseq_out"
-    run(BIN, "--index", refseq_idx, "--bed", refseq_bed,
+    run(BIN, "map", "--index", refseq_idx, "--bed", refseq_bed,
         "--out-dir", refseq_out, "--output", "all")
     rs_summary = {r["input_id"]: r for r in
                   read_tsv(refseq_out / "domain_mapping_summary.tsv")}
@@ -316,12 +316,12 @@ ENSP99\t1\t10\tQ11_NOTFOUND
     custom_combined = work / "with_tags_plus_custom.gtf"
     custom_combined.write_text(WITH_TAGS_GTF.read_text() + custom_rows.read_text())
     custom_idx = work / "with_tags_plus_custom.idx"
-    run(BIN, "--gtf", custom_combined, "--build-index", "--index", custom_idx)
+    run(BIN, "index", "--gtf", custom_combined, "--out", custom_idx)
 
     custom_bed = work / "custom_q.bed"
     custom_bed.write_text("SYN_NEG\t10\t30\tSYN_DOM\n")
     custom_out = work / "custom_out"
-    run(BIN, "--index", custom_idx, "--bed", custom_bed,
+    run(BIN, "map", "--index", custom_idx, "--bed", custom_bed,
         "--out-dir", custom_out, "--output", "all")
     cu_summary = {r["input_id"]: r for r in
                   read_tsv(custom_out / "domain_mapping_summary.tsv")}
@@ -332,7 +332,7 @@ ENSP99\t1\t10\tQ11_NOTFOUND
     assert_eq("custom: mapped status",      "ok",      cu["status"])
 
     # ---- prot2exon fetch (offline path via --gtf-url file://) ------------
-    # The fetch helper bundles the curl + gunzip + --build-index pipeline.
+    # The fetch helper bundles the curl + gunzip + `prot2exon index` pipeline.
     # We test it offline by feeding it a file:// URL pointing at a gzipped
     # copy of the synthetic with_tags.gtf — exercises the download +
     # gunzip + build path without depending on a live host.
@@ -373,7 +373,7 @@ ENSP99\t1\t10\tQ11_NOTFOUND
     fetch_q_bed = work / "fetch_q.bed"
     fetch_q_bed.write_text("ENSP1\t1\t10\tFETCH_TEST\n")
     fetch_q_out = work / "fetch_q_out"
-    run(BIN, "--index", fetch_idx_path, "--bed", fetch_q_bed,
+    run(BIN, "map", "--index", fetch_idx_path, "--bed", fetch_q_bed,
         "--out-dir", fetch_q_out, "--output", "all")
     fq_summary = {r["input_id"]: r for r in
                   read_tsv(fetch_q_out / "domain_mapping_summary.tsv")}
@@ -515,42 +515,34 @@ ENSP99\t1\t10\tQ11_NOTFOUND
                 (fig_dir / "figure_1.pdf").exists() and
                 (fig_dir / "figure_1.pdf").stat().st_size > 5_000)
 
-    # ---- prot2exon fetch index --url (Zenodo path) ----------------------
-    # The "index" subcommand downloads a pre-built .idx straight from a URL,
-    # bypassing the GTF parse + build step. We test it against a local
-    # file:// URL backed by the synthetic index built earlier.
-    fetched_idx = work / "fetched.idx"
+    # ---- pre-built index download + sha256 verify ------------------------
+    # The default `fetch <target>` path downloads a pre-built .idx from Zenodo
+    # and verifies its baked-in sha256. The live URLs aren't published yet, so
+    # we exercise the download + verify helpers directly against a local file://
+    # URL backed by the synthetic index built earlier.
+    import hashlib
+    sys.path.insert(0, str(REPO_ROOT / "python"))
+    from prot2exon import fetch as _fetch
     src_idx = work / "with_tags.idx"
-    src_sha = subprocess.run(
-        [sys.executable, "-c", f"import hashlib;print(hashlib.sha256(open({str(src_idx)!r},'rb').read()).hexdigest())"],
-        capture_output=True, text=True,
-    ).stdout.strip()
+    src_sha = hashlib.sha256(src_idx.read_bytes()).hexdigest()
     src_url = f"file://{src_idx}"
 
-    proc = subprocess.run(
-        [sys.executable, "-m", "prot2exon.fetch", "index",
-         "--url", src_url, "--out", str(fetched_idx), "--sha256", src_sha],
-        env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "python")},
-        capture_output=True, text=True,
-    )
-    assert_eq("fetch index exit 0", 0, proc.returncode)
-    assert_true("fetched index exists", fetched_idx.exists())
-    assert_eq("fetched index size matches source",
+    fetched_idx = work / "fetched.idx"
+    got = _fetch._do_idx_download(src_url, fetched_idx, src_sha, force=True)
+    assert_true("idx download exists", Path(got).exists())
+    assert_eq("idx download size matches source",
               src_idx.stat().st_size, fetched_idx.stat().st_size)
 
-    # Bad sha256 should make the verify step abort with exit code 1.
-    proc = subprocess.run(
-        [sys.executable, "-m", "prot2exon.fetch", "index",
-         "--url", src_url, "--out", str(fetched_idx),
-         "--sha256", "0" * 64, "--force"],
-        env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "python")},
-        capture_output=True, text=True,
-    )
-    assert_true("fetch index bad sha exits non-zero", proc.returncode != 0)
-    assert_true("fetch index bad sha mentions mismatch",
-                "sha256 mismatch" in proc.stderr)
+    # A wrong sha256 must abort (SystemExit) with a mismatch message.
+    bad_sha_raised = False
+    try:
+        _fetch._do_idx_download(src_url, fetched_idx, "0" * 64, force=True)
+    except SystemExit as e:
+        bad_sha_raised = True
+        assert_true("idx bad sha mentions mismatch", "sha256 mismatch" in str(e))
+    assert_true("idx bad sha aborts", bad_sha_raised)
 
-    # `fetch list` lists both index presets and GTF-build presets.
+    # `fetch list` lists both pre-built indexes and GTF-build sources.
     proc = subprocess.run(
         [sys.executable, "-m", "prot2exon.fetch", "list"],
         env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "python")},
@@ -559,23 +551,23 @@ ENSP99\t1\t10\tQ11_NOTFOUND
     assert_eq("fetch list exit 0", 0, proc.returncode)
     assert_true("fetch list shows pre-built indexes",
                 "Pre-built indexes" in proc.stdout)
-    assert_true("fetch list shows GTF-build presets",
+    assert_true("fetch list shows GTF-build sources",
                 "Build from GTF" in proc.stdout)
-    assert_true("fetch list shows the yeast index preset",
+    assert_true("fetch list shows the yeast target",
                 "yeast" in proc.stdout)
 
-    # `fetch index --preset` errors clearly when the Zenodo record id
-    # hasn't been published yet (URL still has `<RECORD>` placeholder).
+    # A Zenodo-only target (human-v86, no GTF fallback) errors clearly while
+    # the record id is still a `<RECORD>` placeholder.
     proc = subprocess.run(
-        [sys.executable, "-m", "prot2exon.fetch", "index",
-         "--preset", "human-v49", "--out", str(work / "p49.idx")],
+        [sys.executable, "-m", "prot2exon.fetch", "human-v86",
+         "--out", str(work / "v86.idx")],
         env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "python")},
         capture_output=True, text=True,
     )
-    # Either errors because `<RECORD>` is still a placeholder, OR succeeds
-    # if the URL has been updated post-Zenodo-upload. Both are valid.
+    # Errors with the `<RECORD>` placeholder message pre-publish, or succeeds
+    # once the deposit is live. Both are valid.
     pre_zenodo = "<RECORD>" in proc.stderr
-    assert_true("fetch index --preset gives a meaningful message either way",
+    assert_true("fetch human-v86 gives a meaningful message either way",
                 pre_zenodo or proc.returncode == 0)
 
     # ---- _render_to_string + plot_height parametrisation ----------------
@@ -666,7 +658,7 @@ ENSP99\t1\t10\tQ11_NOTFOUND
     # output file is byte-identical to the one-shot run. run_metadata.json
     # is compared with the CLI line + timestamp stripped.
     out_batched = work / "out_all_batched"
-    run(BIN, "--index", idx, "--bed", bed, "--out-dir", out_batched,
+    run(BIN, "map", "--index", idx, "--bed", bed, "--out-dir", out_batched,
         "--output", "all", "--batch-size", "3")
     for fname in (
         "domain_mapping_summary.tsv", "domain_cds_segments.tsv",
@@ -708,6 +700,22 @@ ENSP99\t1\t10\tQ11_NOTFOUND
     q8_line = [l for l in bed12 if "Q8_SPLIT12" in l][0].split("\t")
     assert_eq("Q8 BED12 blockCount", "2", q8_line[9])
 
+    # ---- `map --output coding --bed12` adds bed12 to a non-bed12 mode -----
+    out_b12 = work / "out_coding_bed12"
+    run(BIN, "map", "--index", idx, "--bed", bed, "--out-dir", out_b12,
+        "--output", "coding", "--bed12")
+    assert_true("coding+bed12: coding tsv present",
+                (out_b12 / "domain_cds_segments.tsv").exists())
+    assert_true("coding+bed12: bed12 present",
+                (out_b12 / "domain_blocks.bed12").exists())
+    # No isoform/intron files since --output is coding, not all.
+    assert_true("coding+bed12: no isoform table",
+                not (out_b12 / "isoform_structure.tsv").exists())
+    # The bed12 is byte-identical to the one produced under --output all.
+    assert_eq("coding+bed12 == all/bed12",
+              (out / "domain_blocks.bed12").read_bytes(),
+              (out_b12 / "domain_blocks.bed12").read_bytes())
+
     # ---- Plotter smoke test (CLI) ----------------------------------------
     pdf = work / "Q1.pdf"
     proc = subprocess.run(
@@ -725,6 +733,14 @@ ENSP99\t1\t10\tQ11_NOTFOUND
     import prot2exon as p2e
     mapper = p2e.Mapper(index=str(idx))
     assert_eq("Mapper.binary points at our build", str(BIN), mapper.binary)
+
+    # build_index: Python mirror of `prot2exon index`.
+    py_idx = work / "py_built.idx"
+    built = p2e.build_index(WITH_TAGS_GTF, out=py_idx, binary=str(BIN))
+    assert_true("build_index returns the .idx path", Path(built) == py_idx and py_idx.exists())
+    assert_eq("build_index output maps", 1,
+              p2e.Mapper(index=str(py_idx), binary=str(BIN)).map(
+                  "ENSP1", aa_start=1, aa_end=10, domain_id="BI").n_mapped)
 
     py_result = mapper.map("ENSP1", aa_start=1, aa_end=10, domain_id="PY_AD1")
     assert_eq("Mapper.map: n_mapped", 1, py_result.n_mapped)
