@@ -1,0 +1,75 @@
+name: wheels
+
+# Build pre-built wheels (binary bundled) and publish to PyPI on a version tag.
+# A single py3-none-<platform> wheel per OS/arch works on all Python 3.x, so we
+# only need to build once per platform (CIBW_BUILD pins one interpreter).
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: wheels · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # ubuntu -> manylinux x86_64 · macos-13 -> Intel · macos-14 -> Apple Silicon.
+        # Linux aarch64 would need QEMU emulation; add it here if there's demand.
+        os: [ubuntu-latest, macos-13, macos-14]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.21
+        env:
+          # The wheel is Python-agnostic (standalone binary, no extension module),
+          # so build once per platform with a single interpreter.
+          CIBW_BUILD: "cp311-*"
+          CIBW_SKIP: "pp* *-musllinux* *-win*"
+          CIBW_ARCHS_MACOS: "auto"
+          MACOSX_DEPLOYMENT_TARGET: "11.0"
+          # scikit-build-core pulls cmake/ninja; smoke-test the bundled binary.
+          CIBW_TEST_COMMAND: "prot2exon --version"
+          # auditwheel (Linux) vendors libgomp into the wheel and applies the
+          # manylinux tag; the C++/GCC runtime is statically linked in CMake.
+          # If auditwheel ever chokes on the bundled executable, the fallback is
+          # to build the wheel without OpenMP (single-threaded, fully portable).
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  build_sdist:
+    name: sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install build
+      - run: python -m build --sdist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  publish:
+    name: publish to PyPI
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: pypi
+    permissions:
+      id-token: write   # trusted publishing (configure the publisher on PyPI),
+                        # or swap in a token via `with: password: ${{ secrets.PYPI_API_TOKEN }}`
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: pypa/gh-action-pypi-publish@release/v1

@@ -45,3 +45,23 @@ jobs:
 
       - name: Run pytest
         run: pytest -v
+
+  # Build a wheel the same way the release pipeline does (scikit-build-core
+  # compiles + bundles the binary) and smoke-test it in a clean environment,
+  # so a broken wheel build is caught on PRs rather than only at tag time.
+  wheel:
+    name: wheel build + smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build wheel
+        run: pip wheel . --no-deps -w dist/
+      - name: Install + run from a clean venv
+        run: |
+          python -m venv /tmp/v
+          /tmp/v/bin/pip install dist/*.whl
+          /tmp/v/bin/prot2exon --version
+          /tmp/v/bin/prot2exon fetch list >/dev/null

@@ -1,16 +1,15 @@
-# Top-level pyproject so `pip install .` and `python -m build` from the repo
-# root just work. The Python source lives under `python/prot2exon/`; this
-# file re-declares it here with the right package_dir so build tools find it.
+# Top-level pyproject. The build is driven by scikit-build-core, which runs the
+# CMake project (CMakeLists.txt) during the wheel build and bundles the compiled
+# C++ binary into the package as `prot2exon/_bin/prot2exon-core`. So `pip install
+# prot2exon` ships a ready-to-run binary — pre-built wheels are produced per
+# platform by cibuildwheel (.github/workflows/wheels.yml); installing from the
+# sdist compiles locally (needs a C++17 toolchain + CMake).
 #
-# Note for packagers: this file does NOT build the C++ binary. The Python
-# wrapper subprocess-calls the binary at runtime — bioconda + the Dockerfile
-# build it via CMake separately. End-users with `pip install prot2exon` get
-# the wrapper; they're expected to install the compiled binary via bioconda
-# or build from source per the README.
+# The Python source lives under `python/prot2exon/` (see [tool.scikit-build]).
 
 [build-system]
-requires = ["setuptools>=61"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core>=0.8"]
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "prot2exon"
@@ -69,17 +68,22 @@ Issues        = "https://github.com/SotoLF/Prot2Exon/issues"
 Changelog     = "https://github.com/SotoLF/Prot2Exon/blob/main/CHANGELOG.md"
 
 [project.scripts]
-# Direct entry-point to the plotter. The bash wrapper `bin/prot2exon`
-# remains the unified CLI dispatching to the C++ binary + the Python
-# subcommands; this entry is for users who only need the Python plotter.
+# The unified CLI: a cross-platform Python dispatcher (mirrors bin/prot2exon)
+# that routes index/map to the bundled C++ binary and fetch/plot to Python.
+"prot2exon" = "prot2exon._cli:main"
+# Direct entry-point to the plotter, for users who only want the Python plotter.
 "prot2exon-plot" = "prot2exon.plot:main"
 
 # ----------------------------------------------------------------------
-# Package discovery — source lives under python/.
+# Build: scikit-build-core drives CMake; the Python package lives under python/.
 # ----------------------------------------------------------------------
-[tool.setuptools]
-package-dir = {"" = "python"}
-
-[tool.setuptools.packages.find]
-where = ["python"]
-include = ["prot2exon*"]
+[tool.scikit-build]
+minimum-version = "0.8"
+wheel.packages = ["python/prot2exon"]
+sdist.include = ["src", "include", "CMakeLists.txt"]
+cmake.version = ">=3.16"
+cmake.build-type = "Release"
+# The wheel ships a standalone binary, not a Python extension module, so it is
+# Python-version-agnostic: one `py3-none-<platform>` wheel per OS/arch works on
+# every CPython/PyPy 3.x. This keeps the cibuildwheel matrix small.
+wheel.py-api = "py3"
