@@ -6,10 +6,10 @@ Reproduction harness for the correctness + speed comparisons reported in [[Valid
 
 | Question | Headline |
 |---|---|
-| Are the coordinates correct? | **100.00 % exact match vs ensembldb** on 5,000 stratified queries — zero off-by-ones, zero structural mismatches. |
-| Is it fast enough? | **5,847 q/s** on one thread — **~900× ensembldb, ~4.4× TransVar, ~5,400× Ensembl REST**. |
+| Are the coordinates correct? | **100.00 % exact match vs ensembldb _and_ GenomicFeatures::proteinToGenome** — three-way agreement, zero off-by-ones, zero structural mismatches. |
+| Is it fast enough? | **5,847 q/s** on one thread — **~900× ensembldb, ~2,400× GenomicFeatures::proteinToGenome, ~4.4× TransVar, ~5,400× Ensembl REST**. |
 
-See [`wiki/Validation.md`](../wiki/Validation.md) and [`wiki/Benchmarks.md`](../wiki/Benchmarks.md) for the full result tables, design rationale (9-stratum sampler, why each comparator), and the gotchas worth knowing if you reproduce.
+See [`wiki/Performance-and-Benchmarking.md`](../wiki/Performance-and-Benchmarking.md) for the full result tables, design rationale (9-stratum sampler, why each comparator), the GenomicFeatures/ensembldb/VisProDom comparison, and the practical notes worth knowing if you reproduce.
 
 ## Scripts
 
@@ -17,6 +17,9 @@ See [`wiki/Validation.md`](../wiki/Validation.md) and [`wiki/Benchmarks.md`](../
 |---|---|
 | `sample_validation_queries.py` | GTF parser + 9-stratum sampler (1 K plus / 1 K minus / 1 K single-exon / 1 K multi-exon / 500 codon-split / 200 incomplete CDS / 100 selenoprotein / 100 single-exon-gene / 100 many-exon-gene) |
 | `ensembldb_query.R` | Batch `proteinToGenome` via R subprocess |
+| `proteintogenome_bench.R` | Speed + RAM for `ensembldb::proteinToGenome` (SQLite-backed) vs `GenomicFeatures::proteinToGenome` (GRangesList, in-memory) on the same queries |
+| `visprodom_bench.R` | Speed + RAM for VisProDom's `CreDat()` batch mapper (pure R/dplyr; O(genome) per call) |
+| `compare_intervals.py` | Per-query exact-segment agreement across mappers (ensembldb / GenomicFeatures / prot2exon) |
 | `validate_vs_ensembldb.py` | Runs prot2exon + ensembldb, classifies into 6 buckets, emits Table 1 |
 | `scaling_benchmark.py` | prot2exon vs ensembldb at N = 100 … 1 M |
 | `parallel_benchmark.py` | prot2exon at threads 1, 2, 4, 8 |
@@ -34,12 +37,12 @@ See [`wiki/Validation.md`](../wiki/Validation.md) and [`wiki/Benchmarks.md`](../
 conda env create -f benchmarks/environment.yml
 conda activate prot2exon-val
 Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org"); \
-            BiocManager::install(c("ensembldb", "EnsDb.Hsapiens.v86", "AnnotationHub"), \
+            BiocManager::install(c("ensembldb", "GenomicFeatures", \
+                                    "EnsDb.Hsapiens.v86", "AnnotationHub"), \
                                   ask=FALSE, update=FALSE)'
 
 # 1) Build the prot2exon index
-./build/prot2exon --gtf Homo_sapiens.GRCh38.86.chr.gtf \
-    --build-index --index human_v86.idx
+./build/prot2exon index --gtf Homo_sapiens.GRCh38.86.chr.gtf --out human_v86.idx
 
 # 2) 5,000 stratified queries
 python benchmarks/sample_validation_queries.py \
@@ -68,9 +71,27 @@ python benchmarks/parallel_benchmark.py \
     --bin build/prot2exon --p2e-index human_v86.idx \
     --bed bench/queries_n100000.bed --work-dir bench/parallel \
     --out bench/parallel.tsv
+
+# 5) ensembldb vs GenomicFeatures::proteinToGenome (speed + RAM, same queries)
+head -1000 queries_v86.bed > q1k.bed
+for tool in ensembldb genomicfeatures; do
+  Rscript benchmarks/proteintogenome_bench.R $tool "$EnsDb_v86_path" \
+      q1k.bed ${tool}_intervals.tsv ${tool}_timing.tsv
+done
+build/prot2exon map --index human_v86.idx --bed q1k.bed --out-dir p2e_q1k --output coding
+python benchmarks/compare_intervals.py \
+    ensembldb=ensembldb_intervals.tsv \
+    genomicfeatures=genomicfeatures_intervals.tsv \
+    prot2exon=p2e_q1k/domain_cds_segments.tsv
+
+# 6) VisProDom CreDat() batch-mapper characterization (its own maize example data)
+git clone --depth 1 https://github.com/whweve/VisProDom /tmp/VisProDom
+Rscript benchmarks/visprodom_bench.R /tmp/VisProDom
 ```
 
-Total wall: validation ~5 min, scaling ~50 min (ensembldb N = 10K is ~26 min of that), parallel ~1 min.
+Total wall: validation ~5 min, scaling ~50 min (ensembldb N = 10K is ~26 min of that), parallel ~1 min, proteinToGenome head-to-head ~5 min (ensembldb N = 1K is ~3.5 min of that), VisProDom ~1 min.
+
+Headline results (one machine, one thread): on 1,000 v86 queries prot2exon ≡ ensembldb ≡ GenomicFeatures at 1,000 / 1,000 exact-segment match; mapping time prot2exon 0.02 s vs GenomicFeatures 48.5 s vs ensembldb 201.9 s; see [`proteintogenome_results.tsv`](proteintogenome_results.tsv).
 
 ## Gotchas (each one cost real time)
 

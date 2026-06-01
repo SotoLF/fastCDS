@@ -1,0 +1,18 @@
+# Protein-to-genome mapper comparison.
+# Human Ensembl v86, N=1000 stratified queries (first 1000 of queries_v86.bed),
+# single machine, single thread. setup_s = one-time index/object build;
+# map_s = mapping the 1000 queries; peak_rss_mb = VmHWM of the process.
+# exact_match_pct = per-query exact genomic-segment agreement vs the others.
+tool	setup_s	map_s	total_s	map_q_per_s	peak_rss_mb	exact_match_pct	notes
+prot2exon	1.53	0.099	1.63	50505	734	100.00	C++ binary; setup = index load (v86). map_q/s from N=5000 (99ms); N=1000 was 18ms.
+GenomicFeatures::proteinToGenome	9.20	48.54	57.74	20.6	1365	100.00	GRangesList method; setup = cdsBy(edb,'tx') + protein->tx map; in-memory mapping (R-level lapply).
+ensembldb::proteinToGenome	0.00	201.90	201.90	5.0	1163	100.00	EnsDb (SQLite) backed; per-batch proteinToGenome.
+# VisProDom::CreDat — separate workload (its own maize proteome example data),
+# not directly comparable on v86. Pure R/dplyr; O(genome) per call (rebuilds the
+# full CDS layout every invocation), so wall is ~flat across domain count:
+#   N=100  domains: ~7.6 s
+#   N=1000 domains: ~5.9 s
+#   N=10000 domains: ~6.8 s
+#   FULL (262,392 mapped domain-segments): 17.9 s, peak 780 MB
+# geneplot — visualization only (gffutils + BioPython GenomeDiagram); consumes
+# pre-mapped GFF3 + InterProScan coordinates and renders. Not a coordinate mapper.
