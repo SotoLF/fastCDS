@@ -96,6 +96,7 @@ Worked examples under [`notebooks/`](notebooks/) — each opens in [Colab](https
 | [`walkthrough_end_to_end.ipynb`](notebooks/walkthrough_end_to_end.ipynb) | Zero-to-figure tour: `fetch_index` → BED prep → `map_batch` → all plot styles. |
 | [`pfam_proteome_atlas.ipynb`](notebooks/pfam_proteome_atlas.ipynb) | Map every Pfam-A domain on the human proteome; single- vs multi-exon architecture stats. |
 | [`clinvar_pathogenic.ipynb`](notebooks/clinvar_pathogenic.ipynb) | Pathogenic-variant enrichment in domain-coding exons (ClinVar missense). |
+| [`proteintogenome_comparison.ipynb`](notebooks/proteintogenome_comparison.ipynb) | Runs prot2exon vs `ensembldb` vs `GenomicFeatures::proteinToGenome` (and VisProDom) from the terminal — quality, speed, RAM. |
 | [`validation.ipynb`](notebooks/validation.ipynb) · [`software_comparison.ipynb`](notebooks/software_comparison.ipynb) · [`benchmarking.ipynb`](notebooks/benchmarking.ipynb) | The numbers behind the validation + benchmarking results above. |
 
 ## Citation
