@@ -2,6 +2,20 @@
 
 The wrapper is a thin layer over the C++ binary. It writes inputs to a temp dir, shells out, and reads the TSVs back as pandas DataFrames. The C++ binary remains the source of truth for every mapping decision — Python only assembles BED rows, runs the binary, and parses the outputs.
 
+## Getting an index
+
+Two functions mirror the `index` / `fetch` commands and return the `Path` to a `.idx` (see [[Index]]):
+
+```python
+import prot2exon as p2e
+
+idx = p2e.build_index("combined.gtf", out="human.idx")  # build from a local GTF (`prot2exon index`)
+idx = p2e.fetch_index("human")                           # pre-built, from Zenodo (`prot2exon fetch`)
+idx = p2e.fetch_index("human", release="50")             # or build a specific release
+```
+
+`build_index(gtf, out=None, *, binary=None, force=False)` caches: if `out` exists it's returned untouched unless `force=True`.
+
 ## `Mapper`
 
 ```python
@@ -50,7 +64,7 @@ mapper = p2e.Mapper(index="human.idx", batch_size=10000, threads=8)
 result = mapper.map_batch(million_queries)
 ```
 
-See [[Performance and RAM]] for the 1 M-query benchmark.
+See [[Performance and Benchmarking]] for the 1 M-query benchmark.
 
 ## `map_query(...)` — one-off (creates a `Mapper` internally)
 
@@ -189,4 +203,4 @@ from prot2exon.plot import load_isoform_tsv
 segs_by_id = load_isoform_tsv("results/isoform_structure.tsv")
 ```
 
-See [[Plotting and viewers]] for renderer-specific gestures and flags.
+See [[Plotting]] for renderer-specific gestures and flags.

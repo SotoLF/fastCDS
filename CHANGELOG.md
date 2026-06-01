@@ -5,7 +5,10 @@ All notable changes to Prot2Exon. The format follows [Keep a Changelog](https://
 ## [Unreleased]
 
 ### Added
-- `prot2exon fetch index --url URL --out PATH [--sha256 HEX]` subcommand — download a pre-built `.idx` from any URL (including the Zenodo deposit) and skip the GTF parse + build step. Supports cache hits, sha256 verification, and `--force` re-download.
+- **`pip install prot2exon` now ships the compiled binary.** The build moved to scikit-build-core, which runs CMake during the wheel build and bundles the binary as `prot2exon/_bin/prot2exon-core`. cibuildwheel publishes pre-built `py3-none` wheels for Linux (manylinux x86_64) and macOS (Intel + Apple Silicon) on each version tag, so all four commands work straight from pip with no compiler. A new cross-platform `prot2exon` console-script (Python dispatcher, mirrors `bin/prot2exon`) is the entry point; binary discovery is centralised in `prot2exon._binary.find_binary` and checks the bundled `_bin/` first. The CMake default no longer hard-codes `-march=native` (it would break portable wheels) — opt in with `-DPROT2EXON_NATIVE=ON` for a tuned local build.
+- **Subcommand CLI.** The binary now takes one of four commands: `prot2exon index --gtf FILE --out FILE` (build an index; `--index` accepted as an alias for `--out`) and `prot2exon map (--index|--gtf) --bed FILE --out-dir DIR [...]` (map queries), joining the existing `fetch` and `plot` commands. The old bare-flag forms (`--build-index`, `--index … --bed …`) still work as an undocumented fallback so existing scripts don't break.
+- `prot2exon map --bed12` — emit `domain_blocks.bed12` alongside any `--output` mode (no-op under `--output all`/`bed12`), so you can get the IGV-ready BED12 without switching to `--output bed12`.
+- **`prot2exon fetch <target>` now defaults to a pre-built index from Zenodo** (`fetch human` / `mouse` / `yeast` / `human-v86`), skipping the GTF parse + build step with a single sha256-verified download. The previous `fetch index --preset/--url` sub-subcommand is gone — override the default source instead with `--release` / `--gtf-url` to build from a GTF. While the Zenodo deposit is unpublished, `fetch` transparently falls back to building from the upstream GTF.
 - Per-thread-aware 1 MiB write buffer on every TSV/BED writer (`pubsetbuf`) — cuts single-thread wall time on the 1 M-query benchmark by ~17 % (107 s vs 130 s).
 - Multi-isoform stack viewer: `render_interactive_html_stack()` and `render_interactive_jupyter_stack()`. All isoforms render on a single shared axis built from the union of their features, so skipped exons appear as empty space lined up across rows.
 - `prot2exon.fetch_index()` Python API mirroring the CLI; smoother for notebook workflows.
@@ -19,7 +22,8 @@ All notable changes to Prot2Exon. The format follows [Keep a Changelog](https://
 
 ### Changed
 - Renamed from `protein2genomic` to **Prot2Exon** (GitHub repo + Docker label + bioconda recipe + Python wrapper README; local clone directory can stay as-is).
-- README slimmed from 733 lines to ~110 with badges + install table + quickstart + wiki link. The full reference now lives across the 13 wiki pages.
+- README slimmed to ~95 lines (install one-liners + four-command quickstart in CLI and Python + validation/benchmarks + summarized notebooks); dropped the logo/figure images, the wiki-topics table, and the status section. The full reference lives in the wiki.
+- **Wiki reorganized into a sequential workflow**: Installation → Building an index → Mapping → Plotting, then Tutorials and Notebooks, Performance and Benchmarking, and the Python API / Architecture / FAQ reference. Merged the old Genome-onboarding + Custom-proteins into *Building an index*, Output-modes + Input-format into *Mapping*, Performance-and-RAM + Validation + Benchmarks into *Performance and Benchmarking*; removed the standalone Quickstart and CLI-reference pages.
 - Notebook generator (`notebooks/generate_notebooks.py`) gained `--run` (executes after generating, so outputs persist) and `--out-dir` (test-suite uses a tempdir so the regression check can't wipe embedded outputs).
 
 ### Fixed
