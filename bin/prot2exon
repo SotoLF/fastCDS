@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Top-level entry point for the prot2exon toolkit.
 #
-#   prot2exon plot ...     -> python plotter (python/prot2exon/plot.py)
+#   prot2exon index ...    -> build a binary index from a GTF (C++ binary)
+#   prot2exon map   ...    -> map domain/protein queries (C++ binary)
 #   prot2exon fetch ...    -> download + build a stock index (python/prot2exon/fetch.py)
-#   prot2exon <other>...   -> the C++ binary that does the mapping
+#   prot2exon plot  ...    -> python plotter (python/prot2exon/plot.py)
 #
 # The C++ binary is discovered in this order:
 #   1. $PROT2EXON_BIN  (explicit override)

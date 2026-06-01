@@ -10,7 +10,10 @@
 #include <omp.h>
 #endif
 
+enum class Subcommand { NONE, INDEX, MAP };
+
 struct Config {
+    Subcommand subcommand = Subcommand::NONE;
     std::string gtf_file;
     std::string index_file;
     std::string bed_file;
@@ -18,6 +21,7 @@ struct Config {
     OutputKind output_kind = OutputKind::ALL;
     bool build_index = false;
     bool use_index = false;
+    bool also_bed12 = false;  // map mode: emit domain_blocks.bed12 alongside --output
     bool verbose = false;
     int threads = 1;
     // 0 = process all queries at once (current default; lowest overhead,
@@ -31,11 +35,26 @@ void print_usage(const char* program_name) {
 << "structure using a GTF annotation.\n"
 << "\n"
 << "USAGE\n"
-<< "  " << program_name << " --gtf FILE --build-index --index FILE\n"
-<< "  " << program_name << " (--gtf FILE | --index FILE) --bed FILE --out-dir DIR [--output KIND]\n"
+<< "  " << program_name << " index --gtf FILE --out FILE\n"
+<< "  " << program_name << " map (--index FILE | --gtf FILE) --bed FILE --out-dir DIR\n"
+<< "                          [--output KIND] [--bed12]\n"
+<< "  " << program_name << " fetch ...   (download/build a stock index)\n"
+<< "  " << program_name << " plot  ...   (render isoform_structure.tsv)\n"
+<< "\n"
+<< "COMMANDS\n"
+<< "  index   Build a binary index from a GTF (one-time per annotation).\n"
+<< "  map     Map protein/domain queries against an index (or GTF).\n"
+<< "  fetch   Download an upstream GTF and build its index, or pull a\n"
+<< "          pre-built index from Zenodo. Run `" << program_name << " fetch --help`.\n"
+<< "  plot    Render a static (PDF/PNG) or interactive (HTML) figure from\n"
+<< "          isoform_structure.tsv. Run `" << program_name << " plot --help`.\n"
 << "\n"
 << "OPTIONS\n"
-<< "  Mapping inputs (required):\n"
+<< "  index:\n"
+<< "    --gtf FILE       GTF annotation to index.\n"
+<< "    --out FILE       Output index path (alias: --index).\n"
+<< "\n"
+<< "  map inputs (required):\n"
 << "    --bed FILE       Query file (TSV/BED-like). See BED INPUT FORMAT.\n"
 << "                     Rows can be:\n"
 << "                       id  aa_start  aa_end  [domain_id]\n"
@@ -50,10 +69,8 @@ void print_usage(const char* program_name) {
 << "  Output selection:\n"
 << "    --output KIND    One of {coding, introns, span, isoform, bed12, all}.\n"
 << "                     Default: all. See OUTPUT MODES below.\n"
-<< "\n"
-<< "  Index management:\n"
-<< "    --build-index    Build a binary index from --gtf into --index, then exit\n"
-<< "                     (or proceed to mapping if --bed is also given).\n"
+<< "    --bed12          Also write domain_blocks.bed12 alongside the chosen\n"
+<< "                     --output (no-op when --output is bed12 or all).\n"
 << "\n"
 << "  Other:\n"
 << "    --threads NUM    Process queries in parallel via OpenMP. Default: 1.\n"
@@ -246,26 +263,26 @@ void print_usage(const char* program_name) {
 << "\n"
 << "EXAMPLES\n"
 << "  Build the index once:\n"
-<< "    " << program_name << " --gtf gencode.v49.basic.annotation.gtf \\\n"
-<< "                          --build-index --index human.idx\n"
+<< "    " << program_name << " index --gtf gencode.v49.basic.annotation.gtf \\\n"
+<< "                          --out human.idx\n"
 << "\n"
 << "  Map domains, all outputs:\n"
-<< "    " << program_name << " --index human.idx --bed domains.bed \\\n"
+<< "    " << program_name << " map --index human.idx --bed domains.bed \\\n"
 << "                          --out-dir results --output all\n"
 << "\n"
 << "  Plot-ready table only:\n"
-<< "    " << program_name << " --index human.idx --bed domains.bed \\\n"
+<< "    " << program_name << " map --index human.idx --bed domains.bed \\\n"
 << "                          --out-dir results --output isoform\n"
 << "\n"
 << "  Whole-transcript structure (no domain):\n"
 << "    printf 'ENSP00000269305\\nENSP00000306245\\n' > proteins.txt\n"
-<< "    " << program_name << " --index human.idx --bed proteins.txt \\\n"
+<< "    " << program_name << " map --index human.idx --bed proteins.txt \\\n"
 << "                          --out-dir results --output isoform\n"
         ;
 }
 
 void print_version() {
-    std::cout << "prot2exon 2.2.0 (index format v" << INDEX_FORMAT_VERSION << ")\n";
+    std::cout << "prot2exon 2.3.0 (index format v" << INDEX_FORMAT_VERSION << ")\n";
 }
 
 bool parse_output_kind(const std::string& s, OutputKind& out) {
@@ -286,6 +303,8 @@ int parse_arguments(int argc, char* argv[], Config& config) {
         {"output",      required_argument, 0, 'o'},
         {"build-index", no_argument,       0, 'i'},
         {"index",       required_argument, 0, 'x'},
+        {"out",         required_argument, 0, 'U'},
+        {"bed12",       no_argument,       0, 'Z'},
         {"threads",     required_argument, 0, 't'},
         {"batch-size",  required_argument, 0, 'B'},
         {"verbose",     no_argument,       0, 'v'},
@@ -295,7 +314,7 @@ int parse_arguments(int argc, char* argv[], Config& config) {
     };
     int option_index = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "g:b:O:o:ix:t:B:vhV", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "g:b:O:o:ix:U:Zt:B:vhV", long_options, &option_index)) != -1) {
         switch (c) {
             case 'g': config.gtf_file = optarg; break;
             case 'b': config.bed_file = optarg; break;
@@ -310,6 +329,8 @@ int parse_arguments(int argc, char* argv[], Config& config) {
             }
             case 'i': config.build_index = true; break;
             case 'x': config.index_file = optarg; config.use_index = true; break;
+            case 'U': config.index_file = optarg; break;  // index output path (`index --out`)
+            case 'Z': config.also_bed12 = true; break;
             case 't':
                 config.threads = std::stoi(optarg);
                 if (config.threads < 1) { std::cerr << "Error: --threads must be >= 1\n"; return 1; }
@@ -368,8 +389,34 @@ int validate_config(const Config& config) {
 
 int main(int argc, char* argv[]) {
     Config config;
-    int parse_result = parse_arguments(argc, argv, config);
+
+    // Subcommand dispatch: `prot2exon index ...` / `prot2exon map ...`.
+    // A leading bare word (not starting with '-') selects the command; we then
+    // hand getopt the tail (argv+1, whose [0] is the command word it ignores as
+    // argv[0]). Anything else falls through to the legacy flag-only form, which
+    // keeps older scripts and the test harness working unchanged.
+    int shift = 0;
+    if (argc > 1 && argv[1][0] != '-') {
+        std::string sub = argv[1];
+        if (sub == "index")      { config.subcommand = Subcommand::INDEX; shift = 1; }
+        else if (sub == "map")   { config.subcommand = Subcommand::MAP;   shift = 1; }
+        else {
+            std::cerr << "Error: unknown command '" << sub
+                      << "'. Expected one of: index, map, fetch, plot.\n"
+                      << "Run `" << argv[0] << " --help` for usage.\n";
+            return 1;
+        }
+    }
+
+    int parse_result = parse_arguments(argc - shift, argv + shift, config);
     if (parse_result >= 0) return parse_result;
+
+    // Resolve subcommand intent onto the legacy flags the rest of main uses.
+    if (config.subcommand == Subcommand::INDEX) {
+        config.build_index = true;
+        config.use_index = false;  // --index/--out here is the OUTPUT path
+    }
+
     if (validate_config(config) != 0) return 1;
 
 #ifdef USE_OPENMP
@@ -430,11 +477,13 @@ int main(int argc, char* argv[]) {
                 if (rc != ErrorCode::SUCCESS) return 1;
             }
             ErrorCode rc = output::write_all(config.out_dir, config.output_kind,
-                                             mapper.results(), source, cli_args);
+                                             mapper.results(), source, cli_args,
+                                             config.also_bed12);
             if (rc != ErrorCode::SUCCESS) return 1;
         } else {
             Timer t("Domain mapping (streaming)");
-            output::StreamingWriter writer(config.out_dir, config.output_kind);
+            output::StreamingWriter writer(config.out_dir, config.output_kind,
+                                           config.also_bed12);
             ErrorCode rc = writer.open();
             if (rc != ErrorCode::SUCCESS) return 1;
             rc = mapper.process_domains_streaming(

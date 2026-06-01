@@ -62,8 +62,8 @@ def with_tags_index(binary, synthetic_gtfs, tmp_path_factory) -> Path:
     idx_dir = tmp_path_factory.mktemp("idx")
     idx = idx_dir / "with_tags.idx"
     subprocess.run(
-        [str(binary), "--gtf", str(synthetic_gtfs["with_tags"]),
-         "--build-index", "--index", str(idx)],
+        [str(binary), "index", "--gtf", str(synthetic_gtfs["with_tags"]),
+         "--out", str(idx)],
         check=True, capture_output=True, text=True,
     )
     return idx
@@ -76,7 +76,7 @@ def run_mapping(binary: Path, index: Path, bed_text: str, out_dir: Path,
     bed = out_dir / "queries.bed"
     bed.write_text(bed_text)
     proc = subprocess.run(
-        [str(binary), "--index", str(index),
+        [str(binary), "map", "--index", str(index),
          "--bed", str(bed), "--out-dir", str(out_dir),
          "--output", output_kind],
         capture_output=True, text=True,

@@ -15,7 +15,8 @@ ErrorCode write_all(const std::string& out_dir,
                     OutputKind kind,
                     const std::vector<DomainResult>& results,
                     const std::string& gtf_or_index_path,
-                    const std::vector<std::string>& cli_args);
+                    const std::vector<std::string>& cli_args,
+                    bool also_bed12 = false);
 
 // Streaming writer: opens the requested set of files once with headers, then
 // appends per-chunk rows so the caller can free each chunk's results before
@@ -32,7 +33,7 @@ ErrorCode write_all(const std::string& out_dir,
 // (matching the non-streaming path: no file if no unmapped queries).
 class StreamingWriter {
 public:
-    StreamingWriter(std::string out_dir, OutputKind kind);
+    StreamingWriter(std::string out_dir, OutputKind kind, bool also_bed12 = false);
     ~StreamingWriter();
 
     StreamingWriter(const StreamingWriter&) = delete;
@@ -53,6 +54,7 @@ private:
 
     std::string out_dir_;
     OutputKind kind_;
+    bool also_bed12_ = false;
 
     std::ofstream summary_;
     std::ofstream isoform_tsv_;

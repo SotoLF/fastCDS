@@ -105,7 +105,7 @@ def main():
                 subprocess.run(["rm", "-rf", str(p2e_out)], check=True)
             r = run_with_time([
                 str(args.bin),
-                "--index", str(args.p2e_index),
+                "map", "--index", str(args.p2e_index),
                 "--bed", str(bed),
                 "--out-dir", str(p2e_out),
                 "--output", "coding",

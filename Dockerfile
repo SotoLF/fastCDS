@@ -4,7 +4,7 @@
 #   docker build -t prot2exon:dev .
 # Run (mounted local data):
 #   docker run --rm -v "$(pwd):/data" prot2exon:dev \
-#       prot2exon --gtf /data/annotation.gtf --bed /data/queries.bed --out-dir /data/out
+#       prot2exon map --gtf /data/annotation.gtf --bed /data/queries.bed --out-dir /data/out
 #
 # CPU portability note: the upstream CMakeLists uses -O3 -march=native which
 # pins the binary to the build machine's instruction set. For a redistributable

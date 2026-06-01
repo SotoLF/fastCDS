@@ -51,7 +51,7 @@ def main():
                 subprocess.run(["rm", "-rf", str(out_dir)], check=True)
             r = run_once([
                 str(args.bin),
-                "--index", str(args.p2e_index),
+                "map", "--index", str(args.p2e_index),
                 "--bed", str(args.bed),
                 "--out-dir", str(out_dir),
                 "--output", "coding",

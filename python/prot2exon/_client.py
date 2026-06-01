@@ -42,38 +42,50 @@ _VALID_OUTPUTS = {"coding", "introns", "span", "isoform", "bed12", "all"}
 
 
 def _discover_binary() -> str:
-    """Find the C++ binary. See module docstring for the search order."""
-    chain: list[str] = []
+    """Find the C++ binary (shared logic in ``prot2exon._binary``)."""
+    from ._binary import find_binary
+    return find_binary()
 
-    env = os.environ.get("PROT2EXON_BIN")
-    if env:
-        chain.append(f"PROT2EXON_BIN={env}")
-        if os.access(env, os.X_OK):
-            return env
 
-    here = Path(__file__).resolve()
-    # python/prot2exon/_client.py → repo root is two dirs up from python/
-    candidates = [
-        here.parent.parent.parent / "build" / "prot2exon",
-        here.parent.parent.parent / "bin" / "prot2exon",
-    ]
-    for cand in candidates:
-        chain.append(str(cand))
-        if cand.exists() and os.access(cand, os.X_OK):
-            return str(cand)
+def build_index(gtf, out=None, *, binary: str | None = None,
+                force: bool = False) -> Path:
+    """Build a binary index from a local GTF — Python mirror of ``prot2exon index``.
 
-    for name in ("prot2exon-core", "prot2exon"):
-        path = shutil.which(name)
-        chain.append(f"PATH:{name}")
-        if path:
-            return path
+    Parameters
+    ----------
+    gtf : str | os.PathLike
+        Path to the (uncompressed) GTF file to index.
+    out : str | os.PathLike | None
+        Output ``.idx`` path. Defaults to ``<gtf>`` with a ``.idx`` suffix.
+    binary : str | None
+        Path to the prot2exon binary. Auto-discovered if omitted.
+    force : bool
+        Rebuild even if ``out`` already exists. Default False (cached).
 
-    raise FileNotFoundError(
-        "Could not locate the prot2exon C++ binary. "
-        "Searched (in order): " + ", ".join(chain) +
-        ". Pass `binary=...` to Mapper, set PROT2EXON_BIN, "
-        "or build the C++ binary."
+    Returns
+    -------
+    Path : path to the built (or cached) index.
+
+    Examples
+    --------
+    >>> import prot2exon as p2e
+    >>> idx = p2e.build_index("combined.gtf", out="human.idx")
+    """
+    gtf = Path(gtf)
+    if not gtf.exists():
+        raise FileNotFoundError(f"GTF not found: {gtf}")
+    out = Path(out) if out else gtf.with_suffix(".idx")
+    if out.exists() and not force:
+        return out
+    binary = binary or _discover_binary()
+    proc = subprocess.run(
+        [binary, "index", "--gtf", str(gtf), "--out", str(out)],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
     )
+    if proc.returncode != 0:
+        raise RuntimeError(
+            f"`prot2exon index` exited {proc.returncode}\n{proc.stderr}")
+    return out
 
 
 def _nan_to_none(x: Any) -> Any:
@@ -127,7 +139,7 @@ class Mapper:
     Parameters
     ----------
     index : str | os.PathLike
-        Path to the binary index built with `prot2exon --build-index`.
+        Path to the binary index built with `prot2exon index`.
     binary : str | None
         Path to the C++ binary. Auto-discovered if omitted (see module
         docstring for the search order).
@@ -256,6 +268,7 @@ class Mapper:
     def _run(self, *, bed_path: str, out_dir: str, output: str) -> None:
         cmd = [
             self.binary,
+            "map",
             "--index", self.index,
             "--bed", bed_path,
             "--out-dir", out_dir,

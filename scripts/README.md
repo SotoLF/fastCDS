@@ -55,7 +55,7 @@ python3 scripts/prepare_from_interpro.py \
     --out domains.bed
 
 # Map the result
-./prot2exon --index human.idx --bed domains.bed --out-dir results --output all
+./prot2exon map --index human.idx --bed domains.bed --out-dir results --output all
 ```
 
 ### UniProt features (flat-file)
@@ -120,7 +120,7 @@ ENSP00000269305   323  356   IPR010991_Pfam   p53, tetramerisation
 The mapper ignores `#` lines and the 5th column, so the file is immediately consumable:
 
 ```bash
-./prot2exon --index human.idx --bed pfam.bed --out-dir results
+./prot2exon map --index human.idx --bed pfam.bed --out-dir results
 ```
 
 ## Common failure modes

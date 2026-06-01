@@ -3,7 +3,7 @@
 
 Measures wall-clock time and peak RSS for --output {all,isoform} at
 N = 100, 1k, 10k, 100k random domain queries against the prebuilt
-human GENCODE v49 index. Also times the one-shot --build-index pass.
+human GENCODE v49 index. Also times the one-shot `prot2exon index` pass.
 
 Outputs:
   benchmarks/results.tsv     - one row per (mode, N, replicate)
@@ -66,7 +66,7 @@ def bench_index_build():
     target = WORK / "human_bench.idx"
     if target.exists():
         target.unlink()
-    args = [str(BIN), "--gtf", str(GTF), "--build-index", "--index", str(target)]
+    args = [str(BIN), "index", "--gtf", str(GTF), "--out", str(target)]
     wall, err = run(args)
     peak = parse_peak_mb(err)
     return {"wall_s": wall, "peak_mb": peak, "index_size_mb": target.stat().st_size / 1024 / 1024,
@@ -76,7 +76,7 @@ def bench_query(mode: str, n: int, bed_path: Path, threads: int, rep: int):
     out_dir = WORK / f"out_{mode}_{n}_{rep}"
     if out_dir.exists():
         shutil.rmtree(out_dir)
-    args = [str(BIN), "--index", str(IDX), "--bed", str(bed_path),
+    args = [str(BIN), "map", "--index", str(IDX), "--bed", str(bed_path),
             "--out-dir", str(out_dir), "--output", mode,
             "--threads", str(threads)]
     wall, err = run(args)
@@ -91,7 +91,7 @@ def main():
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("--threads", type=int, default=1)
     ap.add_argument("--skip-build", action="store_true",
-                    help="Skip the --build-index benchmark (saves ~10 s).")
+                    help="Skip the index-build benchmark (saves ~10 s).")
     args = ap.parse_args()
 
     if not BIN.exists():
@@ -118,7 +118,7 @@ def main():
 
     # Index build benchmark.
     if not args.skip_build:
-        print("# benchmarking --build-index ...", file=sys.stderr)
+        print("# benchmarking `prot2exon index` ...", file=sys.stderr)
         build_info = bench_index_build()
         INDEX_BUILD_JSON.write_text(json.dumps(build_info, indent=2))
         print(f"# build: {build_info['wall_s']:.1f}s, peak {build_info['peak_mb']} MB, "

@@ -42,7 +42,7 @@ DEFAULT_BIN = REPO_ROOT / "build" / "prot2exon"
 
 def run_prot2exon(binary: Path, index: Path, bed: Path, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
-    cmd = [str(binary), "--index", str(index),
+    cmd = [str(binary), "map", "--index", str(index),
            "--bed", str(bed), "--out-dir", str(out_dir),
            "--output", "coding"]  # only need CDS segments
     proc = subprocess.run(cmd, capture_output=True, text=True)

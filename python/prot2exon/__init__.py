@@ -30,7 +30,7 @@ queries, prefer `map_batch` over many `map` calls: each call reloads the
 index from disk.
 """
 
-from ._client import Mapper, map_query
+from ._client import Mapper, map_query, build_index
 from ._result import MappingResult, read_results_dir
 from .plot import plot, plot_isoform
 from ._interactive_html import render_interactive_html, render_interactive_jupyter
@@ -72,6 +72,7 @@ __all__ = [
     "Mapper",
     "MappingResult",
     "map_query",
+    "build_index",
     "plot",
     "plot_isoform",
     "read_results_dir",

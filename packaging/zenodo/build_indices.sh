@@ -40,7 +40,7 @@ build_one() {
     fi
     local t0=$(date +%s)
     echo "[${label}] building index -> ${out_idx}"
-    "${BIN}" --gtf "${gtf}" --build-index --index "${out_idx}"
+    "${BIN}" index --gtf "${gtf}" --out "${out_idx}"
     local t1=$(date +%s)
     local size=$(stat -c%s "${out_idx}")
     local sha=$(sha256sum "${out_idx}" | cut -d' ' -f1)

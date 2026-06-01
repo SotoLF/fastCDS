@@ -492,7 +492,8 @@ ErrorCode write_all(const std::string& out_dir,
                     OutputKind kind,
                     const std::vector<DomainResult>& results,
                     const std::string& gtf_or_index_path,
-                    const std::vector<std::string>& cli_args) {
+                    const std::vector<std::string>& cli_args,
+                    bool also_bed12) {
     if (!ensure_dir(out_dir)) {
         std::cerr << "Error: cannot create output directory: " << out_dir << std::endl;
         return ErrorCode::FILE_NOT_FOUND;
@@ -516,7 +517,7 @@ ErrorCode write_all(const std::string& out_dir,
     const bool want_introns = (kind == OutputKind::INTRONS || kind == OutputKind::ALL);
     const bool want_span    = (kind == OutputKind::SPAN    || kind == OutputKind::ALL);
     const bool want_isoform = (kind == OutputKind::ISOFORM || kind == OutputKind::ALL);
-    const bool want_bed12   = (kind == OutputKind::BED12   || kind == OutputKind::ALL);
+    const bool want_bed12   = (kind == OutputKind::BED12   || kind == OutputKind::ALL || also_bed12);
     const bool want_meta    = (kind == OutputKind::ALL);
 
 #ifdef USE_OPENMP
@@ -593,8 +594,8 @@ ErrorCode write_all(const std::string& out_dir,
 
 // --------------------------- StreamingWriter ----------------------------- //
 
-StreamingWriter::StreamingWriter(std::string out_dir, OutputKind kind)
-    : out_dir_(std::move(out_dir)), kind_(kind) {}
+StreamingWriter::StreamingWriter(std::string out_dir, OutputKind kind, bool also_bed12)
+    : out_dir_(std::move(out_dir)), kind_(kind), also_bed12_(also_bed12) {}
 
 StreamingWriter::~StreamingWriter() = default;
 
@@ -634,7 +635,7 @@ ErrorCode StreamingWriter::open() {
         if (!open_with_header(isoform_tsv_, "isoform_structure.tsv", kFeatureTsvHeader))
             return ErrorCode::FILE_NOT_FOUND;
     }
-    if (kind_ == OutputKind::BED12 || kind_ == OutputKind::ALL) {
+    if (kind_ == OutputKind::BED12 || kind_ == OutputKind::ALL || also_bed12_) {
         if (!open_with_header(bed12_, "domain_blocks.bed12", nullptr))
             return ErrorCode::FILE_NOT_FOUND;
     }
@@ -673,7 +674,7 @@ void StreamingWriter::append(const std::vector<DomainResult>& chunk) {
         if (kind_ == OutputKind::ISOFORM || kind_ == OutputKind::ALL) {
             append_isoform_rows(isoform_tsv_, r);
         }
-        if (kind_ == OutputKind::BED12 || kind_ == OutputKind::ALL) {
+        if (kind_ == OutputKind::BED12 || kind_ == OutputKind::ALL || also_bed12_) {
             append_bed12_row(bed12_, r);
         }
         if (!r.mapped) {
