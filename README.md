@@ -100,7 +100,7 @@ Worked examples under [`notebooks/`](notebooks/) — each opens in [Colab](https
 | [`clinvar_pathogenic.ipynb`](notebooks/clinvar_pathogenic.ipynb) | Pathogenic-variant enrichment in domain-coding exons (ClinVar missense). |
 | [`validation.ipynb`](notebooks/validation.ipynb) | **Accuracy** vs `ensembldb` (and `GenomicFeatures::proteinToGenome`): 100% exact match across the 9-stratum, 5,000-query set, with the per-stratum figure. |
 | [`software_comparison.ipynb`](notebooks/software_comparison.ipynb) | **Speed** vs `ensembldb` / TransVar / Ensembl REST: agreement + throughput + RSS head-to-head at N = 10,000. |
-| [`benchmarking.ipynb`](notebooks/benchmarking.ipynb) | prot2exon's own scaling: wall-clock + peak-RSS curves and the `--batch-size` RAM cap at N = 1 M. |
+| [`scaling_and_ram.ipynb`](notebooks/scaling_and_ram.ipynb) | prot2exon measured against itself (not other tools): wall-clock + peak-RSS scaling curves, OpenMP speedup, and the `--batch-size` RAM cap at N = 1 M. |
 
 ## Citation
 

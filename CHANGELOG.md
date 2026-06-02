@@ -13,7 +13,7 @@ All notable changes to Prot2Exon. The format follows [Keep a Changelog](https://
 - Multi-isoform stack viewer: `render_interactive_html_stack()` and `render_interactive_jupyter_stack()`. All isoforms render on a single shared axis built from the union of their features, so skipped exons appear as empty space lined up across rows.
 - `prot2exon.fetch_index()` Python API mirroring the CLI; smoother for notebook workflows.
 - `prot2exon.prepare` submodule with `from_pfam()`, `from_interproscan()`, `from_uniprot_features()` returning DataFrames that `Mapper.map_batch()` consumes directly. The standalone scripts under `scripts/` are now thin CLI wrappers around this submodule, so the Python API and CLI never drift.
-- New worked-example notebooks: `validation.ipynb`, `software_comparison.ipynb`, `benchmarking.ipynb` (visualise the data behind the Validation + Benchmarks wiki pages).
+- New worked-example notebooks: `validation.ipynb`, `software_comparison.ipynb`, `scaling_and_ram.ipynb` (visualise the data behind the Performance and Benchmarking wiki page).
 - New **interactive HTML viewer** (`prot2exon.render_interactive_html`) — self-contained vanilla JS, no CDN, with vCRE-style minimap + box-zoom + drag-pan + wheel-zoom; also embeddable in Jupyter via `render_interactive_jupyter()`. (Formerly named "TFRegDB2 viewer" after the project the design was ported from; the public API kept old names as deprecated aliases for one release.)
 - `--compact-genomic` plot mode (matplotlib) that clamps long introns to a fixed display width while keeping CDS/UTR true-scale.
 - `--link-template URL` plot flag for clickable external links in HTML output.
