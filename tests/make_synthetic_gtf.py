@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate synthetic GTFs and BEDs used by run_tests.py.
+"""Generate the synthetic GTFs used by the pytest suite (via conftest.py).
 
 We build two GTFs so we can test both "GTF carries tag attributes" and
 "GTF carries none" without changing the rest of the schema.

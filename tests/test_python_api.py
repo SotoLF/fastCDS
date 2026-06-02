@@ -14,11 +14,24 @@ Requires the wrapper to be installed:
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 # Skip the whole file cleanly if the wrapper hasn't been installed —
 # the C++-only Phase 1 tests can still run without it.
 prot2exon = pytest.importorskip("prot2exon")
+
+
+def test_build_index_python_mirror(binary, synthetic_gtfs, tmp_path):
+    """`p2e.build_index(...)` is the Python mirror of `prot2exon index`: it
+    returns the .idx path and the result is a usable index."""
+    py_idx = tmp_path / "py_built.idx"
+    built = prot2exon.build_index(synthetic_gtfs["with_tags"], out=py_idx,
+                                  binary=str(binary))
+    assert Path(built) == py_idx and py_idx.exists()
+    mapper = prot2exon.Mapper(index=str(py_idx), binary=str(binary))
+    assert mapper.map("ENSP1", aa_start=1, aa_end=10, domain_id="BI").n_mapped == 1
 
 
 def test_mapper_map_single(binary, with_tags_index, tmp_path):

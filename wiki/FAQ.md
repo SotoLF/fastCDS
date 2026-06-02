@@ -55,7 +55,7 @@ Open an issue on the GitHub repo. A minimal reproducer (the GTF lines or BED row
 
 ## I want to contribute — where do I start?
 
-- **Bug fixes** — open a PR with a regression test in `tests/run_tests.py`.
+- **Bug fixes** — open a PR with a regression test under `tests/` (pytest; pick the module that fits — `test_correctness.py` for mapping output, `test_compat.py` for GTF dialects, etc.).
 - **New plot styles** — both matplotlib (`plot.py`) and the JS viewer (`_interactive_html.py`) are templated; copy an existing draw function and add a CLI flag.
 - **New input adapters** — `scripts/prepare_from_*.py` is the conventional spot for "turn external format X into prot2exon BED".
 - **New genome onboarding presets** — extend `_resolve_url` in `python/prot2exon/fetch.py`.

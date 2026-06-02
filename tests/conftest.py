@@ -1,7 +1,10 @@
-"""Shared pytest fixtures and helpers for the prot2exon golden-file test suite.
+"""Shared pytest fixtures and helpers for the prot2exon test suite.
 
-The suite drives the C++ binary directly. The Python wrapper is out of scope
-here — these tests verify the mapper, not the wrapper.
+Most tests drive the C++ binary directly and golden-diff its outputs; others
+cover the Python wrapper, the plot helpers, `prot2exon fetch`, and the
+packaging scripts. The shared `out_all` fixture maps a fixed multi-query BED
+once per session so the integration tests can read its outputs without each
+re-running the mapper.
 
 Pass `--update-goldens` to regenerate the expected files under tests/golden/.
 """
@@ -17,10 +20,42 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BIN = REPO_ROOT / "build" / "prot2exon"
+WRAPPER = REPO_ROOT / "bin" / "prot2exon"
 TESTS_DIR = Path(__file__).resolve().parent
 GOLDEN_DIR = TESTS_DIR / "golden"
 WITH_TAGS_GTF = TESTS_DIR / "with_tags.gtf"
 NO_TAGS_GTF = TESTS_DIR / "no_tags.gtf"
+
+# A fixed multi-query BED exercising the mapper's main paths: ENSP vs ENST,
+# MANE flags, structure-only, beyond-length, negative strand, codon splits,
+# a selenoprotein-like CDS mismatch, a non-coding transcript, and a missing
+# protein. The `out_all` fixture maps this once per session; several tests
+# assert on specific input_ids (Q1_ENSP, Q7_SEC, Q8_SPLIT12, …) from it.
+BED1 = """\
+# 1) ENSP query, MANE+canonical, plus strand, aa 1..10 = CDS_1 fully
+ENSP1\t1\t10\tQ1_ENSP
+# 2) ENST query for the same transcript — should produce identical mapping
+ENST1\t1\t10\tQ2_ENST
+# 3) Versioned ENSP — version is stripped
+ENSP1.5\t1\t10\tQ3_VER
+# 4) Structure-only (no aa)
+ENSP1\t0\t0\tQ4_STRUCT
+ENSP2\t0\t0\tQ4b_STRUCT_M
+# 5) Domain beyond protein length (ENSP1 has 44 aa)
+ENSP1\t100\t110\tQ5_BEYOND
+# 6) Negative strand, full coverage of CDS_1 in translation order (aa 1..17)
+ENSP2\t1\t17\tQ6_NEG
+# 7) Selenoprotein-like, domain at the end (aa 8..8)
+ENSP3\t8\t8\tQ7_SEC
+# 8) Codon split 1+2 — domain on the split aa (aa 2..2)
+ENSP4\t2\t2\tQ8_SPLIT12
+# 9) Codon split 2+1 — domain on the split aa (aa 2..2)
+ENSP5\t2\t2\tQ9_SPLIT21
+# 10) Non-coding ENST — no CDS
+ENST6\t1\t10\tQ10_NONCODING
+# 11) Protein not in index
+ENSP99\t1\t10\tQ11_NOTFOUND
+"""
 
 
 def pytest_addoption(parser):
@@ -69,6 +104,36 @@ def with_tags_index(binary, synthetic_gtfs, tmp_path_factory) -> Path:
     return idx
 
 
+@pytest.fixture(scope="session")
+def no_tags_index(binary, synthetic_gtfs, tmp_path_factory) -> Path:
+    """Index built from the GTF that carries no tag attributes at all — used to
+    verify the MANE/canonical flags come back as `NA` (vs `false` when the GTF
+    has tags but this transcript lacks them)."""
+    idx_dir = tmp_path_factory.mktemp("idx_no_tags")
+    idx = idx_dir / "no_tags.idx"
+    subprocess.run(
+        [str(binary), "index", "--gtf", str(synthetic_gtfs["no_tags"]),
+         "--out", str(idx)],
+        check=True, capture_output=True, text=True,
+    )
+    return idx
+
+
+@pytest.fixture(scope="session")
+def out_all(binary, with_tags_index, tmp_path_factory) -> Path:
+    """Map the fixed BED1 query set once with `--output all`; return the output
+    directory. Shared by the BED12, batch-size, and plotting tests."""
+    out = tmp_path_factory.mktemp("out_all")
+    bed = out / "queries.bed"
+    bed.write_text(BED1)
+    subprocess.run(
+        [str(binary), "map", "--index", str(with_tags_index),
+         "--bed", str(bed), "--out-dir", str(out), "--output", "all"],
+        check=True, capture_output=True, text=True,
+    )
+    return out
+
+
 def run_mapping(binary: Path, index: Path, bed_text: str, out_dir: Path,
                 *, output_kind: str = "all") -> None:
     """Write `bed_text` to <out_dir>/queries.bed, then map into out_dir."""
@@ -86,6 +151,18 @@ def run_mapping(binary: Path, index: Path, bed_text: str, out_dir: Path,
             f"prot2exon failed (rc={proc.returncode})\n"
             f"stdout: {proc.stdout}\nstderr: {proc.stderr}"
         )
+
+
+def read_tsv(path: Path) -> list[dict]:
+    """Read a TSV into a list of dict rows (header-keyed)."""
+    import csv
+    with open(path) as f:
+        return list(csv.DictReader(f, delimiter="\t"))
+
+
+def summary_by_id(out_dir: Path) -> dict[str, dict]:
+    """Read `domain_mapping_summary.tsv` from `out_dir`, keyed by input_id."""
+    return {r["input_id"]: r for r in read_tsv(out_dir / "domain_mapping_summary.tsv")}
 
 
 def assert_matches_golden(produced: Path, test_name: str,

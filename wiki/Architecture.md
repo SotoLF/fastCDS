@@ -19,7 +19,7 @@ Prot2Exon/
 │   └── fetch.py              `prot2exon fetch` subcommand
 ├── scripts/                  helpers: prepare_from_interpro/uniprot/pfam, append_custom_proteins
 ├── notebooks/                walkthrough + paper figure notebooks
-├── tests/run_tests.py        end-to-end test suite (~109 assertions)
+├── tests/                   pytest suite (golden-file + integration)
 ├── benchmarks/               1M-query + scaling harness
 ├── examples/                 small fixtures (tp53_isoforms.tsv, ...)
 └── wiki/                     these pages
@@ -75,17 +75,19 @@ The JS template renders a shared-axis view (compact-mode collapses introns to 80
 
 ## Testing
 
-`tests/run_tests.py` is a single-file end-to-end suite that:
+The suite is pytest, split by concern under `tests/`:
 
-1. Generates synthetic GTFs (`scripts/make_synthetic_gtf.py`).
-2. Builds an index.
-3. Runs the binary against handcrafted BED queries.
-4. Asserts on every output (~109 assertions covering coordinate conventions, CDS splitting, MANE Select, tag extraction, RefSeq dialect, custom-protein injection, plotly/interactive/jupyter renderers, `--batch-size` equivalence, …).
+- **`test_correctness.py`** — golden-file diffs of the mapper's TSV/BED outputs (`tests/golden/`), regenerated with `pytest --update-goldens`.
+- **`test_errors.py` / `test_schema.py`** — `status`/`reason` values and the coordinate conventions (BED 0-based vs TSV 1-based).
+- **`test_compat.py`** — no-tag GTFs, RefSeq dialect, custom-protein injection (`scripts/append_custom_proteins.py`).
+- **`test_bed12.py`** — BED12 block geometry, the `--bed12` add-on, `--batch-size` equivalence.
+- **`test_plotting.py`** — plot flags and the plotly/interactive/Jupyter renderers.
+- **`test_fetch.py`** — `prot2exon fetch` (offline `--gtf-url` build, sha256 verify, `fetch list`).
+- **`test_python_api.py`** / **`test_notebooks.py`** — the wrapper API and the notebook generator.
 
-Run with:
+`conftest.py` regenerates the synthetic GTFs (`tests/make_synthetic_gtf.py`), builds the shared indexes, and maps a fixed query set once per session (the `out_all` fixture). Run with:
 
 ```bash
-python3 tests/run_tests.py
+pip install -r tests/requirements-dev.txt && pip install -e python/
+pytest -q
 ```
-
-Expect `109 passed, 2 failed` — the two failures require matplotlib + pandas in the system python and aren't regressions.

@@ -95,10 +95,12 @@ prot2exon plot --help           # Python plotter
 prot2exon fetch list            # pre-built indexes + GTF-build presets
 ```
 
-Then run the end-to-end test suite from a source checkout:
+Then run the test suite from a source checkout (dev deps + wrapper + pytest):
 
 ```bash
-python3 tests/run_tests.py      # expects "N passed, 0 failed"
+pip install -r tests/requirements-dev.txt
+pip install -e python/
+pytest -q                       # expects "N passed"
 ```
 
 Once installed, head to [[Building an index|Index]]. Tuning flags for large runs live on [[Performance and Benchmarking]].

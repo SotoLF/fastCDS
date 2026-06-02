@@ -1,8 +1,10 @@
-"""Correctness tests — golden-file diffs of the mapper's TSV/BED outputs."""
+"""Correctness tests — golden-file diffs of the mapper's TSV/BED outputs, plus
+a couple of value-level checks (selenoprotein CDS mismatch, ENST≡ENSP) that read
+from the shared `out_all` run."""
 
 from __future__ import annotations
 
-from conftest import assert_matches_golden, run_mapping
+from conftest import assert_matches_golden, run_mapping, summary_by_id
 
 GOLDEN_FILES = [
     "domain_mapping_summary.tsv",
@@ -80,3 +82,25 @@ def test_versioned_unversioned_ids(
     run_mapping(binary, with_tags_index, bed, tmp_path)
     assert_matches_golden(tmp_path, "test_versioned_unversioned_ids",
                           GOLDEN_FILES, update=update_goldens)
+
+
+def test_enst_input_equals_ensp(out_all):
+    """An ENST query maps to the same genomic interval as the equivalent ENSP
+    query — only input_id_type differs."""
+    summary = summary_by_id(out_all)
+    ensp, enst = summary["Q1_ENSP"], summary["Q2_ENST"]
+    assert ensp["input_id_type"] == "ENSP"
+    assert enst["input_id_type"] == "ENST"
+    assert enst["protein_id"] == "ENSP1"
+    assert enst["domain_genomic_start"] == ensp["domain_genomic_start"]
+    assert enst["domain_genomic_end"] == ensp["domain_genomic_end"]
+
+
+def test_selenoprotein_like_cds_mismatch(out_all):
+    """A CDS whose length isn't a multiple of 3 (selenoprotein-like) is still
+    mapped, but flagged: cds_length_mismatch=true and status carries
+    `_cds_mismatch`."""
+    q7 = summary_by_id(out_all)["Q7_SEC"]
+    assert q7["cds_length_mismatch"] == "true"
+    assert q7["cds_nt_remainder"] == "1"
+    assert "_cds_mismatch" in q7["status"]
