@@ -36,16 +36,17 @@ The pip wheel bundles the compiled binary, so all four commands work immediately
 
 ## Quickstart
 
-The workflow is four commands — `fetch`/`index` to get an index, `map` to project queries, `plot` to render:
+The workflow is four commands — `index` (or `fetch`) to get an index, `map` to project queries, `plot` to render:
 
 ```bash
 # 1. Get an index (one-time per annotation)
-prot2exon fetch human                         # pre-built index from Zenodo (~5 s)
-prot2exon index --gtf my.gtf --out my.idx     # build from a GTF you already have
+prot2exon index --gtf my.gtf --out human.idx   # build from a GTF you already have
+# or skip the GTF — grab a pre-built index from Zenodo:
+prot2exon fetch human --out human.idx
 
 # 2. Map a BED of domain queries
 prot2exon map \
-    --index ~/.cache/prot2exon/human.idx \
+    --index human.idx \
     --bed queries.bed --out-dir results --output all --threads 8
 
 # 3. Plot a single domain
@@ -63,7 +64,8 @@ The same workflow from Python:
 import prot2exon as p2e
 
 # 1. Get an index (one-time)
-idx = p2e.fetch_index("human")                      # pre-built; Path-returning
+idx = p2e.build_index("my.gtf", out="human.idx")    # build from a GTF; Path-returning
+# idx = p2e.fetch_index("human")                    # or grab a pre-built one from Zenodo
 
 # 2. Map queries
 mapper = p2e.Mapper(index=str(idx))
