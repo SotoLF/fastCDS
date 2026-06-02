@@ -1,4 +1,4 @@
-# Mapping
+# Mapping (`prot2exon map`)
 
 `prot2exon map` projects protein-domain amino-acid coordinates onto a transcript's genomic CDS / UTR / intron structure. You give it a query BED and an index (or GTF), pick how you want the answer shaped with `--output`, and it writes a set of TSVs and BEDs describing where the domain lives in the genome.
 
@@ -46,6 +46,8 @@ Answers *which CDS exons code the domain?* — every CDS exon of the transcript,
 prot2exon map --index human.idx --bed q.bed --out-dir results --output coding
 ```
 
+The same in Python:
+
 ```python
 import prot2exon as p2e
 mapper = p2e.Mapper(index="human.idx")
@@ -71,6 +73,8 @@ Answers *which introns fall inside the domain's genomic span?* — every intron 
 prot2exon map --index human.idx --bed q.bed --out-dir results --output introns
 ```
 
+The same in Python:
+
 ```python
 result = mapper.map_batch(queries, output="introns")
 result.introns        # DataFrame of intron rows
@@ -89,6 +93,8 @@ Answers *what is the single genomic envelope of the domain, introns included?* �
 ```bash
 prot2exon map --index human.idx --bed q.bed --out-dir results --output span
 ```
+
+The same in Python:
 
 ```python
 result = mapper.map_batch(queries, output="span")
@@ -109,6 +115,8 @@ See [Output description](#output-description) for the BED column meanings.
 prot2exon map --index human.idx --bed q.bed --out-dir results --output coding --bed12
 ```
 
+The same in Python:
+
 ```python
 # The Python results carry the bed12 rows whenever they're produced:
 result = mapper.map_batch(queries, output="all")
@@ -124,6 +132,8 @@ Field-by-field meaning in [Output description](#output-description).
 ```bash
 prot2exon map --index human.idx --bed q.bed --out-dir results --output isoform
 ```
+
+The same in Python:
 
 ```python
 result = mapper.map_batch(queries, output="isoform")

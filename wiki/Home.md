@@ -14,7 +14,7 @@ A C++17 binary does the heavy lifting (≤ 1 µs per query on a warm index), a P
 The whole workflow is four commands, used in order:
 
 ```bash
-prot2exon fetch human                         # 1. get an index  -> see Building an index
+prot2exon fetch human --out human.idx         # 1. get an index  -> see Building an index
 prot2exon map   --index human.idx \           # 2. map queries   -> see Mapping
                 --bed queries.bed --out-dir results --output all
 prot2exon plot  --isoform results/isoform_structure.tsv \   # 3. plot -> see Plotting

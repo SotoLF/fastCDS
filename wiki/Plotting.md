@@ -1,4 +1,4 @@
-# Plotting
+# Plotting (`prot2exon plot`)
 
 Once you have an `isoform_structure.tsv` from [[Mapping]], `prot2exon plot` renders it as a static figure (matplotlib) or as an interactive viewer (plotly or a self-contained vanilla-JS viewer). The plotter reads the TSV directly and never re-derives coordinates from the genome, so anything you can express by editing the table is plottable.
 
@@ -80,9 +80,10 @@ For a single isoform, obtain the segments from a result and embed the viewer inl
 
 ```python
 import prot2exon as p2e
+from prot2exon.plot import _segments_from_dataframe
 
 result = p2e.map_query("ENSP00000269305", 10, 50, "TP53_DBD", index="human.idx")
-segments = p2e.plot._segments_from_dataframe(result.isoform)["TP53_DBD"]
+segments = _segments_from_dataframe(result.isoform)["TP53_DBD"]
 
 p2e.render_interactive_jupyter(segments, plot_height=160)
 ```
@@ -90,7 +91,7 @@ p2e.render_interactive_jupyter(segments, plot_height=160)
 For several isoforms stacked in one viewer, pass the whole `dict[input_id -> segments]` to the stack variant:
 
 ```python
-segs_by_id = p2e.plot._segments_from_dataframe(result.isoform)
+segs_by_id = _segments_from_dataframe(result.isoform)
 p2e.render_interactive_jupyter_stack(segs_by_id, plot_height=40)
 ```
 
