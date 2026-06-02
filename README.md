@@ -95,11 +95,12 @@ Worked examples under [`notebooks/`](notebooks/) — each opens in [Colab](https
 
 | Notebook | What it covers |
 |---|---|
-| [`walkthrough_end_to_end.ipynb`](notebooks/walkthrough_end_to_end.ipynb) | Zero-to-figure tour: `fetch_index` → BED prep → `map_batch` → all plot styles. |
+| [`walkthrough_end_to_end.ipynb`](notebooks/walkthrough_end_to_end.ipynb) ([view on nbviewer](https://nbviewer.org/github/SotoLF/Prot2Exon/blob/main/notebooks/walkthrough_end_to_end.ipynb)) | Zero-to-figure tour: `fetch_index` → BED prep → `map_batch` → all plot styles. The interactive HTML viewers only render on **nbviewer**, not GitHub. |
 | [`pfam_proteome_atlas.ipynb`](notebooks/pfam_proteome_atlas.ipynb) | Map every Pfam-A domain on the human proteome; single- vs multi-exon architecture stats. |
 | [`clinvar_pathogenic.ipynb`](notebooks/clinvar_pathogenic.ipynb) | Pathogenic-variant enrichment in domain-coding exons (ClinVar missense). |
-| [`proteintogenome_comparison.ipynb`](notebooks/proteintogenome_comparison.ipynb) | **Live** comparison run from the terminal — prot2exon vs `ensembldb` vs `GenomicFeatures::proteinToGenome` (and VisProDom): per-stratum validation, speed, and RAM, with plots. |
-| [`benchmarking.ipynb`](notebooks/benchmarking.ipynb) | Wall-clock + peak-RSS scaling curves and the `--batch-size` RAM cap at N = 1 M. |
+| [`validation.ipynb`](notebooks/validation.ipynb) | **Accuracy** vs `ensembldb` (and `GenomicFeatures::proteinToGenome`): 100% exact match across the 9-stratum, 5,000-query set, with the per-stratum figure. |
+| [`software_comparison.ipynb`](notebooks/software_comparison.ipynb) | **Speed** vs `ensembldb` / TransVar / Ensembl REST: agreement + throughput + RSS head-to-head at N = 10,000. |
+| [`benchmarking.ipynb`](notebooks/benchmarking.ipynb) | prot2exon's own scaling: wall-clock + peak-RSS curves and the `--batch-size` RAM cap at N = 1 M. |
 
 ## Citation
 

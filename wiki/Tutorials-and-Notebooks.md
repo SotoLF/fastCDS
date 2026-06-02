@@ -46,7 +46,7 @@ The headline tour takes you from an empty working directory to a domain mapped o
 
 It's the guided, executed version of the [Quickstart](#quickstart-a-real-run-you-can-copy-paste) above — a good place to start if you want to see each step's output before adapting it to your own data.
 
-Notebook: [`walkthrough_end_to_end.ipynb`](https://github.com/SotoLF/Prot2Exon/blob/main/notebooks/walkthrough_end_to_end.ipynb)
+Notebook: [`walkthrough_end_to_end.ipynb`](https://github.com/SotoLF/Prot2Exon/blob/main/notebooks/walkthrough_end_to_end.ipynb) · [**view on nbviewer**](https://nbviewer.org/github/SotoLF/Prot2Exon/blob/main/notebooks/walkthrough_end_to_end.ipynb) (the inline interactive HTML viewers render on nbviewer, not on GitHub's notebook view)
 
 ## Pfam proteome atlas
 
