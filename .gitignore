@@ -35,9 +35,10 @@ python/dist/
 .pytest_cache/
 .venv/
 
-# Packaging build artifacts (re-buildable via `python -m build`)
-packaging/pypi/*.whl
-packaging/pypi/*.tar.gz
+# Packaging / release tooling — kept local, not published.
+# The bioconda recipe lives upstream in bioconda/bioconda-recipes; pypi
+# artifacts are re-buildable via `python -m build`.
+/packaging/
 
 # Python build artifacts
 dist/
