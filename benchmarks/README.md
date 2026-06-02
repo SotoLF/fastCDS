@@ -91,9 +91,9 @@ Rscript benchmarks/visprodom_bench.R /tmp/VisProDom
 
 Total wall: validation ~5 min, scaling ~50 min (ensembldb N = 10K is ~26 min of that), parallel ~1 min, proteinToGenome head-to-head ~5 min (ensembldb N = 1K is ~3.5 min of that), VisProDom ~1 min.
 
-Headline results (one machine, one thread): on 1,000 v86 queries prot2exon ≡ ensembldb ≡ GenomicFeatures at 1,000 / 1,000 exact-segment match; mapping time prot2exon 0.02 s vs GenomicFeatures 48.5 s vs ensembldb 201.9 s; see [`proteintogenome_results.tsv`](proteintogenome_results.tsv).
+Headline results (one machine, one thread): on 1,000 v86 queries prot2exon ≡ ensembldb ≡ GenomicFeatures at 1,000 / 1,000 exact-segment match; mapping time prot2exon 0.014 s vs GenomicFeatures 37.71 s vs ensembldb 160.12 s; see [`proteintogenome_results.tsv`](proteintogenome_results.tsv).
 
-## Gotchas (each one cost real time)
+## Reproduction notes
 
 1. **`conda install -c bioconda bioconductor-ensembldb` never solves.** Bioconda's `r-rjson` recipe declares `r=3.3.1` — metadata bug, conflicts with any modern r-base. Use BiocManager instead.
 2. **R compile in conda needs `gcc ≤ 14`.** gcc 15+ rejects `rtracklayer`'s bundled UCSC C code.
