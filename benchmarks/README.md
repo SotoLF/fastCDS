@@ -93,6 +93,23 @@ Total wall: validation ~5 min, scaling ~50 min (ensembldb N = 10K is ~26 min of 
 
 Headline results (one machine, one thread): on 1,000 v86 queries prot2exon ≡ ensembldb ≡ GenomicFeatures at 1,000 / 1,000 exact-segment match; mapping time prot2exon 0.014 s vs GenomicFeatures 37.71 s vs ensembldb 160.12 s; see [`proteintogenome_results.tsv`](proteintogenome_results.tsv).
 
+## Other tools on human data (VisProDom, geneplot)
+
+VisProDom and geneplot ship only non-human example data (maize, fruit-fly), but
+both are general (any GFF + domain file), so we run them on the **same human
+Ensembl-86 set** for an apples-to-apples comparison. [`build_human_tool_inputs.py`](build_human_tool_inputs.py)
+turns the Ensembl-86 GFF3 + the Pfam-on-v86 domains into each tool's format
+(geneplot: InterProScan `.ipr`; VisProDom: a Phytozome-style GFF + RPS-BLAST
+`annofile`), then [`geneplot_human.py`](geneplot_human.py) and
+[`visprodom_human.R`](visprodom_human.R) run them.
+
+Neither has an index, and on the human genome it shows: VisProDom rebuilds the
+whole genome on every `CreDat` call (**42.7 s, 2.3 GB** for the 1,000-query set,
+~19 proteins/s), and geneplot builds a `gffutils` SQLite database of the genome
+first (minutes) then re-reads the domain file per gene (**~14 genes/s**
+end-to-end). On their bundled examples both finish in seconds; on human they
+land in the slow-tool range (vs prot2exon's ~71,000 queries/s).
+
 ## Reproduction notes
 
 1. **`conda install -c bioconda bioconductor-ensembldb` never solves.** Bioconda's `r-rjson` recipe declares `r=3.3.1` — metadata bug, conflicts with any modern r-base. Use BiocManager instead.
