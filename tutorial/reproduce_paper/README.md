@@ -64,16 +64,3 @@ canonical) isoform per gene**, so a domain on a multi-isoform gene is not counte
 once per splice variant. The ClinVar interval set instead uses the **union of
 domain-coding exons across all isoforms** (a variant counts if it falls in any
 isoform's domain-coding exon). Both choices are stated in the relevant notebook.
-
-## Regenerating the notebooks
-
-The notebooks are generated from `generate_notebooks.py` (the single source of
-truth for their content). To edit a notebook, change that script and run:
-
-```bash
-python generate_notebooks.py                 # rewrite all .ipynb (outputs cleared)
-python generate_notebooks.py --run NAME ...  # rewrite, then execute to embed outputs
-```
-
-Running it rewrites **every** notebook output-less, so re-execute the ones you
-changed (`--run`) to restore their embedded results.
