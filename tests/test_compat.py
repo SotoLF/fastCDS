@@ -69,11 +69,11 @@ def test_custom_protein_injection(binary, synthetic_gtfs, tmp_path):
     custom_rows = tmp_path / "custom_rows.gtf"
     helper = REPO_ROOT / "scripts" / "append_custom_proteins.py"
     proc = subprocess.run(
-        [sys.executable, str(helper), "--in", str(custom_tsv),
-         "--out", str(custom_rows)],
+        [sys.executable, str(helper), "--in", str(custom_tsv)],
         capture_output=True, text=True,
     )
     assert proc.returncode == 0, proc.stderr
+    custom_rows.write_text(proc.stdout)   # the script emits the GTF rows on stdout
 
     rows = [l for l in custom_rows.read_text().splitlines() if not l.startswith("#")]
     assert len(rows) == 5  # transcript + 2 exons + 2 CDSs
