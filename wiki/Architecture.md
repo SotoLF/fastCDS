@@ -86,7 +86,7 @@ The suite is pytest, split by concern under `software_tests/`:
 - **`test_bed12.py`** — BED12 block geometry, the `--bed12` add-on, `--batch-size` equivalence.
 - **`test_plotting.py`** — plot flags and the plotly/interactive/Jupyter renderers.
 - **`test_fetch.py`** — `prot2exon fetch` (offline Zenodo-index download, sha256 verify, `fetch list`).
-- **`test_python_api.py`** / **`test_notebooks.py`** — the Python wrapper API and the worked-example notebooks.
+- **`test_python_api.py`** — the Python wrapper API (`Mapper`, `map_batch`, DataFrame helpers).
 
 `conftest.py` regenerates the synthetic GTFs (`software_tests/make_synthetic_gtf.py`), builds the shared indexes, and maps a fixed query set once per session (the `out_all` fixture). Run with:
 
