@@ -70,7 +70,7 @@ prot2exon plot --isoform results/isoform_structure.tsv --input-id TP53_DBD \
     --link-template 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?p={protein_id}'
 ```
 
-`--html` needs plotly installed (`pip install "prot2exon[html]"`); `--html-interactive` has no JS dependencies. You can pass both alongside `--out` in one run. The standalone viewer supports box-zoom (drag to zoom into a genomic range), shift-drag to pan, mouse-wheel zoom, double-click to reset, a draggable minimap, UTR rendering with strand arrows, and a Compact / True-genomic layout toggle. `--link-template` adds a clickable linkout next to the title using the placeholders `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`, `{start}`, `{end}`.
+`--html` needs plotly (`pip install plotly`); `--html-interactive` has no extra dependencies. You can pass both alongside `--out` in one run. The standalone viewer supports box-zoom (drag to zoom into a genomic range), shift-drag to pan, mouse-wheel zoom, double-click to reset, a draggable minimap, UTR rendering with strand arrows, and a Compact / True-genomic layout toggle. `--link-template` adds a clickable linkout next to the title using the placeholders `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`, `{start}`, `{end}`.
 
 With `--all`, each interactive flag writes one file per query (`base.<input_id>.ext`).
 

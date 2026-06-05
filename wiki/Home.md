@@ -7,14 +7,13 @@ For each input query — a `protein_id` **or** a `transcript_id`, optionally wit
 1. **Mapping** — *which exact genomic bases code this domain?*
 2. **Structure** — *how is the whole transcript organised into 5′UTR / CDS / 3′UTR / intron, and where does the domain fall on it?*
 
-A C++17 binary does the heavy lifting (≤ 1 µs per query on a warm index), a Python wrapper hands you DataFrames, and `prot2exon plot` renders static figures or an interactive HTML viewer.
-
 ## The four commands
 
 The whole workflow is four commands, used in order:
 
 ```bash
-prot2exon fetch human --out human.idx         # 1. get an index  -> see Building an index
+prot2exon index gencode.v49.primary_assembly.annotation.gtf  # 1a build an index 
+prot2exon fetch human --out human.idx     # 1b get a pre-built index from Zenodo
 prot2exon map   --index human.idx \           # 2. map queries   -> see Mapping
                 --bed queries.bed --out-dir results --output all
 prot2exon plot  --isoform results/isoform_structure.tsv \   # 3. plot -> see Plotting
@@ -23,8 +22,8 @@ prot2exon plot  --isoform results/isoform_structure.tsv \   # 3. plot -> see Plo
 
 | Command | Does | Page |
 |---|---|---|
-| `fetch` | Download a pre-built index, or download a GTF and build one. | [Building an index](Index) |
 | `index` | Build a binary index from a GTF. | [Building an index](Index) |
+| `fetch` | Download a pre-built index from Zenodo. | [Building an index](Index) |
 | `map`   | Map protein/domain queries to genomic structure. | [Mapping](Mapping) |
 | `plot`  | Render a static (PDF/PNG) or interactive (HTML) figure. | [Plotting](Plotting) |
 
@@ -43,10 +42,3 @@ p2e.plot(result, input_id="TP53_DBD", out="tp53.pdf")
 ```
 
 New here? Start with [[Installation]], then walk the sidebar top to bottom. The [[Tutorials and Notebooks]] page has a copy-paste run from zero to a figure.
-
-## Project links
-
-- Repository: <https://github.com/SotoLF/Prot2Exon>
-- Owner: Luis F. Soto Ugaldi ([@SotoLF](https://github.com/SotoLF))
-- Collaborator: George D. Muñoz Esquivel ([@george123ya](https://github.com/george123ya))
-- Citation: see the bottom of [[FAQ]].

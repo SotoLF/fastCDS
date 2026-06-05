@@ -7,7 +7,27 @@ Reproduction harness for the correctness + speed comparisons reported in [[Valid
 | Question | Headline |
 |---|---|
 | Are the coordinates correct? | **100.00 % exact match vs ensembldb _and_ GenomicFeatures::proteinToGenome** — three-way agreement, zero off-by-ones, zero structural mismatches. |
-| Is it fast enough? | **5,847 q/s** on one thread — **~900× ensembldb, ~2,400× GenomicFeatures::proteinToGenome, ~4.4× TransVar, ~5,400× Ensembl REST**. |
+| Is it fast enough? | **5,847 q/s** on one thread (N = 10,000, end-to-end) — **~970× ensembldb, ~4.4× TransVar, ~5,400× Ensembl REST**. |
+
+### How "speedup" is measured
+
+All speedup ratios below are **end-to-end at a fixed N**: total wall time from
+process start until every result is written, **including the one-time index /
+database load**, divided by N. We report N = 10,000 on one thread. This is the
+number a user actually waits for, and it avoids cherry-picking — so quote *this*
+ratio, not a warm-cache one.
+
+Two consequences worth stating plainly so the numbers don't look contradictory:
+
+- **The ratio grows with N.** prot2exon's ~1.2 s index load is amortized over
+  more queries as N rises, while ensembldb's per-query cost dominates throughout.
+  So prot2exon-vs-ensembldb is ~130× at N = 1,000 but ~970× at N = 10,000. Always
+  state N with a speedup.
+- **Warm mapping-only is faster still but biased**, so we don't headline it: with
+  the index already loaded, prot2exon maps at ~71,000 q/s, which is ~11,000×
+  ensembldb's per-query rate — but that figure drops prot2exon's load cost while
+  keeping the comparators' steady-state, so it flatters us. Use it only to explain
+  *where* the speed comes from (the mapping is near-free; I/O is the floor).
 
 See [`wiki/Performance-and-Benchmarking.md`](../wiki/Performance-and-Benchmarking.md) for the full result tables, design rationale (9-stratum sampler, why each comparator), the GenomicFeatures/ensembldb/VisProDom comparison, and the practical notes worth knowing if you reproduce.
 
@@ -22,7 +42,8 @@ See [`wiki/Performance-and-Benchmarking.md`](../wiki/Performance-and-Benchmarkin
 | `compare_intervals.py` | Per-query exact-segment agreement across mappers (ensembldb / GenomicFeatures / prot2exon) |
 | `validate_vs_ensembldb.py` | Runs prot2exon + ensembldb, classifies into 6 buckets, emits Table 1 |
 | `scaling_benchmark.py` | prot2exon vs ensembldb at N = 100 … 1 M |
-| `parallel_benchmark.py` | prot2exon at threads 1, 2, 4, 8 |
+| `threads_batch_grid.py` | combined `--threads` × `--batch-size` grid (wall + peak RSS in one sweep) |
+| `parallel_benchmark.py` | threads-only sweep (superseded by `threads_batch_grid.py`; kept for back-compat) |
 | `run_ensembl_rest.py` | Rate-limited REST client |
 | `run_transvar.py` | Builds HGVS from EnsDb sequences, drives TransVar |
 | `classify_external.py` | Bucket-classifier (use `--envelope-only` for TransVar) |
@@ -67,10 +88,13 @@ python benchmarks/scaling_benchmark.py \
     --p2e-reps 2 --ensembldb-reps 1 --ensembldb-max-n 10000 \
     --out bench/timings.tsv
 
-python benchmarks/parallel_benchmark.py \
-    --bin build/prot2exon --p2e-index human_v86.idx \
-    --bed bench/queries_n100000.bed --work-dir bench/parallel \
-    --out bench/parallel.tsv
+# combined threads × batch-size grid (wall + peak RSS in one sweep).
+# one-shot at N=1M holds ~13 GB in RAM — drop the `0` batch on a small-RAM box.
+python benchmarks/threads_batch_grid.py \
+    --bin build/prot2exon --index human_v86.idx \
+    --bed bench/queries_n1000000.bed --work-dir bench/grid \
+    --threads 1 4 8 16 32 --batch-sizes 0 10000 50000 100000 --reps 2 \
+    --out bench/threads_batch_grid.tsv
 
 # 5) ensembldb vs GenomicFeatures::proteinToGenome (speed + RAM, same queries)
 head -1000 queries_v86.bed > q1k.bed
@@ -108,7 +132,8 @@ whole genome on every `CreDat` call (**42.7 s, 2.3 GB** for the 1,000-query set,
 ~19 proteins/s), and geneplot builds a `gffutils` SQLite database of the genome
 first (minutes) then re-reads the domain file per gene (**~14 genes/s**
 end-to-end). On their bundled examples both finish in seconds; on human they
-land in the slow-tool range (vs prot2exon's ~71,000 queries/s).
+land in the slow-tool range (vs prot2exon's ~830 q/s end-to-end on the same
+1,000-query set, index load included).
 
 ## Reproduction notes
 

@@ -130,37 +130,32 @@ def main() -> int:
     ap.add_argument("--source-tag", default="custom",
                     help="Default value for the GTF source column when the "
                          "input row has no `source` column (default: custom).")
-    ap.add_argument("--out", default="-",
-                    help="Output GTF file (default: stdout).")
     args = ap.parse_args()
 
     src_path = Path(args.infile)
     if not src_path.exists():
         sys.exit(f"error: input not found: {src_path}")
 
-    out_f = sys.stdout if args.out == "-" else open(args.out, "w")
-    try:
-        with open(src_path, newline="") as fh:
-            reader = csv.DictReader(fh, delimiter="\t")
-            missing = [c for c in REQUIRED_COLS if c not in (reader.fieldnames or [])]
-            if missing:
-                sys.exit(f"error: input missing columns: {missing}\n"
-                         f"got: {reader.fieldnames}")
-            n_rows = 0
-            n_errors = 0
-            for i, row in enumerate(reader, start=2):  # data rows start at line 2
-                try:
-                    for line in emit_rows(row, args.source_tag):
-                        out_f.write(line + "\n")
-                    n_rows += 1
-                except Exception as e:
-                    n_errors += 1
-                    sys.stderr.write(f"line {i}: {e}\n")
-        sys.stderr.write(f"wrote {n_rows} transcripts ({n_errors} errors)\n")
-        return 1 if n_errors else 0
-    finally:
-        if out_f is not sys.stdout:
-            out_f.close()
+    # The GTF rows go to stdout (pipe/redirect them onto your reference GTF);
+    # status and per-row errors go to stderr so they don't pollute the output.
+    with open(src_path, newline="") as fh:
+        reader = csv.DictReader(fh, delimiter="\t")
+        missing = [c for c in REQUIRED_COLS if c not in (reader.fieldnames or [])]
+        if missing:
+            sys.exit(f"error: input missing columns: {missing}\n"
+                     f"got: {reader.fieldnames}")
+        n_rows = 0
+        n_errors = 0
+        for i, row in enumerate(reader, start=2):  # data rows start at line 2
+            try:
+                for line in emit_rows(row, args.source_tag):
+                    sys.stdout.write(line + "\n")
+                n_rows += 1
+            except Exception as e:
+                n_errors += 1
+                sys.stderr.write(f"line {i}: {e}\n")
+    sys.stderr.write(f"wrote {n_rows} transcripts ({n_errors} errors)\n")
+    return 1 if n_errors else 0
 
 
 if __name__ == "__main__":

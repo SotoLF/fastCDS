@@ -51,14 +51,14 @@ NP_NOVEL_2   NM_NOVEL_2      G_NOV2   NOVEL_2    chr_X    -       5000-5100;4800
 
 #### Run
 
-The script emits the custom `transcript` / `exon` / `CDS` rows to stdout — append them to a copy of your reference GTF, then index it:
+The script emits the custom `transcript` / `exon` / `CDS` rows to **stdout** (status messages go to stderr) — append them to a copy of your reference GTF, then index it:
 
 ```bash
 cp gencode.v49.primary_assembly.annotation.gtf combined.gtf
 python3 scripts/append_custom_proteins.py --in my_custom_proteins.tsv >> combined.gtf
 ```
 
-Use `--out combined_rows.gtf` to write to a file instead of stdout, and `--source-tag <text>` to set the GTF `source` column for these rows (default `custom`).
+Use `--source-tag <text>` to set the GTF `source` column for these rows (default `custom`).
 
 Either way you end up with one GTF to index in the next step, and your custom protein IDs then behave exactly like reference ones.
 
@@ -81,7 +81,7 @@ From Python, `build_index` is the mirror of `prot2exon index` — it indexes a l
 
 ```python
 import prot2exon as p2e
-idx = p2e.build_index("combined.gtf", out="human.idx")
+idx = p2e.build_index("gencode.v49.primary_assembly.annotation.gtf", out="human.idx")
 ```
 
 See [[Python API]] for using the resulting index programmatically.
@@ -117,7 +117,7 @@ Available pre-built indexes:
 | **Parameters** | `--out` (where to write the `.idx`; default `~/.cache/prot2exon/<target>.idx`), `--cache-dir`, `--force` |
 | **Output** | a ready `.idx`; its path is printed on stdout so it pipes into the mapper |
 
-**Need a release that isn't in the table above?** There's no pre-built index to fetch, so make one the normal way: [obtain that GTF](#1-obtain-a-gtf) and then [index it](#2-index-a-local-gtf) — that's exactly what `fetch` saves you when a pre-built index *does* exist. (For convenience `fetch` can also download-and-build a specific release in one step via `--release` / `--gtf-url`; see `prot2exon fetch --help`. It's the same obtain-GTF-then-index route, automated.)
+**Need a release, species, or custom annotation that isn't in the table above?** `fetch` only serves the pre-built indexes listed here — there's nothing to download otherwise. Make one the normal way: [obtain that GTF](#1-obtain-a-gtf) and then [index it](#2-index-a-local-gtf). That local build (a one-time ~15 s step) is exactly what `fetch` saves you when a pre-built index *does* exist.
 
 From Python, the same retrieval returns the `Path`:
 

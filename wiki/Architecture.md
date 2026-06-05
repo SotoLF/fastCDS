@@ -82,7 +82,7 @@ The suite is pytest, split by concern under `tests/`:
 - **`test_compat.py`** — no-tag GTFs, RefSeq dialect, custom-protein injection (`scripts/append_custom_proteins.py`).
 - **`test_bed12.py`** — BED12 block geometry, the `--bed12` add-on, `--batch-size` equivalence.
 - **`test_plotting.py`** — plot flags and the plotly/interactive/Jupyter renderers.
-- **`test_fetch.py`** — `prot2exon fetch` (offline `--gtf-url` build, sha256 verify, `fetch list`).
+- **`test_fetch.py`** — `prot2exon fetch` (offline Zenodo-index download, sha256 verify, `fetch list`).
 - **`test_python_api.py`** / **`test_notebooks.py`** — the wrapper API and the notebook generator.
 
 `conftest.py` regenerates the synthetic GTFs (`tests/make_synthetic_gtf.py`), builds the shared indexes, and maps a fixed query set once per session (the `out_all` fixture). Run with:
