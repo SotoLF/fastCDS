@@ -18,6 +18,10 @@ Usually not. It flags cases where the sum of CDS lengths isn't a clean multiple 
 
 You probably passed a transcript ID for a *non-coding* transcript (lncRNA, processed transcript, …). There's no CDS to map onto, so the row goes to `unmapped_domains.tsv`. The summary's `input_id_type` column distinguishes ENSP / ENST queries.
 
+## How do I build a query BED from a domain database (Pfam, InterProScan, UniProt)?
+
+Use the `prot2exon.prepare` helpers — `from_pfam()`, `from_interproscan()`, `from_uniprot_features()` — which turn those tools' standard outputs into a DataFrame that `Mapper.map_batch()` consumes directly (the `scripts/` CLI wrappers do the same from the command line). See the [[Python API]] page for the exact signatures.
+
 ## How does prot2exon handle codons split across an exon boundary?
 
 Codons that straddle two CDS exons (1+2 or 2+1 patterns) are handled correctly — the mapper tracks `cds_nt_start` / `cds_nt_end` across the exon boundary so aa coordinates round-trip cleanly. CDS exons are split only when *the domain* partially covers them, never on the codon boundary.

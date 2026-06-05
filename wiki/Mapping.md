@@ -23,11 +23,11 @@ ENSP00000418960
 | 4 | no  | `domain_id` (used as `input_id` for tracking through the outputs). |
 | 5+ | no | Ignored — free space for human-readable metadata. |
 
-If column 4 is missing but a domain is present, `input_id` falls back to `id:aa_start-aa_end`; in no-domain mode it falls back to `id`. Either way every row stays uniquely identifiable in the outputs.
+Without column 4, `input_id` falls back to `id:aa_start-aa_end` (or just `id` in no-domain mode).
 
 An ENST resolves to the same intervals as its matching ENSP, so the two produce identical mapping output; the summary's `input_id_type` column records which form you supplied. A *non-coding* ENST (no CDS in the GTF) is reported in `unmapped_domains.tsv` with `reason = no_CDS_for_protein`. A row that is just an id with no aa range is processed in **no-domain (structure-only) mode**: the overlap columns are `NA` and the companion BEDs are empty, but `isoform_structure.tsv` is still fully populated so the transcript can be plotted as-is.
 
-To build query BEDs from domain databases (InterProScan, UniProt feature tables, HMMER/Pfam), see the prepare helpers on the [[Python API]] page. The index that `map` reads is built with `prot2exon index` — see [[Index]].
+The index that `map` reads is built with `prot2exon index` — see [[Index]]. (Building a query BED from a domain database such as Pfam or InterProScan? See the [[FAQ]].)
 
 ## Mapping a domain
 
@@ -37,7 +37,7 @@ Every `--output` mode describes the *same* mapping; they are complementary views
 
 Answers *which CDS exons code the domain?* — every CDS exon of the transcript, classified by whether it overlaps the domain.
 
-| File | Contents |
+| Output File | Contents |
 |---|---|
 | `domain_cds_segments.tsv` | one row per CDS exon of the transcript, each with an `overlaps_domain` column |
 | `domain_cds_segments.bed` | subset: only the CDS exons that code the domain (`coding_overlap`) |
@@ -64,7 +64,7 @@ result.cds_segments   # DataFrame of CDS rows
 
 Answers *which introns fall inside the domain's genomic span?* — every intron of the transcript, classified by whether it lies within the domain envelope.
 
-| File | Contents |
+| Output File | Contents |
 |---|---|
 | `domain_introns.tsv` | one row per intron of the transcript, each with an `overlaps_domain` column |
 | `domain_introns.bed` | subset: only the introns inside the domain span (`inside_domain_genomic_span`) |
@@ -86,7 +86,7 @@ result.introns        # DataFrame of intron rows
 
 Answers *what is the single genomic envelope of the domain, introns included?* — one interval per domain, from its first coding base to its last.
 
-| File | Contents |
+| Output File | Contents |
 |---|---|
 | `domain_span_with_introns.bed` | one row per domain: first → last coding base, spanning any introns in between |
 
@@ -107,7 +107,7 @@ See [Output description](#output-description) for the BED column meanings.
 
 `--bed12` is an add-on flag, not an output mode: it writes one extra file, `domain_blocks.bed12`, *in addition to* whatever `--output` you chose. Use it to get an IGV-ready BED12 alongside a narrower view such as `coding`. It is a no-op under `--output all` or `--output bed12`, which already write the file.
 
-| File | Contents |
+| Output File | Contents |
 |---|---|
 | `domain_blocks.bed12` | one IGV/UCSC-ready BED12 row per domain — the domain envelope drawn thick, with the coding CDS slices as blocks and the in-domain introns as gaps |
 
@@ -205,83 +205,25 @@ One row per input query, written for every `--output` mode.
 
 ### Feature TSVs (`domain_cds_segments.tsv`, `domain_introns.tsv`, `isoform_structure.tsv`)
 
-All three share the same column layout — they differ only in which feature types they include:
+All three share one column layout; they differ only in which feature rows they hold — `domain_cds_segments.tsv` the CDS rows, `domain_introns.tsv` the introns, `isoform_structure.tsv` every 5′UTR / CDS / 3′UTR / intron row.
 
-| File | Rows |
+| Column(s) | Meaning |
 |---|---|
-| `domain_cds_segments.tsv` | every CDS row |
-| `domain_introns.tsv`      | every intron row |
-| `isoform_structure.tsv`   | every 5′UTR / CDS / 3′UTR / intron row |
+| `input_id`, `gene_id`, `gene_name`, `transcript_id`, `protein_id`, `domain_id` | the query and its IDs |
+| `chrom`, `strand` | chromosome and `+` / `−` |
+| `feature_genomic_start` / `_end`, `feature_length_nt` | genomic span (1-based inclusive) and its length (`end − start + 1`) |
+| `feature_type` | `five_prime_UTR`, `CDS`, `three_prime_UTR`, or `intron` |
+| `feature_id` | stable id in translation order (`CDS_1` = most 5′ CDS; UTRs/introns numbered separately). **Unchanged when a CDS is split** |
+| `feature_part` | `1..K` for the pieces of a CDS split by partial domain overlap (same `feature_id`); always `1` otherwise |
+| `exon_number` | source GTF `exon_number` (UTR / CDS rows); `NA` for introns |
+| `feature_order_genomic` / `feature_order_transcript` | position `1..N` along the chromosome / in translation order (equal on `+` strand, reversed on `−`) |
+| `cds_nt_start` / `_end`, `aa_start_encoded` / `aa_end_encoded` | this slice's CDS-relative nt offsets and the aa it encodes (`aa = ⌈cds_nt / 3⌉`); `NA` on UTR / intron rows |
+| `overlaps_domain` | `coding_overlap` (CDS interval codes the domain), `inside_domain_genomic_span` (intron between two coding rows), `no` (outside the domain; UTRs are always `no`), or `NA` (no-domain query) |
+| `domain_overlap_genomic_start` / `_end`, `domain_overlap_cds_nt_start` / `_end`, `domain_overlap_aa_start` / `_end` | the sub-interval of this row that codes the domain, in genomic / CDS-nt / aa coordinates (filled only on `coding_overlap` rows) |
+| `domain_overlap_fraction_of_feature` / `_of_domain` | overlap ÷ feature length, and overlap ÷ domain length (the latter sums to `1.0` across a domain's coding rows) |
+| `plot_group` | single string for colour mapping: `CDS_domain`, `CDS_no_domain`, `intron_domain_span`, `five_prime_UTR`, `three_prime_UTR`, `intron` (just the feature type in no-domain mode) |
 
-You can therefore `cat` or `join` them on `input_id` / `feature_id` interchangeably.
-
-**Identity columns:** `input_id`, `gene_id`, `gene_name`, `transcript_id`, `protein_id`, `domain_id`.
-
-**Location columns:**
-
-| Column | Meaning |
-|---|---|
-| `chrom` | Chromosome |
-| `strand` | `+` or `−` |
-| `feature_genomic_start` / `_end` | 1-based inclusive |
-| `feature_length_nt` | `end − start + 1` |
-
-**Feature-type columns:**
-
-| Column | Meaning |
-|---|---|
-| `feature_type` | One of `five_prime_UTR`, `CDS`, `three_prime_UTR`, `intron` |
-| `feature_id` | **Stable across splits.** Numbered in translation order: `CDS_1` is the most 5′ CDS, then `CDS_2`, etc. UTRs and introns are numbered separately (`five_prime_UTR_1`, `intron_1`, …) |
-| `feature_part` | 1..K when a CDS row was split by partial domain overlap; pieces of the same original CDS share the same `feature_id`, differ by `feature_part`. Always `1` for UTR / intron rows |
-| `exon_number` | Source GTF `exon_number` for UTR / CDS rows; `NA` for introns |
-
-A single GTF CDS exon can be split into multiple rows when the domain only covers part of it. The pieces always share the same `feature_id`; only `feature_part` differs. For example, when a domain ends in the middle of `CDS_2` (translation order):
-
-| feature_id | feature_part | start | end | overlaps_domain |
-|---|---|---|---|---|
-| CDS_2 | 1 | 75278995 | 75279120 | coding_overlap |
-| CDS_2 | 2 | 75279121 | 75279123 | no |
-
-To re-aggregate the full original CDS, group by `(input_id, feature_id)`. To plot the overlap shape, fill by `plot_group` and ignore `feature_part`.
-
-**Ordering columns:**
-
-| Column | Meaning |
-|---|---|
-| `feature_order_genomic` | 1..N along the chromosome (low → high coord). |
-| `feature_order_transcript` | 1..N in translation direction. Equals `feature_order_genomic` on `+` strand; reversed on `−` strand. |
-
-For `−` strand genes, plot using `feature_genomic_start/end` on the X axis (genomic coords), but use `feature_order_transcript` to interpret biological order (5′ → 3′ of the protein).
-
-**CDS-coordinate columns** (NA on UTR / intron rows):
-
-| Column | Meaning |
-|---|---|
-| `cds_nt_start` / `cds_nt_end` | CDS-relative nt offsets (1-based) of this slice's first/last base |
-| `aa_start_encoded` / `aa_end_encoded` | First / last aa that this slice encodes (1-based) |
-
-The mapping is `aa = ⌈cds_nt / 3⌉`. A 1-nt CDS slice containing only the third base of an aa still reports that aa.
-
-**Domain-overlap columns.** `overlaps_domain` is not a yes/no flag — it discriminates *coding* overlap from *intronic* overlap inside the domain envelope:
-
-| Value | Meaning |
-|---|---|
-| `no` | The row is outside the domain entirely. UTR rows always carry `no` |
-| `coding_overlap` | CDS row whose genomic interval overlaps a domain-coding range |
-| `inside_domain_genomic_span` | Intron located between two `coding_overlap` CDS rows |
-| `NA` | No-domain query (no domain to compare against) |
-
-The companion columns are filled only for `coding_overlap` rows:
-
-| Column | Meaning |
-|---|---|
-| `domain_overlap_genomic_start` / `_end` | Sub-interval of this row that codes the domain (1-based inclusive) |
-| `domain_overlap_cds_nt_start` / `_end` | Same overlap projected to CDS-nt (1-based) |
-| `domain_overlap_aa_start` / `_end` | Same overlap projected to aa |
-| `domain_overlap_fraction_of_feature` | `overlap_length / feature_length_nt` |
-| `domain_overlap_fraction_of_domain` | `overlap_length / domain_length_nt`. Sums to `1.0` across all `coding_overlap` rows of the same domain |
-
-**Plotting column.** `plot_group` is a single string suitable for direct colour mapping. With a domain: `five_prime_UTR` / `three_prime_UTR`, `CDS_no_domain` (CDS outside the domain), `CDS_domain` (CDS that encodes the domain), `intron` (outside the span), `intron_domain_span` (intron between two `CDS_domain` rows). In no-domain mode it is just the feature type (`five_prime_UTR` / `CDS` / `three_prime_UTR` / `intron`).
+A CDS exon that a domain only partially covers is split into rows that share a `feature_id` and differ by `feature_part` (e.g. a domain ending mid-`CDS_2` gives `CDS_2` part 1 = `coding_overlap`, part 2 = `no`). Group by `(input_id, feature_id)` to re-aggregate the original exon. For `−` strand genes, plot on `feature_genomic_start/end` but read 5′→3′ order from `feature_order_transcript`.
 
 ### Companion BEDs
 
