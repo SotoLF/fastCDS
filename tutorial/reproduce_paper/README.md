@@ -1,4 +1,4 @@
-# notebooks/ — reproduce the paper's example analyses
+# tutorial/ — reproduce the paper's example analyses
 
 These notebooks reproduce the **example application** in the manuscript
 (Section 4: the human Pfam atlas, functional-architecture analyses, ClinVar
@@ -9,7 +9,7 @@ re-run reuses what is already on disk.
 
 For the **speed / accuracy benchmarks** (vs `ensembldb`, `GenomicFeatures`,
 TransVar, Ensembl REST, VisProDom, geneplot) see
-[`../benchmarks/README.md`](../benchmarks/README.md), which has its own one-block
+[`../tutorial/reproduce_paper/benchmarks/README.md`](../tutorial/reproduce_paper/benchmarks/README.md), which has its own one-block
 reproduction harness.
 
 ## What lands where
@@ -27,7 +27,7 @@ pip install prot2exon pandas numpy scipy matplotlib jupyter
 ```
 
 (The benchmark notebooks additionally need an R/Bioconductor + TransVar
-environment — see `../benchmarks/README.md`.)
+environment — see `../tutorial/reproduce_paper/benchmarks/README.md`.)
 
 ## Data sources (all downloaded automatically)
 

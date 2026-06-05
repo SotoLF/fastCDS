@@ -41,7 +41,7 @@ If you only want the canonical mapping, post-filter on `is_mane_select` or `is_e
 
 ```bash
 # Common case: InterProScan was run on a UniProt proteome (column 1 = UniProt acc)
-python3 scripts/prepare_from_interpro.py \
+python3 parsing/prepare_from_interpro.py \
     --in proteome.interpro.tsv \
     --mapping Homo_sapiens.GRCh38.115.uniprot.tsv.gz \
     --analyses Pfam,SMART,PROSITE_PROFILES \
@@ -49,7 +49,7 @@ python3 scripts/prepare_from_interpro.py \
     --out domains.bed
 
 # InterProScan was run on the GENCODE pc_translations FASTA (column 1 = ENSP)
-python3 scripts/prepare_from_interpro.py \
+python3 parsing/prepare_from_interpro.py \
     --in proteome.interpro.tsv \
     --id-type ensp \
     --out domains.bed
@@ -65,13 +65,13 @@ python3 scripts/prepare_from_interpro.py \
 curl -o P04637.dat https://rest.uniprot.org/uniprotkb/P04637.txt
 
 # Convert all DOMAIN/REPEAT/REGION/ZN_FING features to BED-like
-python3 scripts/prepare_from_uniprot_features.py \
+python3 parsing/prepare_from_uniprot_features.py \
     --in P04637.dat \
     --out p53_domains.bed
 
 # REST JSON works too
 curl -o P04637.json https://rest.uniprot.org/uniprotkb/P04637.json
-python3 scripts/prepare_from_uniprot_features.py \
+python3 parsing/prepare_from_uniprot_features.py \
     --in P04637.json \
     --feature-types DOMAIN,REGION,ZN_FING \
     --out p53_domains.bed
@@ -82,7 +82,7 @@ For bulk runs, the REST API also serves JSONLines:
 ```bash
 curl 'https://rest.uniprot.org/uniprotkb/stream?query=organism_id:9606+AND+reviewed:true&format=jsonl' \
     -o human_reviewed.jsonl
-python3 scripts/prepare_from_uniprot_features.py \
+python3 parsing/prepare_from_uniprot_features.py \
     --in human_reviewed.jsonl --out all_domains.bed
 ```
 
@@ -94,7 +94,7 @@ python3 scripts/prepare_from_uniprot_features.py \
 hmmscan --cut_ga --domtblout pfam_hits.dom Pfam-A.hmm proteins.fa > /dev/null
 
 # 2. Convert to BED-like
-python3 scripts/prepare_from_pfam.py \
+python3 parsing/prepare_from_pfam.py \
     --in pfam_hits.dom \
     --mode scan \
     --id-type ensp \
@@ -102,7 +102,7 @@ python3 scripts/prepare_from_pfam.py \
     --out pfam.bed
 
 # If you ran hmmsearch instead (one HMM at a time, your protein FASTA as DB):
-python3 scripts/prepare_from_pfam.py --in pfam_hits.dom --mode search --out pfam.bed
+python3 parsing/prepare_from_pfam.py --in pfam_hits.dom --mode search --out pfam.bed
 ```
 
 ## Output sanity check

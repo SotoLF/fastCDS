@@ -1,9 +1,9 @@
 name: prot2exon-val
 # Env for reproducing the correctness + scaling benchmarks in
-# benchmarks/README.md (and on the Validation / Benchmarks wiki pages).
+# tutorial/reproduce_paper/benchmarks/README.md (and on the Validation / Benchmarks wiki pages).
 #
 # Usage:
-#   conda env create -f benchmarks/environment.yml
+#   conda env create -f tutorial/reproduce_paper/benchmarks/environment.yml
 #   conda activate prot2exon-val
 #   Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org"); \
 #               BiocManager::install(c("ensembldb", "EnsDb.Hsapiens.v86", "AnnotationHub"), \
@@ -38,7 +38,7 @@ dependencies:
   - pandas>=2.0
   - matplotlib-base>=3.7
   - numpy>=1.24
-  - requests>=2.30          # benchmarks/run_ensembl_rest.py
+  - requests>=2.30          # tutorial/reproduce_paper/benchmarks/run_ensembl_rest.py
   - tqdm
   - pip
   - pip:

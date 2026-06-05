@@ -20,7 +20,7 @@ You probably passed a transcript ID for a *non-coding* transcript (lncRNA, proce
 
 ## How do I build a query BED from a domain database (Pfam, InterProScan, UniProt)?
 
-Use the `prot2exon.prepare` helpers — `from_pfam()`, `from_interproscan()`, `from_uniprot_features()` — which turn those tools' standard outputs into a DataFrame that `Mapper.map_batch()` consumes directly (the `scripts/` CLI wrappers do the same from the command line). See the [[Python API]] page for the exact signatures.
+Use the `prot2exon.prepare` helpers — `from_pfam()`, `from_interproscan()`, `from_uniprot_features()` — which turn those tools' standard outputs into a DataFrame that `Mapper.map_batch()` consumes directly (the `parsing/` CLI wrappers do the same from the command line). See the [[Python API]] page for the exact signatures.
 
 ## How does prot2exon handle codons split across an exon boundary?
 
@@ -59,7 +59,7 @@ Open an issue on the GitHub repo. A minimal reproducer (the GTF lines or BED row
 
 ## I want to contribute — where do I start?
 
-- **Bug fixes** — open a PR with a regression test under `tests/` (pytest; pick the module that fits — `test_correctness.py` for mapping output, `test_compat.py` for GTF dialects, etc.).
+- **Bug fixes** — open a PR with a regression test under `software_tests/` (pytest; pick the module that fits — `test_correctness.py` for mapping output, `test_compat.py` for GTF dialects, etc.).
 - **New plot styles** — both matplotlib (`plot.py`) and the JS viewer (`_interactive_html.py`) are templated; copy an existing draw function and add a CLI flag.
-- **New input adapters** — `scripts/prepare_from_*.py` is the conventional spot for "turn external format X into prot2exon BED".
+- **New input adapters** — `parsing/prepare_from_*.py` is the conventional spot for "turn external format X into prot2exon BED".
 - **New genome onboarding presets** — extend `_resolve_url` in `python/prot2exon/fetch.py`.

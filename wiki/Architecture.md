@@ -17,11 +17,14 @@ Prot2Exon/
 │   ├── plot.py               matplotlib + plotly renderer
 │   ├── _interactive_html.py      standalone interactive HTML viewer (+ Jupyter wrapper)
 │   └── fetch.py              `prot2exon fetch` subcommand
-├── scripts/                  helpers: prepare_from_interpro/uniprot/pfam, append_custom_proteins
-├── notebooks/                walkthrough + paper figure notebooks
-├── tests/                   pytest suite (golden-file + integration)
-├── benchmarks/               1M-query + scaling harness
-├── examples/                 small fixtures (tp53_isoforms.tsv, ...)
+├── parsing/                  input adapters: prepare_from_{interpro,uniprot,pfam}, append_custom_proteins
+├── tutorial/                 worked examples
+│   ├── walkthrough_end_to_end.ipynb   zero-to-figure API tour
+│   ├── examples/             small fixtures (tp53_isoforms.tsv, ...)
+│   └── reproduce_paper/      reproduce the paper end to end
+│       ├── benchmarks/       1M-query + scaling + validation harness
+│       └── end_to_end/       atlas / ClinVar / AlphaFold / validation notebooks
+├── software_tests/           pytest suite (golden-file + integration)
 └── wiki/                     these pages
 ```
 
@@ -75,19 +78,19 @@ The JS template renders a shared-axis view (compact-mode collapses introns to 80
 
 ## Testing
 
-The suite is pytest, split by concern under `tests/`:
+The suite is pytest, split by concern under `software_tests/`:
 
-- **`test_correctness.py`** — golden-file diffs of the mapper's TSV/BED outputs (`tests/golden/`), regenerated with `pytest --update-goldens`.
+- **`test_correctness.py`** — golden-file diffs of the mapper's TSV/BED outputs (`software_tests/golden/`), regenerated with `pytest --update-goldens`.
 - **`test_errors.py` / `test_schema.py`** — `status`/`reason` values and the coordinate conventions (BED 0-based vs TSV 1-based).
-- **`test_compat.py`** — no-tag GTFs, RefSeq dialect, custom-protein injection (`scripts/append_custom_proteins.py`).
+- **`test_compat.py`** — no-tag GTFs, RefSeq dialect, custom-protein injection (`parsing/append_custom_proteins.py`).
 - **`test_bed12.py`** — BED12 block geometry, the `--bed12` add-on, `--batch-size` equivalence.
 - **`test_plotting.py`** — plot flags and the plotly/interactive/Jupyter renderers.
 - **`test_fetch.py`** — `prot2exon fetch` (offline Zenodo-index download, sha256 verify, `fetch list`).
 - **`test_python_api.py`** / **`test_notebooks.py`** — the wrapper API and the notebook generator.
 
-`conftest.py` regenerates the synthetic GTFs (`tests/make_synthetic_gtf.py`), builds the shared indexes, and maps a fixed query set once per session (the `out_all` fixture). Run with:
+`conftest.py` regenerates the synthetic GTFs (`software_tests/make_synthetic_gtf.py`), builds the shared indexes, and maps a fixed query set once per session (the `out_all` fixture). Run with:
 
 ```bash
-pip install -r tests/requirements-dev.txt && pip install -e python/
+pip install -r software_tests/requirements-dev.txt && pip install -e python/
 pytest -q
 ```

@@ -32,7 +32,7 @@ Make sure to keep every `transcript_id` unique across the combined file.
 
 #### Input TSV
 
-To inject custom proteins from a small table of genomic blocks instead of hand-writing GTF lines, `scripts/append_custom_proteins.py` does strand-aware exon numbering: one TSV row per transcript.
+To inject custom proteins from a small table of genomic blocks instead of hand-writing GTF lines, `parsing/append_custom_proteins.py` does strand-aware exon numbering: one TSV row per transcript.
 
 
 A tab-separated table with one row per transcript:
@@ -55,7 +55,7 @@ The script emits the custom `transcript` / `exon` / `CDS` rows to **stdout** (st
 
 ```bash
 cp gencode.v49.primary_assembly.annotation.gtf combined.gtf
-python3 scripts/append_custom_proteins.py --in my_custom_proteins.tsv >> combined.gtf
+python3 parsing/append_custom_proteins.py --in my_custom_proteins.tsv >> combined.gtf
 ```
 
 Use `--source-tag <text>` to set the GTF `source` column for these rows (default `custom`).

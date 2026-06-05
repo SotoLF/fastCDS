@@ -1,8 +1,8 @@
 """The notebook generator still runs.
 
-Cheap regression: `notebooks/generate_notebooks.py` should import and emit the
+Cheap regression: `tutorial/generate_notebooks.py` should import and emit the
 expected .ipynb files. We pass `--out-dir` so the run writes to a tempdir
-rather than overwriting any executed notebooks the user keeps in notebooks/.
+rather than overwriting any executed notebooks the user keeps under tutorial/.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ import pytest
 
 from conftest import REPO_ROOT
 
-NB_GEN = REPO_ROOT / "notebooks" / "generate_notebooks.py"
+NB_GEN = REPO_ROOT / "tutorial" / "generate_notebooks.py"
 
 
 @pytest.mark.skipif(not NB_GEN.exists(), reason="notebook generator not present")

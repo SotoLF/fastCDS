@@ -280,7 +280,7 @@ The tool maps every query but flags the rare cases where the CDS isn't a multipl
 
 ### Codons split across exons
 
-A codon that straddles an exon boundary is mapped correctly in both phases (1+2 and 2+1) — the math is cumulative-nt-based, not exon-by-codon. For a domain on the split aa, both the upstream and downstream CDS slices report a `coding_overlap` row, the intron between them is marked `inside_domain_genomic_span`, and the two `domain_overlap_fraction_of_domain` values (≈1/3 and ≈2/3) sum to `1.0`. Two synthetic cases in `tests/` exercise this.
+A codon that straddles an exon boundary is mapped correctly in both phases (1+2 and 2+1) — the math is cumulative-nt-based, not exon-by-codon. For a domain on the split aa, both the upstream and downstream CDS slices report a `coding_overlap` row, the intron between them is marked `inside_domain_genomic_span`, and the two `domain_overlap_fraction_of_domain` values (≈1/3 and ≈2/3) sum to `1.0`. Two synthetic cases in `software_tests/` exercise this.
 
 ### Worked example
 

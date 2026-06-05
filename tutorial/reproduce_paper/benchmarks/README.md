@@ -1,4 +1,4 @@
-# benchmarks/
+# tutorial/reproduce_paper/benchmarks/
 
 Reproduction harness for the correctness + speed comparisons reported in [[Validation]] and [[Benchmarks]] on the wiki.
 
@@ -55,7 +55,7 @@ See [`wiki/Performance-and-Benchmarking.md`](../wiki/Performance-and-Benchmarkin
 
 ```bash
 # 0) Environment (R + Bioconductor — conda is the path of least friction)
-conda env create -f benchmarks/environment.yml
+conda env create -f tutorial/reproduce_paper/benchmarks/environment.yml
 conda activate prot2exon-val
 Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org"); \
             BiocManager::install(c("ensembldb", "GenomicFeatures", \
@@ -66,23 +66,23 @@ Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org");
 ./build/prot2exon index --gtf Homo_sapiens.GRCh38.86.chr.gtf --out human_v86.idx
 
 # 2) 5,000 stratified queries
-python benchmarks/sample_validation_queries.py \
+python tutorial/reproduce_paper/benchmarks/sample_validation_queries.py \
     --gtf Homo_sapiens.GRCh38.86.chr.gtf \
     --out-bed queries_v86.bed --out-meta queries_v86_meta.tsv
 
 # 3) Correctness validation
 EnsDb_v86_path=$(Rscript -e 'cat(system.file("extdata/EnsDb.Hsapiens.v86.sqlite",
                                               package="EnsDb.Hsapiens.v86"))')
-python benchmarks/validate_vs_ensembldb.py \
+python tutorial/reproduce_paper/benchmarks/validate_vs_ensembldb.py \
     --queries-bed queries_v86.bed --queries-meta queries_v86_meta.tsv \
     --prot2exon-index human_v86.idx --ensdb "$EnsDb_v86_path" \
     --out-dir validation_v86
 
 # 4) Scaling + parallel
-python benchmarks/scaling_benchmark.py \
+python tutorial/reproduce_paper/benchmarks/scaling_benchmark.py \
     --bin build/prot2exon --p2e-index human_v86.idx \
     --ensdb "$EnsDb_v86_path" \
-    --rscript $CONDA_PREFIX/bin/Rscript --r-helper benchmarks/ensembldb_query.R \
+    --rscript $CONDA_PREFIX/bin/Rscript --r-helper tutorial/reproduce_paper/benchmarks/ensembldb_query.R \
     --source-bed queries_v86.bed --work-dir bench \
     --sizes 100 1000 10000 100000 1000000 \
     --p2e-reps 2 --ensembldb-reps 1 --ensembldb-max-n 10000 \
@@ -90,7 +90,7 @@ python benchmarks/scaling_benchmark.py \
 
 # combined threads × batch-size grid (wall + peak RSS in one sweep).
 # one-shot at N=1M holds ~13 GB in RAM — drop the `0` batch on a small-RAM box.
-python benchmarks/threads_batch_grid.py \
+python tutorial/reproduce_paper/benchmarks/threads_batch_grid.py \
     --bin build/prot2exon --index human_v86.idx \
     --bed bench/queries_n1000000.bed --work-dir bench/grid \
     --threads 1 4 8 16 32 --batch-sizes 0 10000 50000 100000 --reps 2 \
@@ -99,18 +99,18 @@ python benchmarks/threads_batch_grid.py \
 # 5) ensembldb vs GenomicFeatures::proteinToGenome (speed + RAM, same queries)
 head -1000 queries_v86.bed > q1k.bed
 for tool in ensembldb genomicfeatures; do
-  Rscript benchmarks/proteintogenome_bench.R $tool "$EnsDb_v86_path" \
+  Rscript tutorial/reproduce_paper/benchmarks/proteintogenome_bench.R $tool "$EnsDb_v86_path" \
       q1k.bed ${tool}_intervals.tsv ${tool}_timing.tsv
 done
 build/prot2exon map --index human_v86.idx --bed q1k.bed --out-dir p2e_q1k --output coding
-python benchmarks/compare_intervals.py \
+python tutorial/reproduce_paper/benchmarks/compare_intervals.py \
     ensembldb=ensembldb_intervals.tsv \
     genomicfeatures=genomicfeatures_intervals.tsv \
     prot2exon=p2e_q1k/domain_cds_segments.tsv
 
 # 6) VisProDom CreDat() batch-mapper characterization (its own maize example data)
 git clone --depth 1 https://github.com/whweve/VisProDom /tmp/VisProDom
-Rscript benchmarks/visprodom_bench.R /tmp/VisProDom
+Rscript tutorial/reproduce_paper/benchmarks/visprodom_bench.R /tmp/VisProDom
 ```
 
 Total wall: validation ~5 min, scaling ~50 min (ensembldb N = 10K is ~26 min of that), parallel ~1 min, proteinToGenome head-to-head ~5 min (ensembldb N = 1K is ~3.5 min of that), VisProDom ~1 min.

@@ -4,7 +4,7 @@ Covers inputs that aren't the standard GENCODE/Ensembl-with-tags case:
   * a GTF that carries no tag attributes at all (flags must be NA, not false),
   * an NCBI RefSeq-style GTF (`gene` instead of `gene_name`, `locus_tag` that
     must not be mistaken for a real `tag`), and
-  * proteins injected via scripts/append_custom_proteins.py.
+  * proteins injected via parsing/append_custom_proteins.py.
 """
 
 from __future__ import annotations
@@ -58,7 +58,7 @@ def test_refseq_style_gtf(binary, tmp_path):
 
 
 def test_custom_protein_injection(binary, synthetic_gtfs, tmp_path):
-    """scripts/append_custom_proteins.py turns a TSV of genomic blocks into GTF
+    """parsing/append_custom_proteins.py turns a TSV of genomic blocks into GTF
     rows with strand-aware exon numbering; after indexing the augmented GTF the
     custom protein maps like any reference one."""
     custom_tsv = tmp_path / "custom.tsv"
@@ -67,7 +67,7 @@ def test_custom_protein_injection(binary, synthetic_gtfs, tmp_path):
         "SYN_NEG\tSYN_NEG_tx\tSYN_NEG_g\tSYN_NEG\tchrSYN\t-\t500-700;800-1000\ttest\n"
     )
     custom_rows = tmp_path / "custom_rows.gtf"
-    helper = REPO_ROOT / "scripts" / "append_custom_proteins.py"
+    helper = REPO_ROOT / "parsing" / "append_custom_proteins.py"
     proc = subprocess.run(
         [sys.executable, str(helper), "--in", str(custom_tsv)],
         capture_output=True, text=True,

@@ -124,12 +124,13 @@ def test_cli_plotter_smoke(out_all, tmp_path):
 
 
 def test_make_figure_1_renders(tmp_path):
-    """benchmarks/make_figure_1.py renders the headline figure (PNG + PDF)
+    """make_figure_1.py renders the headline figure (PNG + PDF)
     without crashing, using the in-repo TP53 fixture."""
     fig_dir = tmp_path / "figures"
+    bench = REPO_ROOT / "tutorial" / "reproduce_paper" / "benchmarks"
     proc = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "benchmarks" / "make_figure_1.py"),
-         "--tp53-isoforms", str(REPO_ROOT / "examples" / "tp53_isoforms.tsv"),
+        [sys.executable, str(bench / "make_figure_1.py"),
+         "--tp53-isoforms", str(REPO_ROOT / "tutorial" / "examples" / "tp53_isoforms.tsv"),
          "--out-dir", str(fig_dir)],
         capture_output=True, text=True,
     )

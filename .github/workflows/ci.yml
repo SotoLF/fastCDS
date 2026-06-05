@@ -38,7 +38,7 @@ jobs:
         run: cmake --build build --parallel
 
       - name: Install Python test deps
-        run: pip install -r tests/requirements-dev.txt
+        run: pip install -r software_tests/requirements-dev.txt
 
       - name: Install prot2exon Python wrapper
         run: pip install -e python/

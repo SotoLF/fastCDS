@@ -12,19 +12,19 @@ All notable changes to Prot2Exon. The format follows [Keep a Changelog](https://
 - Per-thread-aware 1 MiB write buffer on every TSV/BED writer (`pubsetbuf`) — cuts single-thread wall time on the 1 M-query benchmark by ~17 % (107 s vs 130 s).
 - Multi-isoform stack viewer: `render_interactive_html_stack()` and `render_interactive_jupyter_stack()`. All isoforms render on a single shared axis built from the union of their features, so skipped exons appear as empty space lined up across rows.
 - `prot2exon.fetch_index()` Python API mirroring the CLI; smoother for notebook workflows.
-- `prot2exon.prepare` submodule with `from_pfam()`, `from_interproscan()`, `from_uniprot_features()` returning DataFrames that `Mapper.map_batch()` consumes directly. The standalone scripts under `scripts/` are now thin CLI wrappers around this submodule, so the Python API and CLI never drift.
+- `prot2exon.prepare` submodule with `from_pfam()`, `from_interproscan()`, `from_uniprot_features()` returning DataFrames that `Mapper.map_batch()` consumes directly. The standalone scripts under `parsing/` are now thin CLI wrappers around this submodule, so the Python API and CLI never drift.
 - New worked-example notebooks: `validation.ipynb`, `software_comparison.ipynb`, `scaling_and_ram.ipynb` (visualise the data behind the Performance and Benchmarking wiki page).
 - New **interactive HTML viewer** (`prot2exon.render_interactive_html`) — self-contained vanilla JS, no CDN, with vCRE-style minimap + box-zoom + drag-pan + wheel-zoom; also embeddable in Jupyter via `render_interactive_jupyter()`. (Formerly named "TFRegDB2 viewer" after the project the design was ported from; the public API kept old names as deprecated aliases for one release.)
 - `--compact-genomic` plot mode (matplotlib) that clamps long introns to a fixed display width while keeping CDS/UTR true-scale.
 - `--link-template URL` plot flag for clickable external links in HTML output.
-- `examples/tp53_isoforms.tsv` fixture (four pre-mapped TP53 isoforms) used by the walkthrough notebook.
+- `tutorial/examples/tp53_isoforms.tsv` fixture (four pre-mapped TP53 isoforms) used by the walkthrough notebook.
 - Zenodo release bundle (`zenodo_release/` — 510 MB, 4 pre-built indexes + benchmark BEDs + result tables + sha256 manifest + README).
 
 ### Changed
 - Renamed from `protein2genomic` to **Prot2Exon** (GitHub repo + Docker label + bioconda recipe + Python wrapper README; local clone directory can stay as-is).
 - README slimmed to ~95 lines (install one-liners + four-command quickstart in CLI and Python + validation/benchmarks + summarized notebooks); dropped the logo/figure images, the wiki-topics table, and the status section. The full reference lives in the wiki.
 - **Wiki reorganized into a sequential workflow**: Installation → Building an index → Mapping → Plotting, then Tutorials and Notebooks, Performance and Benchmarking, and the Python API / Architecture / FAQ reference. Merged the old Genome-onboarding + Custom-proteins into *Building an index*, Output-modes + Input-format into *Mapping*, Performance-and-RAM + Validation + Benchmarks into *Performance and Benchmarking*; removed the standalone Quickstart and CLI-reference pages.
-- Notebook generator (`notebooks/generate_notebooks.py`) gained `--run` (executes after generating, so outputs persist) and `--out-dir` (test-suite uses a tempdir so the regression check can't wipe embedded outputs).
+- Notebook generator (`tutorial/generate_notebooks.py`) gained `--run` (executes after generating, so outputs persist) and `--out-dir` (test-suite uses a tempdir so the regression check can't wipe embedded outputs).
 
 ### Fixed
 - Destruction-order bug in the buffered `ofstream` (the 1 MiB buffer member was being freed before the base `~ofstream` flushed through it, writing garbage to disk).
