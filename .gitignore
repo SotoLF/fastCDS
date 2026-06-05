@@ -44,3 +44,7 @@ python/dist/
 dist/
 *.egg-info/
 *.egg
+
+# Editor
+.vscode/
+.idea/
