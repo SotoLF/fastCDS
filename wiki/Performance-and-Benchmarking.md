@@ -113,18 +113,14 @@ A few practical points matter when reproducing this. Installing ensembldb is bes
 
 The same 5,000-query stratified set drives a head-to-head against the three tools users most often choose between: ensembldb (the R/Bioconductor canonical), TransVar (the HGVS-based variant-annotation perspective, popular with clinical teams), and Ensembl REST (the no-install zero-overhead path). Tools considered and rejected include GeneMANIA (no per-domain output), peptidomics tools (a different problem), and VEP (genome→protein, the opposite direction). Reproduce with [`scaling_benchmark.py`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/benchmarks/scaling_benchmark.py), [`run_transvar.py`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/benchmarks/run_transvar.py), [`run_ensembl_rest.py`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/benchmarks/run_ensembl_rest.py), and the [`software_comparison.ipynb`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/end_to_end/software_comparison.ipynb) notebook.
 
-> **How "speedup" is measured.** Every runtime and throughput below is
-> **end-to-end at a fixed N**: total wall time from process start until all
-> results are written, *including the one-time index / database load*, divided by
-> N. We report **N = 10,000, single thread** — the number a user actually waits
-> for, and a fair one (it charges prot2exon for its own load). One consequence:
-> the speedup ratio *grows with N*, because prot2exon's ~1.2 s index load is
-> amortized over more queries while ensembldb's per-query cost dominates
-> throughout — so prot2exon-vs-ensembldb is ~130× at N = 1,000 but ~970× at
-> N = 10,000. Always state N. (The warm, index-already-loaded mapping rate is
-> higher still — see the [GenomicFeatures table](#genomicfeaturesproteintogenome--the-granges-path)
-> — but that drops prot2exon's load while keeping the comparators' steady-state,
-> so we don't headline it.)
+> **The one number to quote: ~970× faster than ensembldb.** It is measured
+> **end-to-end at N = 10,000, single thread** — total wall time from process
+> start until all results are written, *including the one-time index load*,
+> divided by N. That's the number a user actually waits for, and a fair one (it
+> charges prot2exon for its own load). The only caveat is that you must **state
+> N**, because the ratio grows with N: prot2exon's ~1.2 s index load is amortized
+> over more queries, so prot2exon-vs-ensembldb is ~130× at N = 1,000 and ~970× at
+> N = 10,000. We use N = 10,000 everywhere as the headline.
 
 | Metric | prot2exon | ensembldb | TransVar | Ensembl REST |
 |---|---|---|---|---|
@@ -158,15 +154,15 @@ A few notes on the external comparators. Ensembl REST is network-bound rather th
 
 ### GenomicFeatures::proteinToGenome — the GRanges path
 
-`proteinToGenome` exists in **two** Bioconductor packages: ensembldb (EnsDb/SQLite-backed) and GenomicFeatures (a GRangesList method that maps in memory against a CDS-by-transcript `GRangesList`). The GenomicFeatures path trades a one-time setup (`cdsBy(edb, "tx")` + a protein→transcript map) for SQLite-free mapping, so it is meaningfully faster than ensembldb, but it is still an R-level per-query loop, far short of the indexed C++ path. This table breaks **setup vs map vs total** apart so you can see the warm (index-already-loaded) mapping rate as well as the end-to-end one. On 1,000 v86 queries, one machine, one thread:
+`proteinToGenome` exists in **two** Bioconductor packages: ensembldb (EnsDb/SQLite-backed) and GenomicFeatures (a GRangesList method that maps in memory against a CDS-by-transcript `GRangesList`). The GenomicFeatures path trades a one-time setup (`cdsBy(edb, "tx")` + a protein→transcript map) for SQLite-free mapping, so it is meaningfully faster than ensembldb, but it is still an R-level per-query loop, far short of the indexed C++ path. On 1,000 v86 queries, one machine, one thread (setup + map = end-to-end total):
 
-| Tool | Setup (load) | Map (1,000) | Total (end-to-end) | Map rate (warm, excl. load) | Peak RSS |
-|---|---:|---:|---:|---:|---:|
-| **prot2exon** | 1.19 s (index load) | **0.014 s** | **1.20 s** | ~71,000 q/s | 674 MB |
-| GenomicFeatures::proteinToGenome | 5.99 s (`cdsBy`) | 37.71 s | 43.70 s | ~27 q/s | 1,364 MB |
-| ensembldb::proteinToGenome | n/a | 160.12 s | 160.12 s | ~6 q/s | 1,163 MB |
+| Tool | Setup (load) | Map (1,000) | Total (end-to-end) | Peak RSS |
+|---|---:|---:|---:|---:|
+| **prot2exon** | 1.19 s (index load) | **0.014 s** | **1.20 s** | 674 MB |
+| GenomicFeatures::proteinToGenome | 5.99 s (`cdsBy`) | 37.71 s | 43.70 s | 1,364 MB |
+| ensembldb::proteinToGenome | n/a | 160.12 s | 160.12 s | 1,163 MB |
 
-The **end-to-end** comparison at this N = 1,000 is ~36× (prot2exon 1.20 s vs GenomicFeatures 43.70 s) — smaller than the N = 10,000 headline above precisely because prot2exon's 1.19 s load isn't yet amortized. The **warm map rate** (rightmost column, load excluded) is where the ~2,700× over GenomicFeatures and ~11,000× over ensembldb come from; it shows the mapping itself is essentially free, but it flatters prot2exon by dropping its load, so we quote the end-to-end ratio as the headline. GenomicFeatures is ~3.7× faster than ensembldb end-to-end, confirming the GRanges representation is the lighter of the two, and all three return identical coordinates on the 1,000-query set (see Accuracy above). One subtlety when reproducing: loading an EnsDb pulls in ensembldb's own `proteinToGenome` GRangesList method (which requires protein-sequence metadata on the CDS), so the runner fetches GenomicFeatures' method explicitly via `getMethod(..., where = asNamespace("GenomicFeatures"))`.
+At this N = 1,000 the end-to-end speedup is ~36× over GenomicFeatures (1.20 s vs 43.70 s) — smaller than the N = 10,000 headline only because prot2exon's 1.19 s load isn't amortized yet. GenomicFeatures is ~3.7× faster than ensembldb end-to-end, confirming the GRanges representation is the lighter of the two, and all three return identical coordinates on the 1,000-query set (see Accuracy above). One subtlety when reproducing: loading an EnsDb pulls in ensembldb's own `proteinToGenome` GRangesList method (which requires protein-sequence metadata on the CDS), so the runner fetches GenomicFeatures' method explicitly via `getMethod(..., where = asNamespace("GenomicFeatures"))`.
 
 ### Other domain-on-gene tools (geneplot, VisProDom)
 

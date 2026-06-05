@@ -56,3 +56,13 @@ pip install -e .
 ```
 
 The repo's `bin/prot2exon` wrapper finds `build/prot2exon` automatically, so you can run the four commands straight from the checkout.
+
+## Docker
+
+A `Dockerfile` at the repo root builds an image with the binary and wrapper ready to go:
+
+```bash
+docker build -t prot2exon .
+docker run --rm -v "$(pwd):/work" prot2exon \
+    map --index /work/human.idx --bed /work/queries.bed --out-dir /work/out --output all
+```

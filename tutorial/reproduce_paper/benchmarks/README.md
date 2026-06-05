@@ -11,23 +11,15 @@ Reproduction harness for the correctness + speed comparisons reported in [[Valid
 
 ### How "speedup" is measured
 
-All speedup ratios below are **end-to-end at a fixed N**: total wall time from
+One number, measured one way: **end-to-end at a fixed N** — total wall time from
 process start until every result is written, **including the one-time index /
-database load**, divided by N. We report N = 10,000 on one thread. This is the
-number a user actually waits for, and it avoids cherry-picking — so quote *this*
-ratio, not a warm-cache one.
+database load**, divided by N. We report **N = 10,000 on one thread**: the number
+a user actually waits for, and a fair one (it charges prot2exon for its own load).
 
-Two consequences worth stating plainly so the numbers don't look contradictory:
-
-- **The ratio grows with N.** prot2exon's ~1.2 s index load is amortized over
-  more queries as N rises, while ensembldb's per-query cost dominates throughout.
-  So prot2exon-vs-ensembldb is ~130× at N = 1,000 but ~970× at N = 10,000. Always
-  state N with a speedup.
-- **Warm mapping-only is faster still but biased**, so we don't headline it: with
-  the index already loaded, prot2exon maps at ~71,000 q/s, which is ~11,000×
-  ensembldb's per-query rate — but that figure drops prot2exon's load cost while
-  keeping the comparators' steady-state, so it flatters us. Use it only to explain
-  *where* the speed comes from (the mapping is near-free; I/O is the floor).
+The only thing to keep in mind is to **state N**, because the ratio grows with N:
+prot2exon's ~1.2 s index load is amortized over more queries as N rises, while
+ensembldb's per-query cost dominates throughout — so prot2exon-vs-ensembldb is
+~130× at N = 1,000 and **~970× at N = 10,000**, which is the headline everywhere.
 
 See [`wiki/Performance-and-Benchmarking.md`](../wiki/Performance-and-Benchmarking.md) for the full result tables, design rationale (9-stratum sampler, why each comparator), the GenomicFeatures/ensembldb/VisProDom comparison, and the practical notes worth knowing if you reproduce.
 
