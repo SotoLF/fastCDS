@@ -74,8 +74,7 @@ ZENODO_IDX: dict[str, ZenodoIndex] = {
         "GENCODE mouse vM34 (~73 MB)"),
     "human-v86": ZenodoIndex(
         "ensembl_v86_human.idx",
-        "5999c3c4fdfb1651"  # truncated — full hash filled in after upload
-        "",
+        "5999c3c4fdfb16517b0a687d3cb2ecff424ee4a3fa4019ab7825321c4bb6f25a",
         "Ensembl 86 human (~87 MB) — matches EnsDb.Hsapiens.v86, validation"),
     "yeast": ZenodoIndex(
         "refseq_R64_yeast.idx",
