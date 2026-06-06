@@ -36,25 +36,26 @@ workstation (enough RAM that nothing swaps, so this is the *pure* tradeoff):
 
 | Threads | one-shot | `--batch-size 100000` | `--batch-size 50000` | `--batch-size 10000` |
 |---:|---:|---:|---:|---:|
-| 1  | 23.7 | 18.9 | 18.6 | 18.8 |
-| 4  | 12.7 | 13.1 | 13.2 | 13.5 |
-| 8  | 11.3 | 12.2 | 12.3 | 12.4 |
-| 16 | **10.8** | 12.3 | 12.2 | 12.3 |
-| 32 | **10.8** | 12.2 | 12.0 | 12.2 |
+| 1  | 22.9 | 18.7 | 18.4 | 19.0 |
+| 2  | 15.6 | 15.4 | 15.1 | 15.1 |
+| 4  | 12.6 | 13.2 | 13.2 | 13.1 |
+| 8  | 11.2 | 12.2 | 12.3 | 12.3 |
+| 16 | **10.8** | 12.1 | 12.0 | 12.0 |
 
 **Peak RSS depends only on the batch size, not the thread count** (it's flat down
 every column): one-shot **13.3 GB**, `--batch-size 100000 / 50000 / 10000` =
 **2.4 / 1.6 / 0.9 GB**. So the two knobs really are orthogonal — `--threads` for
 wall time, `--batch-size` for memory.
 
-Reading the grid down a column: **`--threads` cuts wall time ~2.2×** by 16
-threads (23.7 → 10.8 s one-shot), then plateaus as the single-threaded TSV writer
-and memory bandwidth take over — set `--threads` to your physical core count.
-Across a row: once you have **≥ 4 threads, bigger batches are slightly faster**
-(closer to one-shot, since fewer flush cycles) but use proportionally more RAM —
-a genuine speed/memory dial. The one exception is **single-threaded**, where
-one-shot is the *slowest* cell (23.7 s): holding all 1 M results (13.3 GB) in
-memory thrashes the allocator and cache, and any batch fixes it.
+Reading the grid down a column: **`--threads` cuts wall time ~2.1×** by 16
+threads (22.9 → 10.8 s one-shot; ~1.5× already at 2 threads), then plateaus as the
+single-threaded TSV writer and memory bandwidth take over — set `--threads` to
+your physical core count. Across a row: once you have **≥ 4 threads, bigger
+batches are slightly faster** (closer to one-shot, since fewer flush cycles) but
+use proportionally more RAM — a genuine speed/memory dial. The one exception is
+**single-threaded**, where one-shot is the *slowest* cell (22.9 s): holding all
+1 M results (13.3 GB) in memory thrashes the allocator and cache, and any batch
+fixes it.
 
 **Rule of thumb:** one-shot is fastest when you have spare cores *and* spare RAM;
 otherwise `--batch-size 10000` gives ~14× less memory (0.9 vs 13.3 GB) for
@@ -69,7 +70,7 @@ Reproduce the grid with [`tutorial/reproduce_paper/benchmarks/threads_batch_grid
 
 ## Accuracy vs other tools
 
-Coordinate correctness is validated against ensembldb, the Bioconductor canonical for protein-to-genome mapping (~800 paper citations). Because ensembldb is an independent R/SQL implementation on top of EnsDb, an agreement is genuine cross-validation rather than testing the same code twice. The validator drives the prot2exon binary and shells out to `Rscript` for ensembldb; reproduce it with [`validate_vs_ensembldb.py`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/benchmarks/validate_vs_ensembldb.py) and the [`validation.ipynb`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/end_to_end/validation.ipynb) notebook.
+Coordinate correctness is validated against ensembldb, the Bioconductor canonical for protein-to-genome mapping (~800 paper citations). Because ensembldb is an independent R/SQL implementation on top of EnsDb, an agreement is genuine cross-validation rather than testing the same code twice. The validator drives the prot2exon binary and shells out to `Rscript` for ensembldb; reproduce it with [`validate_vs_ensembldb.py`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/benchmarks/validate_vs_ensembldb.py) and the [`software_comparison.ipynb`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/end_to_end/software_comparison.ipynb) notebook.
 
 The headline result is 100.00% exact match against ensembldb on a 5,000-query stratified set — zero off-by-ones and zero structural mismatches. Random sampling would underweight the corner cases that matter, so a 9-stratum sampler ([`sample_validation_queries.py`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/benchmarks/sample_validation_queries.py)) ensures every condition that historically breaks these tools is represented:
 

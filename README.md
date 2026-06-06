@@ -96,12 +96,9 @@ Worked examples under [`tutorial/`](tutorial/) — each opens in [Colab](https:/
 | Notebook | What it covers |
 |---|---|
 | [`walkthrough_end_to_end.ipynb`](tutorial/walkthrough_end_to_end.ipynb) ([view on nbviewer](https://nbviewer.org/github/SotoLF/Prot2Exon/blob/main/tutorial/walkthrough_end_to_end.ipynb)) | Zero-to-figure tour: `fetch_index` → BED prep → `map_batch` → all plot styles. The interactive HTML viewers only render on **nbviewer**, not GitHub. |
-| [`domain_functional_atlas.ipynb`](tutorial/reproduce_paper/end_to_end/domain_functional_atlas.ipynb) | Builds the Ensembl-r115 Pfam atlas and the three functional-architecture analyses: single-exon fraction by domain function (Fig 1D), domain position in the transcript, and completeness. |
-| [`pfam_proteome_atlas.ipynb`](tutorial/reproduce_paper/end_to_end/pfam_proteome_atlas.ipynb) | Map every Pfam-A domain on the human proteome; single- vs multi-exon architecture, intron burden, dominant-exon fraction. |
-| [`clinvar_pathogenic.ipynb`](tutorial/reproduce_paper/end_to_end/clinvar_pathogenic.ipynb) | Pathogenic-variant enrichment in domain-coding exons (ClinVar missense). |
-| [`alphafold_plddt_junctions.ipynb`](tutorial/reproduce_paper/end_to_end/alphafold_plddt_junctions.ipynb) | AlphaFold per-residue pLDDT as a function of distance to exon-exon junctions, across the canonical human proteome. |
-| [`validation.ipynb`](tutorial/reproduce_paper/end_to_end/validation.ipynb) | **Accuracy** vs `ensembldb` (and `GenomicFeatures::proteinToGenome`): 100% exact match across the 9-stratum, 5,000-query set, with the per-stratum figure. |
-| [`software_comparison.ipynb`](tutorial/reproduce_paper/end_to_end/software_comparison.ipynb) | **Speed** vs `ensembldb` / TransVar / Ensembl REST: agreement + throughput + RSS head-to-head at N = 10,000. |
+| [`domain_functional_atlas.ipynb`](tutorial/reproduce_paper/end_to_end/domain_functional_atlas.ipynb) | The Ensembl-r115 Pfam atlas: single-exon fraction + domain size by function (Fig 1D), domain position along the protein (Q1/Q50/Q100), completeness, all per-family, **and the ClinVar pathogenic-variant enrichment** in domain-coding exons. |
+| [`alphafold_plddt_junctions.ipynb`](tutorial/reproduce_paper/end_to_end/alphafold_plddt_junctions.ipynb) | AlphaFold per-residue pLDDT vs distance to the nearest exon-exon junction (2D density), across the canonical human proteome. |
+| [`software_comparison.ipynb`](tutorial/reproduce_paper/end_to_end/software_comparison.ipynb) | **Speed + accuracy** vs `ensembldb` / GenomicFeatures / TransVar / Ensembl REST / VisProDom / geneplot: agreement + end-to-end throughput + RSS, all on the same human set. |
 | [`scaling_and_ram.ipynb`](tutorial/reproduce_paper/end_to_end/scaling_and_ram.ipynb) | prot2exon measured against itself (not other tools): wall-clock + peak-RSS scaling curves, OpenMP speedup, and the `--batch-size` RAM cap at N = 1 M. |
 
 ## Citation

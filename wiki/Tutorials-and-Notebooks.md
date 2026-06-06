@@ -48,14 +48,14 @@ It's the guided, executed version of the [Quickstart](#quickstart-a-real-run-you
 
 Notebook: [`walkthrough_end_to_end.ipynb`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/walkthrough_end_to_end.ipynb) · [**view on nbviewer**](https://nbviewer.org/github/SotoLF/Prot2Exon/blob/main/tutorial/walkthrough_end_to_end.ipynb) (the inline interactive HTML viewers render on nbviewer, not on GitHub's notebook view)
 
-## Pfam proteome atlas
+## Domain functional atlas (and ClinVar)
 
-This notebook maps every Pfam-A domain across the human proteome (~150 K domains over ~19 K proteins) onto genomic exon structure and computes architecture statistics: the share of domains encoded by exactly one CDS exon vs two or more, the distribution of coding exons touched per domain, the median and maximum intronic span within each domain envelope, and the distribution of `fraction_domain_in_largest_exon`. The result is the proteome-wide atlas figure (Panel B of the accompanying paper's Figure 1).
+This notebook maps every Pfam-A domain on the human proteome (Ensembl release 115) onto genomic exon structure and, counting one canonical isoform per gene, reports: the single-exon fraction **and** domain size by function (Fig 1D), where each domain sits along its protein (start / middle / end landmarks, in amino-acid space so UTRs play no part), and how fully a domain fills the exons that encode it (completeness) — each also broken down per Pfam family. It then runs the **ClinVar** test on the same atlas: whether pathogenic missense variants are enriched in CDS exons that code a Pfam-A domain (Fisher's exact, Panel C).
 
-Notebook: [`pfam_proteome_atlas.ipynb`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/end_to_end/pfam_proteome_atlas.ipynb)
+Notebook: [`domain_functional_atlas.ipynb`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/end_to_end/domain_functional_atlas.ipynb)
 
-## ClinVar enrichment
+## AlphaFold pLDDT at splice junctions
 
-This notebook tests whether pathogenic missense variants are enriched in CDS exons that code for Pfam-A domains, relative to benign controls. It downloads the latest ClinVar VCF (GRCh38), filters to missense SNVs with a clear clinical significance, picks the top genes by pathogenic count, asks for each variant whether it falls in a CDS exon coding at least one Pfam-A domain, and runs a Fisher's exact test on the enrichment. The result is Panel C of the figure.
+Per-residue AlphaFold pLDDT against distance (in nucleotides) to the nearest exon-exon junction, across the canonical human proteome — a 2D density showing model confidence dipping right at the splice site.
 
-Notebook: [`clinvar_pathogenic.ipynb`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/end_to_end/clinvar_pathogenic.ipynb)
+Notebook: [`alphafold_plddt_junctions.ipynb`](https://github.com/SotoLF/Prot2Exon/blob/main/tutorial/reproduce_paper/end_to_end/alphafold_plddt_junctions.ipynb)
