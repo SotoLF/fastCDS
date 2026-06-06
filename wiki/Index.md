@@ -104,7 +104,8 @@ Available pre-built indexes:
 | Target | Index binary | Source annotation |
 |---|---|---|
 | `human` | `gencode_v49_human.idx` (~298 MB) | GENCODE v49 basic, GRCh38 — current human |
-| `mouse` | `gencode_vM34_mouse.idx` (~73 MB) | GENCODE vM34 basic, GRCm39 |
+| `mouse` | `gencode_vM34_mouse.idx` (~73 MB) | GENCODE vM34, GRCm39 — current mouse |
+| `mouse-vm25` | `gencode_vM25_mouse.idx` (~72 MB) | GENCODE vM25, GRCm38/mm10 — last GRCm38 release |
 | `yeast` | `refseq_R64_yeast.idx` (~1.4 MB) | NCBI RefSeq *S. cerevisiae* R64 |
 | `human-v86` | `ensembl_v86_human.idx` (~87 MB) | Ensembl 86, matches `EnsDb.Hsapiens.v86` (validation) |
 

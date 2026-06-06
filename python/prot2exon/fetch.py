@@ -71,7 +71,11 @@ ZENODO_IDX: dict[str, ZenodoIndex] = {
     "mouse": ZenodoIndex(
         "gencode_vM34_mouse.idx",
         "a8b22d9e229643903fc2ae9e7b867c7b9a72a07187dd26874f8a331f4213d8e9",
-        "GENCODE mouse vM34 (~73 MB)"),
+        "GENCODE mouse vM34 (~73 MB) — current mouse (GRCm39)"),
+    "mouse-vm25": ZenodoIndex(
+        "gencode_vM25_mouse.idx",
+        "14610af24f0fe24f1d0282f3903f7cba7f657d8afc3834ae65b09ae7b7197ce9",
+        "GENCODE mouse vM25 (~72 MB) — last GRCm38/mm10 release"),
     "human-v86": ZenodoIndex(
         "ensembl_v86_human.idx",
         "5999c3c4fdfb16517b0a687d3cb2ecff424ee4a3fa4019ab7825321c4bb6f25a",
