@@ -644,6 +644,10 @@ function renderTicks() {{
     const el = document.createElement('div');
     el.className = 'tick' + (t.major ? ' major' : '');
     el.style.left = xp + '%';
+    // Keep edge ticks inside the track: anchor the first by its left edge and
+    // the last by its right edge; interior ticks stay centred on the mark.
+    el.style.transform = xp <= 0.5 ? 'translateX(0)'
+                       : xp >= 99.5 ? 'translateX(-100%)' : 'translateX(-50%)';
     el.textContent = fmt(Math.round(t.pos));
     ticksEl.appendChild(el);
   }});
