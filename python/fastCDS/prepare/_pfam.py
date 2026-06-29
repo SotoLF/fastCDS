@@ -1,4 +1,4 @@
-"""Parse HMMER `--domtblout` (Pfam scan) into prot2exon BED-like rows.
+"""Parse HMMER `--domtblout` (Pfam scan) into fastCDS BED-like rows.
 
 Extracted from `scripts/prepare_from_pfam.py` so the same logic is usable
 from both the CLI and the Python API.

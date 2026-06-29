@@ -42,4 +42,4 @@ dependencies:
   - tqdm
   - pip
   - pip:
-    - prot2exon              # the Python wrapper — uncomment once published
+    - fastCDS              # the Python wrapper — uncomment once published

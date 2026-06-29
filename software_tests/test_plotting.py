@@ -1,6 +1,6 @@
 """Plot helpers and the standalone HTML viewers.
 
-Drives the `prot2exon.plot` entry point and the interactive-HTML renderers
+Drives the `fastCDS.plot` entry point and the interactive-HTML renderers
 against the shared `out_all` isoform table. Visual fidelity isn't asserted —
 these check that each path runs, honours its flags, and (for the offline
 viewer) produces a self-contained file.
@@ -17,7 +17,7 @@ import pytest
 
 from conftest import REPO_ROOT, WRAPPER
 
-# The wrapper shells out to `python3 -m prot2exon.plot`; make sure that resolves
+# The wrapper shells out to `python3 -m fastCDS.plot`; make sure that resolves
 # to the same interpreter running the tests (which has pandas/matplotlib) rather
 # than a bare system python3 on PATH.
 _WRAPPER_ENV = {**os.environ,
@@ -32,7 +32,7 @@ def _isoform_tsv(out_all):
 def test_compact_genomic_pdf(out_all, tmp_path):
     """`--compact-genomic` clamps introns to a fixed display width; here we just
     confirm it runs and writes a non-empty PDF."""
-    from prot2exon.plot import main
+    from fastCDS.plot import main
     pdf = tmp_path / "compact_genomic.pdf"
     rc = main(["--isoform", _isoform_tsv(out_all), "--input-id", "Q1_ENSP",
                "--out", str(pdf), "--compact-genomic"])
@@ -43,7 +43,7 @@ def test_compact_genomic_pdf(out_all, tmp_path):
 def test_compact_genomic_spliced_mutually_exclusive(out_all, tmp_path):
     """`--spliced` and `--compact-genomic` are mutually exclusive — the CLI
     rejects the combination with exit code 2."""
-    from prot2exon.plot import main
+    from fastCDS.plot import main
     rc = main(["--isoform", _isoform_tsv(out_all), "--input-id", "Q1_ENSP",
                "--out", str(tmp_path / "mx.pdf"), "--spliced", "--compact-genomic"])
     assert rc == 2
@@ -53,7 +53,7 @@ def test_link_template_html(out_all, tmp_path):
     """`--html --link-template` renders a plotly figure with the `{protein_id}`
     placeholder expanded into the linkout URL."""
     pytest.importorskip("plotly")
-    from prot2exon.plot import main
+    from fastCDS.plot import main
     html = tmp_path / "link.html"
     rc = main(["--isoform", _isoform_tsv(out_all), "--input-id", "Q1_ENSP",
                "--html", str(html),
@@ -69,7 +69,7 @@ def test_link_template_html(out_all, tmp_path):
 def test_html_interactive_is_self_contained(out_all, tmp_path):
     """`--html-interactive` writes the vanilla-JS viewer: no plotly CDN, the
     transcript id embedded in the JS payload, and a populated domains array."""
-    from prot2exon.plot import main
+    from fastCDS.plot import main
     html = tmp_path / "interactive.html"
     rc = main(["--isoform", _isoform_tsv(out_all), "--input-id", "Q1_ENSP",
                "--html-interactive", str(html)])
@@ -84,8 +84,8 @@ def test_html_interactive_is_self_contained(out_all, tmp_path):
 def test_render_to_string_plot_height(out_all):
     """`_render_to_string` backs both the file writer and the Jupyter wrapper;
     the `plot_height` kwarg must reach the emitted CSS."""
-    from prot2exon._interactive_html import _render_to_string
-    from prot2exon.plot import load_isoform_tsv
+    from fastCDS._interactive_html import _render_to_string
+    from fastCDS.plot import load_isoform_tsv
     segs = load_isoform_tsv(_isoform_tsv(out_all))["Q1_ENSP"]
     out = _render_to_string(segs, plot_height=200)
     assert "height: 200px" in out
@@ -95,8 +95,8 @@ def test_render_to_string_plot_height(out_all):
 def test_render_interactive_html_stack(out_all, tmp_path):
     """The stack viewer renders a dict of {input_id: segments} on one shared
     axis and embeds a STRUCTURES array."""
-    from prot2exon import render_interactive_html_stack
-    from prot2exon.plot import load_isoform_tsv
+    from fastCDS import render_interactive_html_stack
+    from fastCDS.plot import load_isoform_tsv
     by_id = load_isoform_tsv(_isoform_tsv(out_all))
     stack = tmp_path / "stack.html"
     render_interactive_html_stack(by_id, str(stack))
@@ -107,12 +107,12 @@ def test_render_interactive_html_stack(out_all, tmp_path):
 
 def test_render_interactive_jupyter_is_exported():
     """The Jupyter wrapper is part of the public API."""
-    import prot2exon
-    assert hasattr(prot2exon, "render_interactive_jupyter")
+    import fastCDS
+    assert hasattr(fastCDS, "render_interactive_jupyter")
 
 
 def test_cli_plotter_smoke(out_all, tmp_path):
-    """The `prot2exon plot` CLI (wrapper binary) writes a non-empty PDF."""
+    """The `fastCDS plot` CLI (wrapper binary) writes a non-empty PDF."""
     pdf = tmp_path / "Q1.pdf"
     proc = subprocess.run(
         [str(WRAPPER), "plot", "--isoform", _isoform_tsv(out_all),

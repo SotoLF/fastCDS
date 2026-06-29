@@ -2,7 +2,7 @@
 
 ## "index already exists" — what do I do?
 
-This is informational, not an error. `prot2exon fetch` caches indexes under `~/.cache/prot2exon/`; on the second invocation it just prints `using cached index: /path/to/yeast.idx  (--force to rebuild)` and prints the path. Pass `--force` if you actually want to rebuild from the upstream GTF.
+This is informational, not an error. `fastCDS fetch` caches indexes under `~/.cache/fastCDS/`; on the second invocation it just prints `using cached index: /path/to/yeast.idx  (--force to rebuild)` and prints the path. Pass `--force` if you actually want to rebuild from the upstream GTF.
 
 ## My TSV row has `cds_length_mismatch = true` — bug?
 
@@ -20,9 +20,9 @@ You probably passed a transcript ID for a *non-coding* transcript (lncRNA, proce
 
 ## How do I build a query BED from a domain database (Pfam, InterProScan, UniProt)?
 
-Use the `prot2exon.prepare` helpers — `from_pfam()`, `from_interproscan()`, `from_uniprot_features()` — which turn those tools' standard outputs into a DataFrame that `Mapper.map_batch()` consumes directly (the `parsing/` CLI wrappers do the same from the command line). See the [[Python API]] page for the exact signatures.
+Use the `fastCDS.prepare` helpers — `from_pfam()`, `from_interproscan()`, `from_uniprot_features()` — which turn those tools' standard outputs into a DataFrame that `Mapper.map_batch()` consumes directly (the `parsing/` CLI wrappers do the same from the command line). See the [[Python API]] page for the exact signatures.
 
-## How does prot2exon handle codons split across an exon boundary?
+## How does fastCDS handle codons split across an exon boundary?
 
 Codons that straddle two CDS exons (1+2 or 2+1 patterns) are handled correctly — the mapper tracks `cds_nt_start` / `cds_nt_end` across the exon boundary so aa coordinates round-trip cleanly. CDS exons are split only when *the domain* partially covers them, never on the codon boundary.
 
@@ -45,11 +45,11 @@ Use compact mode. CLI: `--compact-genomic` (matplotlib) or the **Compact (intron
 
 That's expected — plotly bundles its full JS engine in every standalone HTML (~3 MB). If size matters, use `--html-interactive` instead — the interactive viewer is ~35 KB and has no JS dependency.
 
-## Can I run prot2exon on Windows?
+## Can I run fastCDS on Windows?
 
 The Python wrapper works on Windows. The C++ binary should build cleanly under MSVC 2019+ or MinGW, but is mainly tested on Linux. WSL is the path of least friction.
 
-## How do I cite prot2exon?
+## How do I cite fastCDS?
 
 A formal citation will land when the accompanying manuscript is posted. Until then, please cite the repository URL.
 
@@ -61,5 +61,5 @@ Open an issue on the GitHub repo. A minimal reproducer (the GTF lines or BED row
 
 - **Bug fixes** — open a PR with a regression test under `software_tests/` (pytest; pick the module that fits — `test_correctness.py` for mapping output, `test_compat.py` for GTF dialects, etc.).
 - **New plot styles** — both matplotlib (`plot.py`) and the JS viewer (`_interactive_html.py`) are templated; copy an existing draw function and add a CLI flag.
-- **New input adapters** — `parsing/prepare_from_*.py` is the conventional spot for "turn external format X into prot2exon BED".
-- **New genome onboarding presets** — extend `_resolve_url` in `python/prot2exon/fetch.py`.
+- **New input adapters** — `parsing/prepare_from_*.py` is the conventional spot for "turn external format X into fastCDS BED".
+- **New genome onboarding presets** — extend `_resolve_url` in `python/fastCDS/fetch.py`.

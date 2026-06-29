@@ -2,7 +2,7 @@
 
 Most of the heavy lifting these scripts do is converting **UniProt accessions**
 (P04637, Q9Y6K1, ...) into **Ensembl protein IDs** (ENSP00000269305, ...)
-that prot2exon indexes. This module loads a single mapping table and
+that fastCDS indexes. This module loads a single mapping table and
 exposes one lookup function.
 
 Two issues you should know about going in
@@ -183,7 +183,7 @@ def open_text(path: str):
 
 def write_bed_row(out, *, ensp: str, aa_start: int, aa_end: int,
                   domain_id: str, source: str = "") -> None:
-    """Emit one BED-like row in the format prot2exon expects.
+    """Emit one BED-like row in the format fastCDS expects.
 
     Columns: ENSP, aa_start, aa_end, domain_id, source (free-form 5th col)
     """

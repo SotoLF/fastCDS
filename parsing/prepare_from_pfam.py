@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert HMMER domtblout (Pfam scan) to the BED-like format prot2exon eats.
+"""Convert HMMER domtblout (Pfam scan) to the BED-like format fastCDS eats.
 
 HMMER's `--domtblout` is the right file: one row per *domain hit* (not per
 sequence hit), so we get per-domain coordinates. Format reference:
@@ -65,16 +65,16 @@ import sys
 # Make the package importable when running directly from a repo checkout.
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(THIS_DIR, "..", "python"))
-from prot2exon.prepare._mapping import (
+from fastCDS.prepare._mapping import (
     UniProtToEnsp, looks_like_ensp, looks_like_uniprot,
     open_text, dedup_and_sort_rows, write_bed_row, strip_version,
 )
-from prot2exon.prepare._pfam import parse
+from fastCDS.prepare._pfam import parse
 
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
-        description="HMMER domtblout (Pfam scan) → prot2exon BED-like.")
+        description="HMMER domtblout (Pfam scan) → fastCDS BED-like.")
     p.add_argument("--in", dest="in_path", required=True,
                    help="HMMER --domtblout file.")
     p.add_argument("--out", default="-")
@@ -109,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
 
     out_fh = sys.stdout if args.out == "-" else open(args.out, "w")
     try:
-        out_fh.write("# prot2exon BED-like, generated from HMMER domtblout (Pfam)\n")
+        out_fh.write("# fastCDS BED-like, generated from HMMER domtblout (Pfam)\n")
         out_fh.write("# columns: ENSP\\taa_start\\taa_end\\tdomain_id\\tdescription\n")
         for r in rows:
             write_bed_row(out_fh, ensp=r[0], aa_start=r[1], aa_end=r[2],

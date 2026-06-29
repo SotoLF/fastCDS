@@ -22,8 +22,8 @@ later runs and the other notebooks reuse them.
 ## Environment
 
 ```bash
-pip install prot2exon pandas numpy scipy matplotlib jupyter
-# the prot2exon C++ binary ships with the wheel; no separate build needed
+pip install fastCDS pandas numpy scipy matplotlib jupyter
+# the fastCDS C++ binary ships with the wheel; no separate build needed
 ```
 
 (The benchmark notebooks additionally need an R/Bioconductor + TransVar

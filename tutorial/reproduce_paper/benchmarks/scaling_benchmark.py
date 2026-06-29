@@ -1,12 +1,12 @@
-"""Phase 3 scaling benchmark: prot2exon vs ensembldb at increasing query scales.
+"""Phase 3 scaling benchmark: fastCDS vs ensembldb at increasing query scales.
 
-Builds query subsets at N = 100, 1k, 10k, 100k (and 1M for prot2exon only),
+Builds query subsets at N = 100, 1k, 10k, 100k (and 1M for fastCDS only),
 runs each tool, captures wall time and peak RSS, and writes timings.tsv.
 
 Source queries: existing 5K stratified set under <data>/queries_v86.bed.
 Larger sizes (>5K) are produced by sampling with replacement.
 
-ensembldb is much slower than prot2exon; the script caps ensembldb at
+ensembldb is much slower than fastCDS; the script caps ensembldb at
 --ensembldb-max-n (default 100,000) and runs only --ensembldb-reps reps
 for the largest sizes to keep total wall time tractable.
 """
@@ -41,7 +41,7 @@ def run_with_time(cmd: list[str], *, env=None) -> dict:
             f"command failed (rc={rc}): {cmd}\n"
             f"stdout: {stdout}\nstderr: {stderr}"
         )
-    # Prefer prot2exon's self-reported peak if present (it's the binary's RSS,
+    # Prefer fastCDS's self-reported peak if present (it's the binary's RSS,
     # not the wrapping shell's). Otherwise use ru_maxrss (KB on Linux).
     m = PEAK_RSS_RE.search(stderr)
     if m:
@@ -57,7 +57,7 @@ def sample_bed(src_bed: Path, n: int, dst_bed: Path, seed: int):
         picked = rng.sample(lines, n)
     else:
         picked = [rng.choice(lines) for _ in range(n)]
-    # Rewrite query_id so each row is unique (collisions in p2e summary would lose rows).
+    # Rewrite query_id so each row is unique (collisions in fastCDS summary would lose rows).
     out = []
     for i, line in enumerate(picked):
         parts = line.split("\t")
@@ -70,7 +70,7 @@ def sample_bed(src_bed: Path, n: int, dst_bed: Path, seed: int):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--bin", required=True, type=Path, help="prot2exon binary")
+    ap.add_argument("--bin", required=True, type=Path, help="fastCDS binary")
     ap.add_argument("--p2e-index", required=True, type=Path)
     ap.add_argument("--ensdb", required=True, type=Path, help="EnsDb sqlite")
     ap.add_argument("--rscript", required=True, type=Path)
@@ -97,7 +97,7 @@ def main():
         sample_bed(args.source_bed, n, bed, args.seed + n)
         print(f"[N={n:>7,}] BED ready ({bed.stat().st_size:,} bytes)", file=sys.stderr)
 
-        # --- prot2exon ---
+        # --- fastCDS ---
         p2e_out = args.work_dir / f"p2e_n{n}"
         for rep in range(1, args.p2e_reps + 1):
             # Fresh outdir per rep so we time mapping, not "overwrite warnings".
@@ -112,10 +112,10 @@ def main():
                 "--threads", "1",
             ])
             rows.append({
-                "tool": "prot2exon", "n": n, "rep": rep, "threads": 1,
+                "tool": "fastCDS", "n": n, "rep": rep, "threads": 1,
                 "wall_s": round(r["wall_s"], 3), "peak_rss_mb": r["peak_rss_mb"],
             })
-            print(f"  prot2exon rep {rep}: {r['wall_s']:.2f}s, {r['peak_rss_mb']} MB",
+            print(f"  fastCDS rep {rep}: {r['wall_s']:.2f}s, {r['peak_rss_mb']} MB",
                   file=sys.stderr)
 
         # --- ensembldb (capped at --ensembldb-max-n) ---

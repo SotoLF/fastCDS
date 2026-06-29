@@ -1,6 +1,6 @@
 # Input preparation scripts
 
-`prot2exon` expects a BED-like file with `ENSP   aa_start   aa_end   domain_id`. Most users don't have that file lying around — they have an InterProScan run, a UniProt entry, or an HMMER Pfam scan. These scripts convert each of those into the BED-like format the mapper takes.
+`fastCDS` expects a BED-like file with `ENSP   aa_start   aa_end   domain_id`. Most users don't have that file lying around — they have an InterProScan run, a UniProt entry, or an HMMER Pfam scan. These scripts convert each of those into the BED-like format the mapper takes.
 
 | Script | Input format | Source |
 |---|---|---|
@@ -33,7 +33,7 @@ If you have a tiny project-specific mapping (a 2-column `uniprot \t ensp`) you c
 
 Default behavior: emit one BED row per (UniProt, ENSP) pair. That gives you a domain mapped against every transcript that codes for the protein. Pair the output with `--output isoform` and you'll see how a single domain looks across all of the protein's isoforms.
 
-If you only want the canonical mapping, post-filter on `is_mane_select` or `is_ensembl_canonical` in `domain_mapping_summary.tsv` after running `prot2exon`.
+If you only want the canonical mapping, post-filter on `is_mane_select` or `is_ensembl_canonical` in `domain_mapping_summary.tsv` after running `fastCDS`.
 
 ## Examples
 
@@ -55,7 +55,7 @@ python3 parsing/prepare_from_interpro.py \
     --out domains.bed
 
 # Map the result
-./prot2exon map --index human.idx --bed domains.bed --out-dir results --output all
+./fastCDS map --index human.idx --bed domains.bed --out-dir results --output all
 ```
 
 ### UniProt features (flat-file)
@@ -110,7 +110,7 @@ python3 parsing/prepare_from_pfam.py --in pfam_hits.dom --mode search --out pfam
 Every script writes a 2-line comment header so you can eyeball what it produced:
 
 ```
-# prot2exon BED-like, generated from InterProScan
+# fastCDS BED-like, generated from InterProScan
 # columns: ENSP   aa_start   aa_end   domain_id   signature_description
 ENSP00000269305   95   288   IPR011615_Pfam   P53 transactivation motif
 ENSP00000269305   323  356   IPR010991_Pfam   p53, tetramerisation
@@ -120,7 +120,7 @@ ENSP00000269305   323  356   IPR010991_Pfam   p53, tetramerisation
 The mapper ignores `#` lines and the 5th column, so the file is immediately consumable:
 
 ```bash
-./prot2exon map --index human.idx --bed pfam.bed --out-dir results
+./fastCDS map --index human.idx --bed pfam.bed --out-dir results
 ```
 
 ## Common failure modes

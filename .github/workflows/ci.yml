@@ -40,7 +40,7 @@ jobs:
       - name: Install Python test deps
         run: pip install -r software_tests/requirements-dev.txt
 
-      - name: Install prot2exon Python wrapper
+      - name: Install fastCDS Python wrapper
         run: pip install -e python/
 
       - name: Run pytest
@@ -63,5 +63,5 @@ jobs:
         run: |
           python -m venv /tmp/v
           /tmp/v/bin/pip install dist/*.whl
-          /tmp/v/bin/prot2exon --version
-          /tmp/v/bin/prot2exon fetch list >/dev/null
+          /tmp/v/bin/fastCDS --version
+          /tmp/v/bin/fastCDS fetch list >/dev/null

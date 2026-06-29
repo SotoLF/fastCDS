@@ -1,14 +1,14 @@
-"""Unified ``prot2exon`` command — the cross-platform dispatcher.
+"""Unified ``fastCDS`` command — the cross-platform dispatcher.
 
 This is the console-script entry point installed by pip. It mirrors the repo's
-``bin/prot2exon`` shell wrapper but in pure Python, so it works the same on
+``bin/fastCDS`` shell wrapper but in pure Python, so it works the same on
 Linux / macOS / Windows:
 
-    prot2exon index ...   -> C++ binary
-    prot2exon map   ...   -> C++ binary
-    prot2exon fetch ...   -> Python (prot2exon.fetch)
-    prot2exon plot  ...   -> Python (prot2exon.plot)
-    prot2exon --version | --help | <anything else>  -> C++ binary
+    fastCDS index ...   -> C++ binary
+    fastCDS map   ...   -> C++ binary
+    fastCDS fetch ...   -> Python (fastCDS.fetch)
+    fastCDS plot  ...   -> Python (fastCDS.plot)
+    fastCDS --version | --help | <anything else>  -> C++ binary
 """
 
 from __future__ import annotations

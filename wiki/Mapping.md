@@ -1,10 +1,10 @@
-# Mapping (`prot2exon map`)
+# Mapping (`fastCDS map`)
 
-`prot2exon map` projects protein-domain amino-acid coordinates onto a transcript's genomic CDS / UTR / intron structure. You give it a query BED and an index (or GTF), pick how you want the answer shaped with `--output`, and it writes a set of TSVs and BEDs describing where the domain lives in the genome.
+`fastCDS map` projects protein-domain amino-acid coordinates onto a transcript's genomic CDS / UTR / intron structure. You give it a query BED and an index (or GTF), pick how you want the answer shaped with `--output`, and it writes a set of TSVs and BEDs describing where the domain lives in the genome.
 
 ## Input: the query BED
 
-prot2exon reads whitespace-separated, BED-like text. Lines starting with `#` and blank lines are ignored.
+fastCDS reads whitespace-separated, BED-like text. Lines starting with `#` and blank lines are ignored.
 
 ```
 # rows with a domain (ENSP or ENST, with or without version)
@@ -27,7 +27,7 @@ Without column 4, `input_id` falls back to `id:aa_start-aa_end` (or just `id` in
 
 An ENST resolves to the same intervals as its matching ENSP, so the two produce identical mapping output; the summary's `input_id_type` column records which form you supplied. A *non-coding* ENST (no CDS in the GTF) is reported in `unmapped_domains.tsv` with `reason = no_CDS_for_protein`. A row that is just an id with no aa range is processed in **no-domain (structure-only) mode**: the overlap columns are `NA` and the companion BEDs are empty, but `isoform_structure.tsv` is still fully populated so the transcript can be plotted as-is.
 
-The index that `map` reads is built with `prot2exon index` — see [[Index]]. (Building a query BED from a domain database such as Pfam or InterProScan? See the [[FAQ]].)
+The index that `map` reads is built with `fastCDS index` — see [[Index]]. (Building a query BED from a domain database such as Pfam or InterProScan? See the [[FAQ]].)
 
 ## Mapping a domain
 
@@ -43,14 +43,14 @@ Answers *which CDS exons code the domain?* — every CDS exon of the transcript,
 | `domain_cds_segments.bed` | subset: only the CDS exons that code the domain (`coding_overlap`) |
 
 ```bash
-prot2exon map --index human.idx --bed q.bed --out-dir results --output coding
+fastCDS map --index human.idx --bed q.bed --out-dir results --output coding
 ```
 
 The same in Python:
 
 ```python
-import prot2exon as p2e
-mapper = p2e.Mapper(index="human.idx")
+import fastCDS as fc
+mapper = fc.Mapper(index="human.idx")
 result = mapper.map_batch(
     [{"protein_id": "ENSP00000269305", "aa_start": 102, "aa_end": 292, "domain_id": "TP53_DBD"}],
     output="coding",
@@ -70,7 +70,7 @@ Answers *which introns fall inside the domain's genomic span?* — every intron 
 | `domain_introns.bed` | subset: only the introns inside the domain span (`inside_domain_genomic_span`) |
 
 ```bash
-prot2exon map --index human.idx --bed q.bed --out-dir results --output introns
+fastCDS map --index human.idx --bed q.bed --out-dir results --output introns
 ```
 
 The same in Python:
@@ -91,7 +91,7 @@ Answers *what is the single genomic envelope of the domain, introns included?* �
 | `domain_span_with_introns.bed` | one row per domain: first → last coding base, spanning any introns in between |
 
 ```bash
-prot2exon map --index human.idx --bed q.bed --out-dir results --output span
+fastCDS map --index human.idx --bed q.bed --out-dir results --output span
 ```
 
 The same in Python:
@@ -112,7 +112,7 @@ See [Output description](#output-description) for the BED column meanings.
 | `domain_blocks.bed12` | one IGV/UCSC-ready BED12 row per domain — the domain envelope drawn thick, with the coding CDS slices as blocks and the in-domain introns as gaps |
 
 ```bash
-prot2exon map --index human.idx --bed q.bed --out-dir results --output coding --bed12
+fastCDS map --index human.idx --bed q.bed --out-dir results --output coding --bed12
 ```
 
 The same in Python:
@@ -130,7 +130,7 @@ Field-by-field meaning in [Output description](#output-description).
 `--output isoform` writes the plot-ready `isoform_structure.tsv`: one row per structural feature of the transcript — `five_prime_UTR`, `CDS`, `three_prime_UTR`, and inferred `intron` rows. CDS exons that the domain only partially covers are *split* into separate rows (the overlapping and non-overlapping portions), and every row carries a `plot_group` string for direct colour mapping.
 
 ```bash
-prot2exon map --index human.idx --bed q.bed --out-dir results --output isoform
+fastCDS map --index human.idx --bed q.bed --out-dir results --output isoform
 ```
 
 The same in Python:

@@ -31,7 +31,7 @@ DOMAIN_COLOR = {
 
 
 def _segments_to_payload(segs) -> dict:
-    """Translate prot2exon Segment objects into the JS payload."""
+    """Translate fastCDS Segment objects into the JS payload."""
     if not segs:
         return {}
     s0 = segs[0]
@@ -977,7 +977,7 @@ document.getElementById('show-utr').addEventListener('change', render);
       document.documentElement.offsetHeight,
       document.body.offsetHeight
     );
-    window.parent.postMessage({{ type: 'prot2exon-resize', height: h }}, '*');
+    window.parent.postMessage({{ type: 'fastCDS-resize', height: h }}, '*');
   }};
   window.addEventListener('load', () => setTimeout(broadcast, 30));
   // Re-broadcast when controls change (e.g., layout toggle adds/removes ticks).
@@ -1005,7 +1005,7 @@ def _render_to_string(segs, *,
     title_bits = [getattr(s0, "gene_name", "") or "",
                   getattr(s0, "protein_id", "") or "",
                   getattr(s0, "transcript_id", "") or ""]
-    title = " · ".join(b for b in title_bits if b) or "prot2exon"
+    title = " · ".join(b for b in title_bits if b) or "fastCDS"
 
     if link_template:
         try:
@@ -1064,7 +1064,7 @@ def render_interactive_jupyter(segs, *,
     Parameters
     ----------
     segs : list[Segment]
-        Segments from ``prot2exon.plot.load_isoform_tsv`` or
+        Segments from ``fastCDS.plot.load_isoform_tsv`` or
         ``_segments_from_dataframe``.
     height : int, optional
         Pin the iframe height in pixels. By default the iframe sizes
@@ -1113,7 +1113,7 @@ def render_interactive_jupyter(segs, *,
   var ifr = document.getElementById({iframe_id!r});
   if (!ifr) return;
   window.addEventListener('message', function (e) {{
-    if (!e.data || e.data.type !== 'prot2exon-resize') return;
+    if (!e.data || e.data.type !== 'fastCDS-resize') return;
     if (e.source !== ifr.contentWindow) return;
     var h = Math.max(200, Math.min(4000, e.data.height + 4));
     ifr.style.height = h + 'px';
@@ -1121,5 +1121,5 @@ def render_interactive_jupyter(segs, *,
 }})();
 </script>"""
     return HTML(
-        f'<div class="prot2exon-viewer" style="margin: 0;">{iframe}{listener}</div>'
+        f'<div class="fastCDS-viewer" style="margin: 0;">{iframe}{listener}</div>'
     )

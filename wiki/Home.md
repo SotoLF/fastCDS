@@ -1,8 +1,8 @@
-# prot2exon
+# fastCDS
 
 Map protein-domain amino-acid coordinates to their underlying genomic CDS/UTR/intron structure, using any GENCODE, Ensembl, or NCBI RefSeq GTF.
 
-For each input query — a `protein_id` **or** a `transcript_id`, optionally with an aa range — prot2exon answers two related questions:
+For each input query — a `protein_id` **or** a `transcript_id`, optionally with an aa range — fastCDS answers two related questions:
 
 1. **Mapping** — *which exact genomic bases code this domain?*
 2. **Structure** — *how is the whole transcript organised into 5′UTR / CDS / 3′UTR / intron, and where does the domain fall on it?*
@@ -12,11 +12,11 @@ For each input query — a `protein_id` **or** a `transcript_id`, optionally wit
 The whole workflow is four commands, used in order:
 
 ```bash
-prot2exon index gencode.v49.primary_assembly.annotation.gtf  # 1a build an index 
-prot2exon fetch human --out human.idx     # 1b get a pre-built index from Zenodo
-prot2exon map   --index human.idx \           # 2. map queries   -> see Mapping
+fastCDS index gencode.v49.primary_assembly.annotation.gtf  # 1a build an index 
+fastCDS fetch human --out human.idx     # 1b get a pre-built index from Zenodo
+fastCDS map   --index human.idx \           # 2. map queries   -> see Mapping
                 --bed queries.bed --out-dir results --output all
-prot2exon plot  --isoform results/isoform_structure.tsv \   # 3. plot -> see Plotting
+fastCDS plot  --isoform results/isoform_structure.tsv \   # 3. plot -> see Plotting
                 --input-id TP53_DBD --out tp53.pdf
 ```
 
@@ -30,15 +30,15 @@ prot2exon plot  --isoform results/isoform_structure.tsv \   # 3. plot -> see Plo
 The same workflow from Python:
 
 ```python
-import prot2exon as p2e
+import fastCDS as fc
 
-idx = p2e.fetch_index("human")
-mapper = p2e.Mapper(index=idx)
+idx = fc.fetch_index("human")
+mapper = fc.Mapper(index=idx)
 result = mapper.map_batch([
     {"protein_id": "ENSP00000269305", "aa_start": 102, "aa_end": 292, "domain_id": "TP53_DBD"},
 ])
 result.summary          # DataFrame, one row per query
-p2e.plot(result, input_id="TP53_DBD", out="tp53.pdf")
+fc.plot(result, input_id="TP53_DBD", out="tp53.pdf")
 ```
 
 New here? Start with [[Installation]], then walk the sidebar top to bottom. The [[Tutorials and Notebooks]] page has a copy-paste run from zero to a figure.

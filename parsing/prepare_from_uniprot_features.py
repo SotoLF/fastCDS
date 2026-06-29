@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert UniProt feature annotations into the BED-like format prot2exon eats.
+"""Convert UniProt feature annotations into the BED-like format fastCDS eats.
 
 Two input formats are supported, autodetected by extension or via `--format`:
 
@@ -40,11 +40,11 @@ import sys
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(THIS_DIR, "..", "python"))
-from prot2exon.prepare._mapping import (
+from fastCDS.prepare._mapping import (
     UniProtToEnsp, looks_like_ensp, looks_like_uniprot,
     open_text, dedup_and_sort_rows, write_bed_row, strip_version,
 )
-from prot2exon.prepare._uniprot import (
+from fastCDS.prepare._uniprot import (
     parse_dat, parse_json, DEFAULT_FEATURE_TYPES,
 )
 
@@ -56,7 +56,7 @@ from prot2exon.prepare._uniprot import (
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         description="UniProt feature table (.dat or REST .json) → "
-                    "prot2exon BED-like.")
+                    "fastCDS BED-like.")
     p.add_argument("--in", dest="in_path", required=True,
                    help="UniProt .dat / .dat.gz / .txt / .json file.")
     p.add_argument("--format", choices=("auto", "dat", "json"), default="auto")
@@ -115,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
 
     out_fh = sys.stdout if args.out == "-" else open(args.out, "w")
     try:
-        out_fh.write("# prot2exon BED-like, generated from UniProt features\n")
+        out_fh.write("# fastCDS BED-like, generated from UniProt features\n")
         out_fh.write("# columns: ENSP\\taa_start\\taa_end\\tdomain_id\\tdescription\n")
         for r in out_rows:
             write_bed_row(out_fh, ensp=r[0], aa_start=r[1], aa_end=r[2],

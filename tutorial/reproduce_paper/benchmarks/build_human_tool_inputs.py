@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build geneplot + VisProDom inputs for the human Ensembl-86 set, so both
-tools can be benchmarked on the *same* human workload as prot2exon / ensembldb.
+tools can be benchmarked on the *same* human workload as fastCDS / ensembldb.
 
 geneplot needs an Ensembl GFF3 + an InterProScan .ipr file. VisProDom's CreDat
 needs a GFF reduced to its Phytozome-style attribute layout + an RPS-BLAST

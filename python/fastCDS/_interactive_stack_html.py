@@ -866,7 +866,7 @@ document.getElementById('show-utr').addEventListener('change', renderAll);
       document.documentElement.offsetHeight,
       document.body.offsetHeight
     );
-    window.parent.postMessage({{ type: 'prot2exon-resize', height: h }}, '*');
+    window.parent.postMessage({{ type: 'fastCDS-resize', height: h }}, '*');
   }};
   window.addEventListener('load', () => setTimeout(broadcast, 30));
   document.querySelectorAll('input').forEach(el =>
@@ -908,7 +908,7 @@ def _render_stack_to_string(segs_by_id: dict[str, list], *,
         or payloads[0]
     title_bits = [primary.get("geneName", ""), primary.get("domainId", ""),
                   f"{len(payloads)} isoforms"]
-    title = " · ".join(b for b in title_bits if b) or "prot2exon"
+    title = " · ".join(b for b in title_bits if b) or "fastCDS"
 
     return HTML_TEMPLATE.format(
         title_safe=html.escape(title),
@@ -985,7 +985,7 @@ def render_interactive_jupyter_stack(segs_by_id: dict[str, list],
   var ifr = document.getElementById({iframe_id!r});
   if (!ifr) return;
   window.addEventListener('message', function (e) {{
-    if (!e.data || e.data.type !== 'prot2exon-resize') return;
+    if (!e.data || e.data.type !== 'fastCDS-resize') return;
     if (e.source !== ifr.contentWindow) return;
     var h = Math.max(200, Math.min(4000, e.data.height + 4));
     ifr.style.height = h + 'px';
@@ -993,5 +993,5 @@ def render_interactive_jupyter_stack(segs_by_id: dict[str, list],
 }})();
 </script>"""
     return HTML(
-        f'<div class="prot2exon-viewer" style="margin: 0;">{iframe}{listener}</div>'
+        f'<div class="fastCDS-viewer" style="margin: 0;">{iframe}{listener}</div>'
     )

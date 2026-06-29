@@ -3,7 +3,7 @@
 ## Repo layout
 
 ```
-Prot2Exon/
+fastCDS/
 ├── src/                       C++ binary
 │   ├── main.cpp              CLI entry point
 │   ├── gtf_parser.{cpp,hpp}  GTF → in-memory index (+ index serialise/deserialise)
@@ -11,12 +11,12 @@ Prot2Exon/
 │   ├── output_writer.{cpp,hpp}  TSV/BED writers + StreamingWriter
 │   └── utils.{cpp,hpp}       string utilities, attribute helpers
 ├── include/common.hpp        shared types (Result, Segment, ...)
-├── python/prot2exon/         Python wrapper
+├── python/fastCDS/         Python wrapper
 │   ├── _client.py            Mapper (subprocess wrapper)
 │   ├── _result.py            MappingResult dataclass
 │   ├── plot.py               matplotlib + plotly renderer
 │   ├── _interactive_html.py      standalone interactive HTML viewer (+ Jupyter wrapper)
-│   └── fetch.py              `prot2exon fetch` subcommand
+│   └── fetch.py              `fastCDS fetch` subcommand
 ├── parsing/                  input adapters: prepare_from_{interpro,uniprot,pfam}, append_custom_proteins
 ├── tutorial/                 worked examples
 │   ├── walkthrough_end_to_end.ipynb   zero-to-figure API tour
@@ -85,7 +85,7 @@ The suite is pytest, split by concern under `software_tests/`:
 - **`test_compat.py`** — no-tag GTFs, RefSeq dialect, custom-protein injection (`parsing/append_custom_proteins.py`).
 - **`test_bed12.py`** — BED12 block geometry, the `--bed12` add-on, `--batch-size` equivalence.
 - **`test_plotting.py`** — plot flags and the plotly/interactive/Jupyter renderers.
-- **`test_fetch.py`** — `prot2exon fetch` (offline Zenodo-index download, sha256 verify, `fetch list`).
+- **`test_fetch.py`** — `fastCDS fetch` (offline Zenodo-index download, sha256 verify, `fetch list`).
 - **`test_python_api.py`** — the Python wrapper API (`Mapper`, `map_batch`, DataFrame helpers).
 
 `conftest.py` regenerates the synthetic GTFs (`software_tests/make_synthetic_gtf.py`), builds the shared indexes, and maps a fixed query set once per session (the `out_all` fixture). Run with:

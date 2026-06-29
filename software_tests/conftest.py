@@ -1,7 +1,7 @@
-"""Shared pytest fixtures and helpers for the prot2exon test suite.
+"""Shared pytest fixtures and helpers for the fastCDS test suite.
 
 Most tests drive the C++ binary directly and golden-diff its outputs; others
-cover the Python wrapper, the plot helpers, `prot2exon fetch`, and the
+cover the Python wrapper, the plot helpers, `fastCDS fetch`, and the
 packaging scripts. The shared `out_all` fixture maps a fixed multi-query BED
 once per session so the integration tests can read its outputs without each
 re-running the mapper.
@@ -19,8 +19,8 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-BIN = REPO_ROOT / "build" / "prot2exon"
-WRAPPER = REPO_ROOT / "bin" / "prot2exon"
+BIN = REPO_ROOT / "build" / "fastCDS"
+WRAPPER = REPO_ROOT / "bin" / "fastCDS"
 TESTS_DIR = Path(__file__).resolve().parent
 GOLDEN_DIR = TESTS_DIR / "golden"
 WITH_TAGS_GTF = TESTS_DIR / "with_tags.gtf"
@@ -148,7 +148,7 @@ def run_mapping(binary: Path, index: Path, bed_text: str, out_dir: Path,
     )
     if proc.returncode != 0:
         raise AssertionError(
-            f"prot2exon failed (rc={proc.returncode})\n"
+            f"fastCDS failed (rc={proc.returncode})\n"
             f"stdout: {proc.stdout}\nstderr: {proc.stderr}"
         )
 

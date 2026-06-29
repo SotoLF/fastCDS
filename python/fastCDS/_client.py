@@ -1,4 +1,4 @@
-"""Thin client around the prot2exon C++ binary.
+"""Thin client around the fastCDS C++ binary.
 
 The binary remains the source of truth for all mapping logic. This module
 just:
@@ -14,10 +14,10 @@ files the binary writes.
 Binary discovery order (so `Mapper(index=...)` "just works"):
 
   1. The `binary=` constructor argument, if given.
-  2. The `PROT2EXON_BIN` env var.
-  3. `<repo>/build/prot2exon`, relative to this file (development).
-  4. The `bin/prot2exon` shell wrapper, relative to this file.
-  5. PATH lookup of `prot2exon-core`, then `prot2exon`.
+  2. The `FASTCDS_BIN` env var.
+  3. `<repo>/build/fastCDS`, relative to this file (development).
+  4. The `bin/fastCDS` shell wrapper, relative to this file.
+  5. PATH lookup of `fastCDS-core`, then `fastCDS`.
 
 If none of the above resolves to an executable file, a clear FileNotFoundError
 is raised with the discovery chain that was tried.
@@ -42,14 +42,14 @@ _VALID_OUTPUTS = {"coding", "introns", "span", "isoform", "bed12", "all"}
 
 
 def _discover_binary() -> str:
-    """Find the C++ binary (shared logic in ``prot2exon._binary``)."""
+    """Find the C++ binary (shared logic in ``fastCDS._binary``)."""
     from ._binary import find_binary
     return find_binary()
 
 
 def build_index(gtf, out=None, *, binary: str | None = None,
                 force: bool = False) -> Path:
-    """Build a binary index from a local GTF — Python mirror of ``prot2exon index``.
+    """Build a binary index from a local GTF — Python mirror of ``fastCDS index``.
 
     Parameters
     ----------
@@ -58,7 +58,7 @@ def build_index(gtf, out=None, *, binary: str | None = None,
     out : str | os.PathLike | None
         Output ``.idx`` path. Defaults to ``<gtf>`` with a ``.idx`` suffix.
     binary : str | None
-        Path to the prot2exon binary. Auto-discovered if omitted.
+        Path to the fastCDS binary. Auto-discovered if omitted.
     force : bool
         Rebuild even if ``out`` already exists. Default False (cached).
 
@@ -68,8 +68,8 @@ def build_index(gtf, out=None, *, binary: str | None = None,
 
     Examples
     --------
-    >>> import prot2exon as p2e
-    >>> idx = p2e.build_index("combined.gtf", out="human.idx")
+    >>> import fastCDS as fc
+    >>> idx = fc.build_index("combined.gtf", out="human.idx")
     """
     gtf = Path(gtf)
     if not gtf.exists():
@@ -84,7 +84,7 @@ def build_index(gtf, out=None, *, binary: str | None = None,
     )
     if proc.returncode != 0:
         raise RuntimeError(
-            f"`prot2exon index` exited {proc.returncode}\n{proc.stderr}")
+            f"`fastCDS index` exited {proc.returncode}\n{proc.stderr}")
     return out
 
 
@@ -129,7 +129,7 @@ def _query_to_bed_row(q: dict[str, Any]) -> str:
 
 
 class Mapper:
-    """Repeatedly map domain queries against a prot2exon index.
+    """Repeatedly map domain queries against a fastCDS index.
 
     The index file is reloaded by the C++ binary on every invocation, so
     repeated `.map()` calls each pay the index-load cost (~1.5 s on the
@@ -139,7 +139,7 @@ class Mapper:
     Parameters
     ----------
     index : str | os.PathLike
-        Path to the binary index built with `prot2exon index`.
+        Path to the binary index built with `fastCDS index`.
     binary : str | None
         Path to the C++ binary. Auto-discovered if omitted (see module
         docstring for the search order).
@@ -242,7 +242,7 @@ class Mapper:
              tempfile.NamedTemporaryFile(
                  "w", suffix=".bed", delete=False, prefix="p2g_query_") as bed_fh:
             bed_path = bed_fh.name
-            bed_fh.write("# prot2exon batch query (auto-generated)\n")
+            bed_fh.write("# fastCDS batch query (auto-generated)\n")
             bed_fh.write("\n".join(bed_lines) + "\n")
 
         try:
@@ -289,7 +289,7 @@ class Mapper:
         if proc.returncode != 0:
             err = proc.stderr or "(stderr captured nowhere)"
             raise RuntimeError(
-                f"prot2exon exited {proc.returncode}\n"
+                f"fastCDS exited {proc.returncode}\n"
                 f"command: {' '.join(cmd)}\n"
                 f"stderr:\n{err}"
             )

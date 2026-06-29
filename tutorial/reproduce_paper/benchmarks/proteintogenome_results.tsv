@@ -6,7 +6,7 @@
 # setup_s = one-time index/object build; map_s = mapping the 1000 queries;
 # peak_rss_mb = VmHWM of the process.
 tool	setup_s	map_s	total_s	map_q_per_s	peak_rss_mb	exact_match_pct	notes
-prot2exon	1.19	0.014	1.20	71429	674	100.00	C++ binary; setup = v86 index load; map = 14ms for 1000 queries.
+fastCDS	1.19	0.014	1.20	71429	674	100.00	C++ binary; setup = v86 index load; map = 14ms for 1000 queries.
 GenomicFeatures::proteinToGenome	5.99	37.71	43.70	27	1364	100.00	GRangesList method; setup = cdsBy(edb,'tx') + protein->tx map; in-memory R lapply.
 ensembldb::proteinToGenome	0.00	160.12	160.12	6	1163	100.00	EnsDb (SQLite) backed; per-batch proteinToGenome.
 # VisProDom::CreDat (benchmarks/visprodom_bench.R, bundled maize proteome): wall

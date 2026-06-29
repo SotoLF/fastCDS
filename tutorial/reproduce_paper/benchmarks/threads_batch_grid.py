@@ -1,4 +1,4 @@
-"""Combined threads × batch-size grid for `prot2exon map`.
+"""Combined threads × batch-size grid for `fastCDS map`.
 
 Supersedes the separate parallel (threads) and batch-size sweeps: it varies both
 axes together so you can read wall-time *and* peak RAM off one grid. `--threads`
@@ -6,7 +6,7 @@ trades wall time; `--batch-size` caps peak RSS by streaming results to disk in
 chunks (0 / omitted = one-shot, hold everything in memory).
 
     python benchmarks/threads_batch_grid.py \
-        --bin build/prot2exon --index human_v86.idx \
+        --bin build/fastCDS --index human_v86.idx \
         --bed bench/queries_n200000.bed --work-dir bench/grid \
         --threads 1 2 4 8 --batch-sizes 0 10000 50000 \
         --out bench/threads_batch_grid.tsv

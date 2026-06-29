@@ -350,7 +350,7 @@ void write_metadata_file(std::ostream& f,
                          const std::string& source,
                          const std::vector<std::string>& cli_args) {
     f << "{\n";
-    f << "  \"tool\": \"prot2exon\",\n";
+    f << "  \"tool\": \"fastCDS\",\n";
     f << "  \"version\": \"2.2.0\",\n";
     f << "  \"timestamp_utc\": \"" << iso8601_now() << "\",\n";
     f << "  \"output_kind\": \"" << output_kind_to_string(kind) << "\",\n";

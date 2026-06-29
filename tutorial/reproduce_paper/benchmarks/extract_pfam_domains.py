@@ -1,4 +1,4 @@
-"""Extract Pfam-A domain instances from an EnsDb sqlite to BED for prot2exon.
+"""Extract Pfam-A domain instances from an EnsDb sqlite to BED for fastCDS.
 
 Used to feed Phase 4 notebook 1 (Pfam proteome atlas). EnsDb.Hsapiens.v86
 ships ~150K Pfam-A instances across ~19K proteins — no separate InterPro/UniProt

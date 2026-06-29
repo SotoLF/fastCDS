@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Benchmark prot2exon at increasing query scales.
+"""Benchmark fastCDS at increasing query scales.
 
 Measures wall-clock time and peak RSS for --output {all,isoform} at
 N = 100, 1k, 10k, 100k random domain queries against the prebuilt
-human GENCODE v49 index. Also times the one-shot `prot2exon index` pass.
+human GENCODE v49 index. Also times the one-shot `fastCDS index` pass.
 
 Outputs:
   benchmarks/results.tsv     - one row per (mode, N, replicate)
@@ -22,9 +22,9 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-BIN = ROOT.parent / "build" / "prot2exon"
-GTF = Path("/data1/peerd/sotougl/prot2exon_work/gencode.v49.primary_assembly.annotation.gtf")
-IDX = Path("/data1/peerd/sotougl/prot2exon_work/human.idx")
+BIN = ROOT.parent / "build" / "fastCDS"
+GTF = Path("/data1/peerd/sotougl/fastCDS_work/gencode.v49.primary_assembly.annotation.gtf")
+IDX = Path("/data1/peerd/sotougl/fastCDS_work/human.idx")
 PROTEINS_LIST = ROOT / "proteins_list.txt"
 WORK = ROOT / "work"
 RESULTS_TSV = ROOT / "results.tsv"
@@ -118,7 +118,7 @@ def main():
 
     # Index build benchmark.
     if not args.skip_build:
-        print("# benchmarking `prot2exon index` ...", file=sys.stderr)
+        print("# benchmarking `fastCDS index` ...", file=sys.stderr)
         build_info = bench_index_build()
         INDEX_BUILD_JSON.write_text(json.dumps(build_info, indent=2))
         print(f"# build: {build_info['wall_s']:.1f}s, peak {build_info['peak_mb']} MB, "

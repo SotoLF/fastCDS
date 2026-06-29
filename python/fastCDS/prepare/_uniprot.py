@@ -1,4 +1,4 @@
-"""Parse UniProt feature tables (.dat / REST .json) into prot2exon rows.
+"""Parse UniProt feature tables (.dat / REST .json) into fastCDS rows.
 
 Extracted from `scripts/prepare_from_uniprot_features.py`. Supports both
 the classic flat-file with ``FT`` records and the REST JSON output.

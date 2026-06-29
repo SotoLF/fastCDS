@@ -36,7 +36,7 @@ import pandas as pd
 
 # -------------------- shared style --------------------
 COLORS = {
-    "prot2exon": "#0072B2",
+    "fastCDS": "#0072B2",
     "ensembldb": "#009E73",
     "transvar":  "#E69F00",
     "rest":      "#CC79A7",
@@ -118,7 +118,7 @@ def panel_pipeline(ax):
 
     # Core (center).
     box(col_m_x, 9, col_m_w, 12,
-        "prot2exon\n"
+        "fastCDS\n"
         "C++17 · OpenMP\n"
         "~6,000 q/s on 1 thread\n"
         "100 % vs ensembldb",
@@ -164,7 +164,7 @@ def panel_pfam_atlas(ax, atlas_tsv: Path | None):
 
     bins = np.arange(1, 17) - 0.5
     ax.hist(counts, bins=bins,
-            color=COLORS["prot2exon"], edgecolor="white", linewidth=0.7)
+            color=COLORS["fastCDS"], edgecolor="white", linewidth=0.7)
 
     ax.set_xticks([1, 2, 4, 6, 8, 10, 12, 14, 15])
     ax.set_xticklabels([1, 2, 4, 6, 8, 10, 12, 14, "15+"])
@@ -253,7 +253,7 @@ def panel_tp53(ax, tp53_tsv: Path):
         canonical = df[df["input_id"] == df["input_id"].iloc[0]].copy()
 
     # Build the compact axis: collapse introns to a fixed width while keeping
-    # CDS/UTR true-scale.  This mirrors what prot2exon.plot._draw_compact_genomic
+    # CDS/UTR true-scale.  This mirrors what fastCDS.plot._draw_compact_genomic
     # does for the matplotlib plotter.
     canonical = canonical.sort_values("feature_genomic_start").reset_index(drop=True)
     COMPACT_INTRON = 80
@@ -282,7 +282,7 @@ def panel_tp53(ax, tp53_tsv: Path):
     palette = {
         "five_prime_UTR":  "#F0C078",
         "three_prime_UTR": "#F0C078",
-        "CDS_no_domain":   COLORS["prot2exon"],
+        "CDS_no_domain":   COLORS["fastCDS"],
         "CDS_domain":      COLORS["bad"],
         "intron":          COLORS["muted"],
         "intron_domain_span": COLORS["bad"],
@@ -356,7 +356,7 @@ def panel_tp53(ax, tp53_tsv: Path):
     # Legend as a proper matplotlib legend so the spacing is automatic and
     # doesn't depend on mixing data + pixel coordinates.
     legend_handles = [
-        mpatches.Patch(facecolor=COLORS["prot2exon"], label="CDS"),
+        mpatches.Patch(facecolor=COLORS["fastCDS"], label="CDS"),
         mpatches.Patch(facecolor=COLORS["bad"],       label="CDS (in domain)"),
         mpatches.Patch(facecolor="#F0C078",           label="UTR"),
         mpl.lines.Line2D([0], [0], color=COLORS["muted"], lw=1.6,  label="intron"),
@@ -396,7 +396,7 @@ def make_figure(args) -> mpl.figure.Figure:
     panel_tp53(ax_d, args.tp53_isoforms)
 
     fig.text(0.05, 0.97,
-             "Prot2Exon — domain → exon architecture at proteome scale",
+             "fastCDS — domain → exon architecture at proteome scale",
              fontsize=13.5, fontweight="bold", color=COLORS["ink"])
     return fig
 

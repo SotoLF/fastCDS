@@ -1,18 +1,18 @@
 # Top-level pyproject. The build is driven by scikit-build-core, which runs the
 # CMake project (CMakeLists.txt) during the wheel build and bundles the compiled
-# C++ binary into the package as `prot2exon/_bin/prot2exon-core`. So `pip install
-# prot2exon` ships a ready-to-run binary — pre-built wheels are produced per
+# C++ binary into the package as `fastCDS/_bin/fastCDS-core`. So `pip install
+# fastCDS` ships a ready-to-run binary — pre-built wheels are produced per
 # platform by cibuildwheel (.github/workflows/wheels.yml); installing from the
 # sdist compiles locally (needs a C++17 toolchain + CMake).
 #
-# The Python source lives under `python/prot2exon/` (see [tool.scikit-build]).
+# The Python source lives under `python/fastCDS/` (see [tool.scikit-build]).
 
 [build-system]
 requires = ["scikit-build-core>=0.8"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "prot2exon"
+name = "fastCDS"
 version = "2.3.0"
 description = "Map protein-domain coordinates to genomic CDS/UTR/intron structure at proteome scale."
 readme = "README.md"
@@ -44,7 +44,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Interactive HTML output (plot --html / p2e.plot(..., html=...))
+# Interactive HTML output (plot --html / fc.plot(..., html=...))
 html = ["plotly>=5.0"]
 # Reproducing the validation suite (R + ensembldb live in environment.yml).
 benchmarks = ["scipy>=1.7", "numpy>=1.21"]
@@ -61,25 +61,25 @@ all = [
 ]
 
 [project.urls]
-Homepage      = "https://github.com/SotoLF/Prot2Exon"
-Repository    = "https://github.com/SotoLF/Prot2Exon"
-Documentation = "https://github.com/SotoLF/Prot2Exon/wiki"
-Issues        = "https://github.com/SotoLF/Prot2Exon/issues"
-Changelog     = "https://github.com/SotoLF/Prot2Exon/blob/main/CHANGELOG.md"
+Homepage      = "https://github.com/SotoLF/fastCDS"
+Repository    = "https://github.com/SotoLF/fastCDS"
+Documentation = "https://github.com/SotoLF/fastCDS/wiki"
+Issues        = "https://github.com/SotoLF/fastCDS/issues"
+Changelog     = "https://github.com/SotoLF/fastCDS/blob/main/CHANGELOG.md"
 
 [project.scripts]
-# The unified CLI: a cross-platform Python dispatcher (mirrors bin/prot2exon)
+# The unified CLI: a cross-platform Python dispatcher (mirrors bin/fastCDS)
 # that routes index/map to the bundled C++ binary and fetch/plot to Python.
-"prot2exon" = "prot2exon._cli:main"
+"fastCDS" = "fastCDS._cli:main"
 # Direct entry-point to the plotter, for users who only want the Python plotter.
-"prot2exon-plot" = "prot2exon.plot:main"
+"fastCDS-plot" = "fastCDS.plot:main"
 
 # ----------------------------------------------------------------------
 # Build: scikit-build-core drives CMake; the Python package lives under python/.
 # ----------------------------------------------------------------------
 [tool.scikit-build]
 minimum-version = "0.8"
-wheel.packages = ["python/prot2exon"]
+wheel.packages = ["python/fastCDS"]
 sdist.include = ["src", "include", "CMakeLists.txt"]
 cmake.version = ">=3.16"
 cmake.build-type = "Release"

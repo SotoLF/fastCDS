@@ -72,7 +72,7 @@ def main():
         ax.grid(True, which="both", alpha=0.3)
         ax.legend(loc="best", fontsize=9)
 
-    suptitle = "prot2exon scaling on human GENCODE v49"
+    suptitle = "fastCDS scaling on human GENCODE v49"
     if INDEX_BUILD_JSON.exists():
         info = json.loads(INDEX_BUILD_JSON.read_text())
         suptitle += (f"\n(index build: {info['wall_s']:.1f}s, "

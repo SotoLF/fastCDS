@@ -1,19 +1,19 @@
-"""Download a ready-to-query prot2exon index from Zenodo.
+"""Download a ready-to-query fastCDS index from Zenodo.
 
-`prot2exon fetch <target>` pulls a pre-built binary index from our Zenodo
+`fastCDS fetch <target>` pulls a pre-built binary index from our Zenodo
 deposit — one sha256-verified HTTPS download, no GTF parse + build:
 
-    prot2exon fetch human                 # pre-built GENCODE v49 index
-    prot2exon fetch mouse                 # pre-built GENCODE vM34 index
-    prot2exon fetch yeast                 # pre-built RefSeq R64 index
-    prot2exon fetch list                  # what's available
+    fastCDS fetch human                 # pre-built GENCODE v49 index
+    fastCDS fetch mouse                 # pre-built GENCODE vM34 index
+    fastCDS fetch yeast                 # pre-built RefSeq R64 index
+    fastCDS fetch list                  # what's available
 
 `fetch` is *only* the "pull a pre-built index off Zenodo" path. To use any
 other annotation — a different release, a non-model species, a custom GTF —
-download that GTF and build the index yourself with `prot2exon index` (see the
+download that GTF and build the index yourself with `fastCDS index` (see the
 "Building an index" wiki page); it's a one-time ~15 s step.
 
-Indexes land in `~/.cache/prot2exon/` by default (override with `--out` or
+Indexes land in `~/.cache/fastCDS/` by default (override with `--out` or
 `--cache-dir`). The final index path is printed on stdout so it pipes straight
 into the mapper.
 """
@@ -32,7 +32,7 @@ from pathlib import Path
 def _default_cache_dir() -> Path:
     xdg = os.environ.get("XDG_CACHE_HOME")
     base = Path(xdg) if xdg else Path.home() / ".cache"
-    return base / "prot2exon"
+    return base / "fastCDS"
 
 
 # ------------------------------------------------------------------------ #
@@ -42,7 +42,7 @@ def _default_cache_dir() -> Path:
 #
 # The `<RECORD>` placeholder is filled in on first publish (one sed over the
 # URLs + the per-file sha256 from the deposit's MANIFEST.tsv). Until then,
-# `fetch <target>` errors with a pointer to build locally via `prot2exon index`.
+# `fetch <target>` errors with a pointer to build locally via `fastCDS index`.
 # ------------------------------------------------------------------------ #
 
 _ZENODO_BASE = "https://zenodo.org/record/<RECORD>/files"
@@ -80,6 +80,14 @@ ZENODO_IDX: dict[str, ZenodoIndex] = {
         "ensembl_v86_human.idx",
         "5999c3c4fdfb16517b0a687d3cb2ecff424ee4a3fa4019ab7825321c4bb6f25a",
         "Ensembl 86 human (~87 MB) — matches EnsDb.Hsapiens.v86, validation"),
+    "human-v95": ZenodoIndex(
+        "ensembl_v95_human.idx",
+        "1d8e531cb23de01538c7390f51091966890dff945be32b6abc39cdd2c2274cac",
+        "Ensembl 95 human (~92 MB) — matches TransVar's annotation, validation"),
+    "human-v115": ZenodoIndex(
+        "ensembl_v115_human.idx",
+        "0b25b5ce07ac8fcf6116644c01c2b61f23dad94f8b4421aebf57cdb225d5f3a8",
+        "Ensembl 115 human (~265 MB) — current Ensembl, REST validation + Pfam atlas"),
     "yeast": ZenodoIndex(
         "refseq_R64_yeast.idx",
         "201aeff2539d7b54ad82d09da69bc4ed0c2cf2e97454f1a3577b8df99d3b490b",
@@ -122,8 +130,8 @@ def _verify_sha256(path: Path, expected: str) -> None:
 _UNPUBLISHED_HINT = (
     "The Zenodo deposit isn't published yet (the record id is still a "
     "placeholder).\nBuild the index locally instead — download the GTF and run "
-    "`prot2exon index`:\n"
-    "  see https://github.com/SotoLF/Prot2Exon/wiki/Index"
+    "`fastCDS index`:\n"
+    "  see https://github.com/SotoLF/fastCDS/wiki/Index"
 )
 
 
@@ -137,7 +145,7 @@ def _cmd_get(args: argparse.Namespace) -> Path:
     if zen is None:
         sys.exit(f"error: no pre-built index for {target!r}. "
                  f"Available: {', '.join(sorted(ZENODO_IDX))}. "
-                 f"For any other annotation, build it with `prot2exon index`.")
+                 f"For any other annotation, build it with `fastCDS index`.")
     if not zen.published:
         sys.exit(f"error: {target!r} — {_UNPUBLISHED_HINT}")
 
@@ -156,7 +164,7 @@ def _cmd_get(args: argparse.Namespace) -> Path:
 
 
 def _cmd_list() -> int:
-    print("Pre-built indexes available from Zenodo (`prot2exon fetch <target>`):")
+    print("Pre-built indexes available from Zenodo (`fastCDS fetch <target>`):")
     print("=" * 72)
     for name in sorted(ZENODO_IDX):
         mark = "" if ZENODO_IDX[name].published else "   [not published yet]"
@@ -164,7 +172,7 @@ def _cmd_list() -> int:
     print()
     print("Need a different release, species, or a custom GTF? There's no")
     print("pre-built index to fetch — download that GTF and build one with")
-    print("`prot2exon index` (see the 'Building an index' wiki page).")
+    print("`fastCDS index` (see the 'Building an index' wiki page).")
     return 0
 
 
@@ -180,16 +188,16 @@ def fetch_index(
     force: bool = False,
     quiet: bool = False,
 ) -> Path:
-    """Download a pre-built prot2exon index from Zenodo and return its path.
+    """Download a pre-built fastCDS index from Zenodo and return its path.
 
-    Python mirror of ``prot2exon fetch``. Only pre-built Zenodo targets are
-    available (``prot2exon fetch list``); for any other annotation, build an
-    index from a GTF with :func:`build_index` / ``prot2exon index``.
+    Python mirror of ``fastCDS fetch``. Only pre-built Zenodo targets are
+    available (``fastCDS fetch list``); for any other annotation, build an
+    index from a GTF with :func:`build_index` / ``fastCDS index``.
 
     Parameters
     ----------
-    target : {"human", "mouse", "yeast", "human-v86"}
-        A built-in pre-built target (see ``prot2exon fetch list``).
+    target : {"human", "mouse", "mouse-vm25", "human-v86", "human-v95", "human-v115", "yeast"}
+        A built-in pre-built target (see ``fastCDS fetch list``).
     cache_dir, out, force, quiet
         As per the CLI flags.
 
@@ -221,15 +229,15 @@ def fetch_index(
 
 def build_argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="prot2exon fetch",
+        prog="fastCDS fetch",
         description="Download a pre-built index from Zenodo. For any other "
-                    "annotation, build one from a GTF with `prot2exon index`.")
+                    "annotation, build one from a GTF with `fastCDS index`.")
     sub = p.add_subparsers(dest="target", required=True)
 
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--out", help="Output .idx path (default: cache dir)")
     common.add_argument("--cache-dir",
-                        help="Override cache dir (default: ~/.cache/prot2exon)")
+                        help="Override cache dir (default: ~/.cache/fastCDS)")
     common.add_argument("--force", action="store_true",
                         help="Re-download even if the index already exists")
 

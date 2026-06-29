@@ -1,9 +1,9 @@
-"""Python client for the prot2exon C++ mapper.
+"""Python client for the fastCDS C++ mapper.
 
 Quick start
 -----------
 
->>> import prot2exon as p2g
+>>> import fastCDS as p2g
 >>> mapper = p2g.Mapper(index="human.idx")
 >>> result = mapper.map("ENSP00000269305", aa_start=10, aa_end=50,
 ...                     domain_id="AD1")

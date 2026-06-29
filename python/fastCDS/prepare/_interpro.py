@@ -1,4 +1,4 @@
-"""Parse InterProScan TSV into prot2exon BED-like rows.
+"""Parse InterProScan TSV into fastCDS BED-like rows.
 
 Extracted from `scripts/prepare_from_interpro.py`.
 """

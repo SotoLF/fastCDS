@@ -3,8 +3,8 @@
 
 Use case: proteins you care about aren't in the reference annotation —
 transgenes, non-reference ORFs, manually curated alternative isoforms,
-novel CDSs from a focused study. To map domains onto them with prot2exon
-you need them in the GTF before you build the index (`prot2exon index`).
+novel CDSs from a focused study. To map domains onto them with fastCDS
+you need them in the GTF before you build the index (`fastCDS index`).
 
 Input is a TSV with one row per transcript:
 
@@ -17,14 +17,14 @@ Input is a TSV with one row per transcript:
 in genomic order — the script handles strand-aware exon numbering itself).
 
 The script emits one `transcript`, N `exon`, and N `CDS` lines per row, all
-with the attribute keys prot2exon's parser reads (gene_id, transcript_id,
+with the attribute keys fastCDS's parser reads (gene_id, transcript_id,
 protein_id, gene_name, exon_number, plus a `source` tag for provenance).
 
 Append the output to your existing GTF and rebuild the index:
 
     python3 scripts/append_custom_proteins.py --in custom.tsv \
         >> /path/to/working_copy.gtf
-    ./build/prot2exon index --gtf /path/to/working_copy.gtf \
+    ./build/fastCDS index --gtf /path/to/working_copy.gtf \
         --out human_plus_custom.idx
 """
 

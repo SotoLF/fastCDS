@@ -6,11 +6,11 @@ segments. Two tools "agree" on a query when those sets are identical. Reports
 pairwise exact-segment agreement over the queries both tools mapped.
 
 Usage:
-  compare_intervals.py ensembldb=<tsv> genomicfeatures=<tsv> prot2exon=<coding_tsv>
+  compare_intervals.py ensembldb=<tsv> genomicfeatures=<tsv> fastCDS=<coding_tsv>
 
 The ensembldb/genomicfeatures TSVs have columns
   query_id chrom start end strand status
-The prot2exon arg is a domain_cds_segments.tsv; its coding_overlap rows supply
+The fastCDS arg is a domain_cds_segments.tsv; its coding_overlap rows supply
 (input_id, chrom, domain_overlap_genomic_start, domain_overlap_genomic_end, strand).
 """
 import sys, csv
@@ -29,7 +29,7 @@ def load_rgranges(path):
     return d
 
 
-def load_prot2exon(path):
+def load_fastCDS(path):
     d = defaultdict(set)
     with open(path) as f:
         r = csv.DictReader(f, delimiter="\t")
@@ -46,7 +46,7 @@ def main():
     tools = {}
     for arg in sys.argv[1:]:
         name, path = arg.split("=", 1)
-        tools[name] = load_prot2exon(path) if name == "prot2exon" else load_rgranges(path)
+        tools[name] = load_fastCDS(path) if name == "fastCDS" else load_rgranges(path)
 
     names = list(tools)
     print(f"loaded: " + ", ".join(f"{n}={len(tools[n])} queries" for n in names))

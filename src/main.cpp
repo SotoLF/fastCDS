@@ -31,7 +31,7 @@ struct Config {
 
 void print_usage(const char* program_name) {
     std::cout
-<< "prot2exon - map protein domain coordinates to genomic / transcript\n"
+<< "fastCDS - map protein domain coordinates to genomic / transcript\n"
 << "structure using a GTF annotation.\n"
 << "\n"
 << "USAGE\n"
@@ -282,7 +282,7 @@ void print_usage(const char* program_name) {
 }
 
 void print_version() {
-    std::cout << "prot2exon 2.3.0 (index format v" << INDEX_FORMAT_VERSION << ")\n";
+    std::cout << "fastCDS 2.3.0 (index format v" << INDEX_FORMAT_VERSION << ")\n";
 }
 
 bool parse_output_kind(const std::string& s, OutputKind& out) {
@@ -390,7 +390,7 @@ int validate_config(const Config& config) {
 int main(int argc, char* argv[]) {
     Config config;
 
-    // Subcommand dispatch: `prot2exon index ...` / `prot2exon map ...`.
+    // Subcommand dispatch: `fastCDS index ...` / `fastCDS map ...`.
     // A leading bare word (not starting with '-') selects the command; we then
     // hand getopt the tail (argv+1, whose [0] is the command word it ignores as
     // argv[0]). Anything else falls through to the legacy flag-only form, which

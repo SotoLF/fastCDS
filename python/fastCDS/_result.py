@@ -186,7 +186,7 @@ class MappingResult:
 
 
 def read_results_dir(out_dir: str) -> MappingResult:
-    """Parse an existing prot2exon output directory into a MappingResult."""
+    """Parse an existing fastCDS output directory into a MappingResult."""
     if not os.path.isdir(out_dir):
         raise FileNotFoundError(f"Not a directory: {out_dir}")
     j = lambda name: os.path.join(out_dir, name)

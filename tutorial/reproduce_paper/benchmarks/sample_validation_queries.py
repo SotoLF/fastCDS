@@ -79,7 +79,7 @@ def parse_gtf(gtf_path: Path):
             tid = attrs.get("transcript_id")
             if not tid:
                 continue
-            # Strip versions for cross-tool compatibility (prot2exon strips, ensembldb does not).
+            # Strip versions for cross-tool compatibility (fastCDS strips, ensembldb does not).
             tid_unv = tid.split(".")[0]
 
             if feat == "transcript":

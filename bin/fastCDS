@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Top-level entry point for the fastCDS toolkit.
+#
+#   fastCDS index ...    -> build a binary index from a GTF (C++ binary)
+#   fastCDS map   ...    -> map domain/protein queries (C++ binary)
+#   fastCDS fetch ...    -> download + build a stock index (python/fastCDS/fetch.py)
+#   fastCDS plot  ...    -> python plotter (python/fastCDS/plot.py)
+#
+# The C++ binary is discovered in this order:
+#   1. $FASTCDS_BIN  (explicit override)
+#   2. <repo>/build/fastCDS (development build, where CMake places it)
+#   3. PATH lookup for `fastCDS-core` (installed sibling)
+#
+set -euo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "$here/.." && pwd)"
+
+if [[ "${1:-}" == "plot" ]]; then
+    shift
+    export PYTHONPATH="$repo_root/python${PYTHONPATH:+:$PYTHONPATH}"
+    exec python3 -m fastCDS.plot "$@"
+fi
+
+if [[ "${1:-}" == "fetch" ]]; then
+    shift
+    # `fetch` is stdlib-only, so invoke the file directly to avoid loading
+    # the package __init__.py (which imports pandas/matplotlib for the
+    # mapper / plotter — not needed here, and absent in the system Python
+    # used by this wrapper on dev machines).
+    exec python3 "$repo_root/python/fastCDS/fetch.py" "$@"
+fi
+
+binary="${FASTCDS_BIN:-}"
+if [[ -z "$binary" ]]; then
+    if [[ -x "$repo_root/build/fastCDS" ]]; then
+        binary="$repo_root/build/fastCDS"
+    elif command -v fastCDS-core >/dev/null 2>&1; then
+        binary="$(command -v fastCDS-core)"
+    else
+        echo "error: could not locate the fastCDS C++ binary. Build it with:" >&2
+        echo "  cd \"$repo_root\" && mkdir -p build && cd build && cmake .. && make -j" >&2
+        echo "or set FASTCDS_BIN to its path." >&2
+        exit 127
+    fi
+fi
+exec "$binary" "$@"

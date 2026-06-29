@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert an InterProScan TSV into the BED-like format prot2exon eats.
+"""Convert an InterProScan TSV into the BED-like format fastCDS eats.
 
 InterProScan `-f TSV` produces one row per signature hit, with columns:
 
@@ -54,16 +54,16 @@ import sys
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(THIS_DIR, "..", "python"))
-from prot2exon.prepare._mapping import (
+from fastCDS.prepare._mapping import (
     UniProtToEnsp, looks_like_uniprot, looks_like_ensp,
     open_text, dedup_and_sort_rows, write_bed_row,
 )
-from prot2exon.prepare._interpro import parse, detect_id_type
+from fastCDS.prepare._interpro import parse, detect_id_type
 
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
-        description="InterProScan TSV → prot2exon BED-like.")
+        description="InterProScan TSV → fastCDS BED-like.")
     p.add_argument("--in", dest="in_path", required=True,
                    help="InterProScan TSV (column 1 must be the protein id).")
     p.add_argument("--out", default="-",
@@ -101,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
 
     out_fh = sys.stdout if args.out == "-" else open(args.out, "w")
     try:
-        out_fh.write("# prot2exon BED-like, generated from InterProScan\n")
+        out_fh.write("# fastCDS BED-like, generated from InterProScan\n")
         out_fh.write("# columns: ENSP\\taa_start\\taa_end\\tdomain_id\\tsignature_description\n")
         for r in rows:
             write_bed_row(out_fh, ensp=r[0], aa_start=r[1], aa_end=r[2],

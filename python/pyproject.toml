@@ -3,12 +3,12 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "prot2exon"
+name = "fastCDS"
 version = "2.3.0"
-description = "Python client + plotter for the prot2exon C++ mapper."
+description = "Python client + plotter for the fastCDS C++ mapper."
 readme = "README.md"
 requires-python = ">=3.9"
-authors = [{ name = "prot2exon contributors" }]
+authors = [{ name = "fastCDS contributors" }]
 license = { text = "MIT" }
 dependencies = [
     "pandas>=1.4",
@@ -16,14 +16,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Interactive HTML output (plot --html / p2e.plot(..., html=...))
+# Interactive HTML output (plot --html / fc.plot(..., html=...))
 html = ["plotly>=5.0"]
 
 [project.scripts]
 # Direct Python entry-point for the plotter. The repo's bash wrapper
-# `bin/prot2exon` remains the unified CLI; this is for users who only want
+# `bin/fastCDS` remains the unified CLI; this is for users who only want
 # the plotter without going through the wrapper.
-"prot2exon-plot" = "prot2exon.plot:main"
+"fastCDS-plot" = "fastCDS.plot:main"
 
 [tool.setuptools]
-packages = ["prot2exon"]
+packages = ["fastCDS"]

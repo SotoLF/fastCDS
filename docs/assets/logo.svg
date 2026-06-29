@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Prot2Exon mock logo.
+  fastCDS mock logo.
   Visual idea: a horizontal "gene track" with CDS exons (blue) and a
   domain-coding portion (red) connected by chevron-introns, plus the
-  wordmark "Prot2Exon" set in a clean sans.
+  wordmark "fastCDS" set in a clean sans.
   Replace with a polished asset before tagging v1.0.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 140" role="img"
-     aria-label="Prot2Exon logo">
+     aria-label="fastCDS logo">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#fbfdff"/>
@@ -49,6 +49,6 @@
   <polyline class="chev" points="492,34 500,42 492,50"/>
 
   <!-- wordmark -->
-  <text class="wm"  x="16" y="108">Prot2Exon</text>
+  <text class="wm"  x="16" y="108">fastCDS</text>
   <text class="sub" x="16" y="128">PROTEIN DOMAIN → GENOMIC STRUCTURE</text>
 </svg>

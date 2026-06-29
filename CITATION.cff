@@ -1,8 +1,8 @@
 cff-version: 1.2.0
-message: "If you use Prot2Exon in your research, please cite it as below."
-title: "Prot2Exon: map protein-domain amino-acid coordinates to genomic exon/intron structure at proteome scale"
+message: "If you use fastCDS in your research, please cite it as below."
+title: "fastCDS: map protein-domain amino-acid coordinates to genomic exon/intron structure at proteome scale"
 abstract: >
-  Prot2Exon is a C++17 + Python tool that converts protein-domain
+  fastCDS is a C++17 + Python tool that converts protein-domain
   amino-acid ranges (from InterProScan, HMMER/Pfam, UniProt features,
   or any BED-like input) into exact genomic coordinates, exon/intron
   decomposition, and plot-ready isoform structure tables. It is
@@ -17,8 +17,8 @@ authors:
   - family-names: "Muñoz Esquivel"
     given-names: "George D."
     alias: "george123ya"
-url: "https://github.com/SotoLF/Prot2Exon"
-repository-code: "https://github.com/SotoLF/Prot2Exon"
+url: "https://github.com/SotoLF/fastCDS"
+repository-code: "https://github.com/SotoLF/fastCDS"
 license: MIT
 type: software
 version: "2.2.0"
@@ -38,11 +38,11 @@ keywords:
   - visualization
 preferred-citation:
   type: software
-  title: "Prot2Exon"
+  title: "fastCDS"
   authors:
     - family-names: "Soto Ugaldi"
       given-names: "Luis F."
     - family-names: "Muñoz Esquivel"
       given-names: "George D."
-  url: "https://github.com/SotoLF/Prot2Exon"
+  url: "https://github.com/SotoLF/fastCDS"
   version: "2.2.0"

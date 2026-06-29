@@ -1,5 +1,5 @@
-"""Classify an external tool's per-query intervals against prot2exon's intervals
-(taking prot2exon as the reference). Outputs the same Table-1-style agreement
+"""Classify an external tool's per-query intervals against fastCDS's intervals
+(taking fastCDS as the reference). Outputs the same Table-1-style agreement
 breakdown as validate_vs_ensembldb.py, but for any tool whose output is in the
 common 6-column TSV (query_id, chrom, start, end, strand, status).
 
@@ -33,7 +33,7 @@ def classify(ours, theirs) -> str:
     if not o_set and not t_set:
         return "neither_mapped"
     if not t_set:
-        return "only_prot2exon"
+        return "only_fastCDS"
     if not o_set:
         return "only_external"
     if o_set == t_set:
@@ -80,7 +80,7 @@ def load_external(path: Path) -> dict:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--p2e-cds", required=True, type=Path,
-                    help="prot2exon domain_cds_segments.tsv")
+                    help="fastCDS domain_cds_segments.tsv")
     ap.add_argument("--external", required=True, type=Path,
                     help="External tool TSV (query_id, chrom, start, end, strand, status)")
     ap.add_argument("--queries-meta", type=Path, default=None,
@@ -113,9 +113,9 @@ def main():
         by_cat[cat][bucket] += 1
 
     BUCKETS = ["exact_match", "off_by_one", "structural_mismatch",
-               "only_prot2exon", "only_external", "neither_mapped"]
+               "only_fastCDS", "only_external", "neither_mapped"]
     with open(args.out, "w") as f:
-        f.write(f"# Tool: {args.tool_name}  |  ref: prot2exon  |  total queries: {len(all_qids):,}\n")
+        f.write(f"# Tool: {args.tool_name}  |  ref: fastCDS  |  total queries: {len(all_qids):,}\n")
         f.write("category\tn\t" + "\t".join(BUCKETS) + "\texact_pct\n")
         for cat in ["OVERALL"] + sorted(k for k in by_cat if k != "OVERALL"):
             counts = by_cat[cat]

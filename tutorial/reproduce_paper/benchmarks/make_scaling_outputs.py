@@ -3,7 +3,7 @@
 Inputs:
   --scaling-tsv     output of scaling_benchmark.py (per-rep timings)
   --parallel-tsv    output of parallel_benchmark.py (per-rep timings at varying threads)
-  --p2e-index-size  bytes — `ls -l human_v86.idx` (or any prot2exon index)
+  --p2e-index-size  bytes — `ls -l human_v86.idx` (or any fastCDS index)
   --ensdb-size      bytes — EnsDb sqlite file size
   --agreement       OVERALL exact-match percentage from Phase 2 (e.g. 100.00)
 
@@ -84,16 +84,16 @@ def main():
         return f"{int(n / w):,} q/s" if w else "—"
 
     # Largest N each tool covered.
-    p2e_max_n = max((n for (t, n) in med_wall if t == "prot2exon"), default=0)
+    p2e_max_n = max((n for (t, n) in med_wall if t == "fastCDS"), default=0)
     ens_max_n = max((n for (t, n) in med_wall if t == "ensembldb"), default=0)
 
     table_path = args.out_dir / "table1.tsv"
     with open(table_path, "w") as f:
-        f.write("metric\tprot2exon\tensembldb\n")
+        f.write("metric\tfastCDS\tensembldb\n")
         f.write(f"Exact agreement vs ensembldb\t100.00% (ref)\t{args.agreement:.2f}%\n")
-        f.write(f"Runtime N={REF_N:,} (1 thread, median)\t{fmt_runtime('prot2exon', REF_N)}\t{fmt_runtime('ensembldb', REF_N)}\n")
-        f.write(f"Peak RSS N={REF_N:,}\t{fmt_rss('prot2exon', REF_N)}\t{fmt_rss('ensembldb', REF_N)}\n")
-        f.write(f"Throughput N={REF_N:,}\t{fmt_throughput('prot2exon', REF_N)}\t{fmt_throughput('ensembldb', REF_N)}\n")
+        f.write(f"Runtime N={REF_N:,} (1 thread, median)\t{fmt_runtime('fastCDS', REF_N)}\t{fmt_runtime('ensembldb', REF_N)}\n")
+        f.write(f"Peak RSS N={REF_N:,}\t{fmt_rss('fastCDS', REF_N)}\t{fmt_rss('ensembldb', REF_N)}\n")
+        f.write(f"Throughput N={REF_N:,}\t{fmt_throughput('fastCDS', REF_N)}\t{fmt_throughput('ensembldb', REF_N)}\n")
         f.write(f"Largest N benchmarked\t{p2e_max_n:,}\t{ens_max_n:,}\n")
         f.write(f"Index size on disk\t{args.p2e_index_size/(1024*1024):.1f} MB\t{args.ensdb_size/(1024*1024):.1f} MB\n")
         f.write(f"Parallelism (OpenMP)\tYes\tNo\n")
@@ -122,7 +122,7 @@ def main():
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.5))
 
     # Panel A: runtime vs N (log-log), one line per tool.
-    for tool, marker in [("prot2exon", "o"), ("ensembldb", "s")]:
+    for tool, marker in [("fastCDS", "o"), ("ensembldb", "s")]:
         xs = sorted(n for (t, n) in med_wall if t == tool)
         ys = [med_wall[(tool, n)] for n in xs]
         if xs:
@@ -144,7 +144,7 @@ def main():
     ax2_b.plot(threads_sorted, efficiencies, "v--", color="C2", label="efficiency", markersize=6)
     ax2_b.set_ylabel("Parallel efficiency (speedup / threads)")
     ax2_b.set_ylim(0, 1.1)
-    ax2.set_title(f"prot2exon parallel scaling (N=100k)")
+    ax2.set_title(f"fastCDS parallel scaling (N=100k)")
     ax2.grid(True, alpha=0.3)
     ax2.legend(loc="upper left")
     ax2_b.legend(loc="lower right")

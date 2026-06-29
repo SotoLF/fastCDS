@@ -1,20 +1,20 @@
-"""Read domain annotations from common sources into prot2exon-ready DataFrames.
+"""Read domain annotations from common sources into fastCDS-ready DataFrames.
 
 Each ``from_*`` function returns a ``pandas.DataFrame`` with the canonical
 columns ``protein_id, aa_start, aa_end, domain_id, description``. The
-DataFrame is consumed directly by :func:`prot2exon.Mapper.map_batch` —
+DataFrame is consumed directly by :func:`fastCDS.Mapper.map_batch` —
 there's no need to write an intermediate BED file unless you want one.
 
 Examples
 --------
 
->>> import prot2exon as p2e
->>> queries = p2e.prepare.from_pfam("hits.dom", mode="scan", id_type="ensp")
+>>> import fastCDS as fc
+>>> queries = fc.prepare.from_pfam("hits.dom", mode="scan", id_type="ensp")
 >>> queries.head()
    protein_id  aa_start  aa_end                domain_id    description
 0  ENSP000…         5      120  PF00069_protein_kinase   Protein kin…
 
->>> mapper = p2e.Mapper(index="human.idx")
+>>> mapper = fc.Mapper(index="human.idx")
 >>> result = mapper.map_batch(queries)
 """
 
@@ -41,7 +41,7 @@ _COLUMNS = ("protein_id", "aa_start", "aa_end", "domain_id", "description")
 
 def rows_to_dataframe(rows: Iterable[tuple]) -> pd.DataFrame:
     """Convert ``(ensp, aa_start, aa_end, domain_id, description)`` rows
-    to a DataFrame with the prot2exon-shaped column names."""
+    to a DataFrame with the fastCDS-shaped column names."""
     return pd.DataFrame(list(rows), columns=list(_COLUMNS))
 
 

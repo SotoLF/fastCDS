@@ -32,7 +32,7 @@ jobs:
           CIBW_ARCHS_MACOS: "auto"
           MACOSX_DEPLOYMENT_TARGET: "11.0"
           # scikit-build-core pulls cmake/ninja; smoke-test the bundled binary.
-          CIBW_TEST_COMMAND: "prot2exon --version"
+          CIBW_TEST_COMMAND: "fastCDS --version"
           # auditwheel (Linux) vendors libgomp into the wheel and applies the
           # manylinux tag; the C++/GCC runtime is statically linked in CMake.
           # If auditwheel ever chokes on the bundled executable, the fallback is

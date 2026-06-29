@@ -6,18 +6,18 @@
 - [pixi](Installation#pixi)
 - [From source](Installation#build-from-source)
 
-**2 · [Building an index](Index)** <br>(`prot2exon index`, `prot2exon fetch`)
+**2 · [Building an index](Index)** <br>(`fastCDS index`, `fastCDS fetch`)
 - [Obtain a GTF](Index#1-obtain-a-gtf)
 - [Index a local GTF](Index#2-index-a-local-gtf)
 - [Fetch from Zenodo](Index#3-retrieve-a-pre-built-index-from-zenodo)
 
-**3 · [Mapping](Mapping)** <br>(`prot2exon map`)
+**3 · [Mapping](Mapping)** <br>(`fastCDS map`)
 - [Query BED](Mapping#input-the-query-bed)
 - [Mapping a domain](Mapping#mapping-a-domain)
 - [Transcript structure](Mapping#get-the-transcript-structure---output-isoform)
 - [Output description](Mapping#output-description)
 
-**4 · [Plotting](Plotting)** <br>(`prot2exon plot`)
+**4 · [Plotting](Plotting)** <br>(`fastCDS plot`)
 - [Static figures](Plotting#static-figures)
 - [Interactive viewers](Plotting#interactive-viewers)
 

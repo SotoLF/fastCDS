@@ -7,11 +7,11 @@ The wrapper is a thin layer over the C++ binary. It writes inputs to a temp dir,
 Two functions mirror the `index` / `fetch` commands and return the `Path` to a `.idx` (see [[Index]]):
 
 ```python
-import prot2exon as p2e
+import fastCDS as fc
 
-idx = p2e.build_index("combined.gtf", out="human.idx")  # build from a local GTF (`prot2exon index`)
-idx = p2e.fetch_index("human")                           # pre-built, from Zenodo (`prot2exon fetch`)
-idx = p2e.fetch_index("human", release="50")             # or build a specific release
+idx = fc.build_index("combined.gtf", out="human.idx")  # build from a local GTF (`fastCDS index`)
+idx = fc.fetch_index("human")                           # pre-built, from Zenodo (`fastCDS fetch`)
+idx = fc.fetch_index("human", release="50")             # or build a specific release
 ```
 
 `build_index(gtf, out=None, *, binary=None, force=False)` caches: if `out` exists it's returned untouched unless `force=True`.
@@ -19,11 +19,11 @@ idx = p2e.fetch_index("human", release="50")             # or build a specific r
 ## `Mapper`
 
 ```python
-import prot2exon as p2e
+import fastCDS as fc
 
-mapper = p2e.Mapper(
+mapper = fc.Mapper(
     index="human.idx",
-    binary=None,           # auto-discovered via PROT2EXON_BIN / repo / $PATH
+    binary=None,           # auto-discovered via FASTCDS_BIN / repo / $PATH
     threads=None,          # default: all cores
     batch_size=0,          # 0 = unbounded (one-shot); >0 enables streaming
     extra_args=(),
@@ -60,7 +60,7 @@ result = mapper.map_batch([
 For very large query sets (millions), bound RAM by setting `batch_size`:
 
 ```python
-mapper = p2e.Mapper(index="human.idx", batch_size=10000, threads=8)
+mapper = fc.Mapper(index="human.idx", batch_size=10000, threads=8)
 result = mapper.map_batch(million_queries)
 ```
 
@@ -69,7 +69,7 @@ See [[Performance and Benchmarking]] for the 1 M-query benchmark.
 ## `map_query(...)` — one-off (creates a `Mapper` internally)
 
 ```python
-result = p2e.map_query(
+result = fc.map_query(
     "ENSP00000269305", 102, 292, "TP53_DBD",
     index="human.idx",
 )
@@ -92,7 +92,7 @@ Same files the CLI would write under `--out-dir`.
 ## Reading an existing run
 
 ```python
-result = p2e.read_results_dir("my_results/")
+result = fc.read_results_dir("my_results/")
 result.summary       # pandas DataFrame
 result.isoform       # ...
 ```
@@ -104,12 +104,12 @@ result.isoform       # ...
 `Mapper(index=...)` finds the C++ binary by checking, in order:
 
 1. The `binary=` constructor argument.
-2. `$PROT2EXON_BIN`.
-3. `<repo>/build/prot2exon` (development checkouts).
-4. `<repo>/bin/prot2exon` (the shell wrapper).
-5. `prot2exon-core` on `$PATH`, then `prot2exon` on `$PATH`.
+2. `$FASTCDS_BIN`.
+3. `<repo>/build/fastCDS` (development checkouts).
+4. `<repo>/bin/fastCDS` (the shell wrapper).
+5. `fastCDS-core` on `$PATH`, then `fastCDS` on `$PATH`.
 
-For installed users, ship the compiled binary on `$PATH` (pip / conda installs do this automatically) or set `PROT2EXON_BIN` explicitly.
+For installed users, ship the compiled binary on `$PATH` (pip / conda installs do this automatically) or set `FASTCDS_BIN` explicitly.
 
 ## `MappingResult`
 
@@ -143,7 +143,7 @@ sub = result.by_input_id("TP53_DBD")
 ## `plot(...)`
 
 ```python
-p2e.plot(
+fc.plot(
     source,                # a MappingResult, an isoform DataFrame, or a path to isoform_structure.tsv
     input_id="TP53_DBD",
     out="tp53_dbd.pdf",    # matplotlib
@@ -161,28 +161,28 @@ p2e.plot(
 To render every `input_id` in the source, pass `all=True` instead of `input_id`, or use the explicit helper:
 
 ```python
-p2e.plot_all(result, out="all_queries.pdf")    # multipage PDF (matplotlib)
-p2e.plot_all(result, html="all_queries.html")  # one plotly file per input_id
+fc.plot_all(result, out="all_queries.pdf")    # multipage PDF (matplotlib)
+fc.plot_all(result, html="all_queries.html")  # one plotly file per input_id
 ```
 
 `source` can be a `MappingResult`, an isoform DataFrame, or a path to `isoform_structure.tsv` — all three are accepted:
 
 ```python
-p2e.plot(result, input_id="TP53_DBD", out="tp53.pdf")
-p2e.plot(result.isoform, input_id="TP53_DBD", out="tp53.pdf")
-p2e.plot("results/isoform_structure.tsv", input_id="TP53_DBD", out="tp53.pdf")
+fc.plot(result, input_id="TP53_DBD", out="tp53.pdf")
+fc.plot(result.isoform, input_id="TP53_DBD", out="tp53.pdf")
+fc.plot("results/isoform_structure.tsv", input_id="TP53_DBD", out="tp53.pdf")
 ```
 
 ## Interactive viewer helpers
 
 ```python
 # Standalone HTML file (any browser, offline)
-p2e.render_interactive_html(segs, "out.html",
+fc.render_interactive_html(segs, "out.html",
                          link_template="https://...",
                          plot_height=80)
 
 # Inline in a Jupyter notebook
-p2e.render_interactive_jupyter(segs,
+fc.render_interactive_jupyter(segs,
                             height=None,     # default: auto-resize via postMessage
                             plot_height=140, # main-track height in px
                             link_template="https://...")
@@ -191,7 +191,7 @@ p2e.render_interactive_jupyter(segs,
 `segs` is a `list[Segment]`. Build it from a `MappingResult`:
 
 ```python
-from prot2exon.plot import _segments_from_dataframe
+from fastCDS.plot import _segments_from_dataframe
 segs_by_id = _segments_from_dataframe(result.isoform)
 segs = segs_by_id["TP53_DBD"]
 ```
@@ -199,7 +199,7 @@ segs = segs_by_id["TP53_DBD"]
 Or load straight from disk:
 
 ```python
-from prot2exon.plot import load_isoform_tsv
+from fastCDS.plot import load_isoform_tsv
 segs_by_id = load_isoform_tsv("results/isoform_structure.tsv")
 ```
 

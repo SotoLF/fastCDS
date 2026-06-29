@@ -1,7 +1,7 @@
-"""`prot2exon fetch` — the pre-built-index downloader.
+"""`fastCDS fetch` — the pre-built-index downloader.
 
 `fetch` downloads a sha256-verified binary index from Zenodo; it does not build
-from a GTF (that is `prot2exon index`). Exercised offline against `file://`
+from a GTF (that is `fastCDS index`). Exercised offline against `file://`
 URLs so nothing depends on a live host:
   * a target downloads to `--out` and verifies its baked-in sha256,
   * a sha256 mismatch aborts rather than keeping a corrupt index,
@@ -23,7 +23,7 @@ from conftest import REPO_ROOT
 
 def _fake_target(monkeypatch, tmp_path, *, name="testtarget", sha=None):
     """Stage a `file://` Zenodo deposit with one fake index and register it."""
-    from prot2exon import fetch as _fetch
+    from fastCDS import fetch as _fetch
     payload = b"synthetic index payload" * 100
     depot = tmp_path / "zenodo"
     depot.mkdir(exist_ok=True)
@@ -71,19 +71,19 @@ def test_fetch_bad_sha_aborts(tmp_path, monkeypatch):
 def test_fetch_unpublished_target_points_to_index(tmp_path):
     """An unpublished (`<RECORD>`) target errors with a build-locally pointer."""
     proc = subprocess.run(
-        [sys.executable, "-m", "prot2exon.fetch", "human-v86",
+        [sys.executable, "-m", "fastCDS.fetch", "human-v86",
          "--out", str(tmp_path / "v86.idx")],
         env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "python")},
         capture_output=True, text=True,
     )
     assert proc.returncode != 0
-    assert "prot2exon index" in proc.stderr
+    assert "fastCDS index" in proc.stderr
 
 
 def test_fetch_unknown_target_rejected(tmp_path):
     """An unknown target is rejected by argparse (only known subcommands exist)."""
     proc = subprocess.run(
-        [sys.executable, "-m", "prot2exon.fetch", "nope"],
+        [sys.executable, "-m", "fastCDS.fetch", "nope"],
         env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "python")},
         capture_output=True, text=True,
     )
@@ -93,11 +93,11 @@ def test_fetch_unknown_target_rejected(tmp_path):
 def test_fetch_list(tmp_path):
     """`fetch list` shows the pre-built indexes including a concrete target."""
     proc = subprocess.run(
-        [sys.executable, "-m", "prot2exon.fetch", "list"],
+        [sys.executable, "-m", "fastCDS.fetch", "list"],
         env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "python")},
         capture_output=True, text=True,
     )
     assert proc.returncode == 0, proc.stderr
     assert "Pre-built indexes" in proc.stdout
     assert "yeast" in proc.stdout
-    assert "prot2exon index" in proc.stdout   # points users to the build path
+    assert "fastCDS index" in proc.stdout   # points users to the build path

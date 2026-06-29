@@ -10,13 +10,13 @@ Makefile
 *.so
 *.dylib
 
-# Binaries (in-source / installed). The shell wrapper at bin/prot2exon
-# and the Python package at python/prot2exon/ are checked-in source and
+# Binaries (in-source / installed). The shell wrapper at bin/fastCDS
+# and the Python package at python/fastCDS/ are checked-in source and
 # must NOT be ignored.
-prot2exon
-!bin/prot2exon
-!python/prot2exon/
-!python/prot2exon/**
+fastCDS
+!bin/fastCDS
+!python/fastCDS/
+!python/fastCDS/**
 
 # Python caches
 __pycache__/
@@ -48,3 +48,14 @@ dist/
 # Editor
 .vscode/
 .idea/
+
+# Manuscript working draft (not tracked)
+MANUSCRIPT.md
+SUPPLEMENTARY.md
+
+# Domain-conservation analysis: regenerable data outputs (rebuilt by the
+# isoform_domain_conservation_analysis notebook + benchmarks/ scripts).
+# The notebook (figures embedded) and the scripts stay tracked; the heavy
+# intermediate TSVs and the on-disk PNG copies do not.
+tutorial/reproduce_paper/conservation/*.tsv
+tutorial/reproduce_paper/conservation/*.png

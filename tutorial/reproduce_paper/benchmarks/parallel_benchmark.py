@@ -1,4 +1,4 @@
-"""Phase 3 parallel scaling: prot2exon at threads = 1, 2, 4, 8 with fixed N.
+"""Phase 3 parallel scaling: fastCDS at threads = 1, 2, 4, 8 with fixed N.
 
 Reports wall time + speedup + parallel efficiency per thread count.
 ensembldb is single-threaded by design — no parallel comparison.

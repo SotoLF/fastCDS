@@ -1,4 +1,4 @@
-"""Build the 4-tool paper Table 1 (prot2exon, ensembldb, TransVar, Ensembl REST).
+"""Build the 4-tool paper Table 1 (fastCDS, ensembldb, TransVar, Ensembl REST).
 
 Reads the measurements collected by the various Phase 3 scripts plus the
 agreement tables produced by classify_external.py, and emits a single combined
@@ -79,8 +79,8 @@ def main():
     scaling = read_tsv(args.scaling_tsv)
     med_wall = median_by(scaling, "tool", "n", value="wall_s")
     med_rss = median_by(scaling, "tool", "n", value="peak_rss_mb")
-    p2e_wall = med_wall.get(("prot2exon", 10000), float("nan"))
-    p2e_rss = med_rss.get(("prot2exon", 10000), 0)
+    p2e_wall = med_wall.get(("fastCDS", 10000), float("nan"))
+    p2e_rss = med_rss.get(("fastCDS", 10000), 0)
     ens_wall = med_wall.get(("ensembldb", 10000), float("nan"))
     ens_rss = med_rss.get(("ensembldb", 10000), 0)
 
@@ -93,24 +93,24 @@ def main():
         if not ag:
             return "—"
         exact = ag["exact_match"]
-        # Consider only queries where the external tool returned data (omit only_prot2exon).
+        # Consider only queries where the external tool returned data (omit only_fastCDS).
         # That's the relevant question for the paper: when both tools answer, do they agree?
-        considered = ag["n"] - ag["only_prot2exon"] - ag["neither_mapped"]
+        considered = ag["n"] - ag["only_fastCDS"] - ag["neither_mapped"]
         if considered == 0:
             return "0 / 0"
         pct = 100.0 * exact / considered
         return f"{pct:.2f}% ({exact:,}/{considered:,})"
 
     rows = [
-        ("Tool",                          "prot2exon",                            "ensembldb",                                  "TransVar",                                   "Ensembl REST"),
-        ("Exact agreement vs prot2exon",  "ref",                                  agreement_pct(ensembldb_ag),                  agreement_pct(transvar_ag),                   agreement_pct(rest_ag)),
+        ("Tool",                          "fastCDS",                            "ensembldb",                                  "TransVar",                                   "Ensembl REST"),
+        ("Exact agreement vs fastCDS",  "ref",                                  agreement_pct(ensembldb_ag),                  agreement_pct(transvar_ag),                   agreement_pct(rest_ag)),
         ("Runtime N=10,000 (1 thread)",   f"{p2e_wall:.2f} s",                    f"{ens_wall:.0f} s",                           f"{args.transvar_wall_s:.2f} s",              f"rate-limited (~{10000/15:.0f}s @ 15 q/s cap)"),
         ("Peak RSS @ N=10,000",           f"{p2e_rss} MB",                         f"{ens_rss} MB",                               f"{args.transvar_rss_mb} MB",                  "N/A (HTTP client)"),
         ("Throughput @ N=10,000 (q/s)",   f"{int(10000/p2e_wall):,}",              f"{10000/ens_wall:.0f}" if ens_wall else "—",  f"{int(10000/args.transvar_wall_s):,}",        f"{args.rest_n/args.rest_wall_s:.2f} (network-bound)"),
         ("Parallelism (OpenMP / threads)","Yes",                                   "No",                                          "No",                                          "N/A"),
         ("Plot-ready output schema",      "Yes",                                   "No",                                          "No",                                          "No"),
         ("Multi-species support",         "Yes (any GTF)",                         "Yes (any Ensembl release)",                   "Yes (hg19/hg38/mm9/mm10/etc.)",               "Yes (Ensembl-supported species)"),
-        ("Largest N tested here",         f"{max(n for (t,n) in med_wall if t=='prot2exon'):,}",
+        ("Largest N tested here",         f"{max(n for (t,n) in med_wall if t=='fastCDS'):,}",
                                           f"{max(n for (t,n) in med_wall if t=='ensembldb'):,}",
                                           "10,000",
                                           f"{args.rest_n:,} (rate cap)"),

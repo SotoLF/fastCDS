@@ -1,17 +1,17 @@
-"""Run prot2exon and ensembldb on the same query set, classify every query into
+"""Run fastCDS and ensembldb on the same query set, classify every query into
 the 5 PLAN.txt buckets, and emit Table 1 of the paper (stratified agreement).
 
 Inputs:
   --queries-bed       BED-like, 4 cols (protein_id, aa_start, aa_end, query_id)
   --queries-meta      TSV: query_id, category, ... (from sample_validation_queries.py)
-  --prot2exon-index   prot2exon binary index
+  --fastCDS-index   fastCDS binary index
   --ensdb             EnsDb sqlite path
   --rscript           path to Rscript (default: $CONDA_PREFIX/bin/Rscript or `Rscript`)
-  --prot2exon-bin     path to prot2exon binary (default: ../build/prot2exon)
+  --fastCDS-bin     path to fastCDS binary (default: ../build/fastCDS)
   --out-dir           where to write intermediate outputs + Table 1
 
 Outputs in --out-dir:
-  prot2exon/*                       prot2exon's own output files
+  fastCDS/*                       fastCDS's own output files
   ensembldb_intervals.tsv           output of the R helper
   table1.tsv                        the stratified agreement table
   discrepancies.tsv                 per-query diff for non-exact-match rows
@@ -21,7 +21,7 @@ Buckets:
   off_by_one            sets differ but the bp-symmetric-difference is <= 2
   structural_mismatch   both tools returned intervals but the sets don't agree
                         and aren't an off-by-one case
-  only_prot2exon        prot2exon returned >=1 interval; ensembldb returned nothing
+  only_fastCDS        fastCDS returned >=1 interval; ensembldb returned nothing
   only_ensembldb        the converse
 """
 
@@ -37,20 +37,20 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_BIN = REPO_ROOT / "build" / "prot2exon"
+DEFAULT_BIN = REPO_ROOT / "build" / "fastCDS"
 
 
-def run_prot2exon(binary: Path, index: Path, bed: Path, out_dir: Path) -> None:
+def run_fastCDS(binary: Path, index: Path, bed: Path, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     cmd = [str(binary), "map", "--index", str(index),
            "--bed", str(bed), "--out-dir", str(out_dir),
            "--output", "coding"]  # only need CDS segments
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
-        raise SystemExit(f"prot2exon failed: {proc.stderr}")
+        raise SystemExit(f"fastCDS failed: {proc.stderr}")
 
 
-def load_prot2exon_intervals(out_dir: Path) -> dict[str, list[tuple[str, int, int]]]:
+def load_fastCDS_intervals(out_dir: Path) -> dict[str, list[tuple[str, int, int]]]:
     """input_id -> list of (chrom, start, end) for coding_overlap rows."""
     by_qid: dict[str, list[tuple[str, int, int]]] = defaultdict(list)
     tsv = out_dir / "domain_cds_segments.tsv"
@@ -105,7 +105,7 @@ def classify(ours: list[tuple[str, int, int]], theirs: list[tuple[str, int, int]
     if o_empty and t_empty:
         return "neither_mapped"
     if t_empty:
-        return "only_prot2exon"
+        return "only_fastCDS"
     if o_empty:
         return "only_ensembldb"
     if o_set == t_set:
@@ -123,12 +123,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--queries-bed", required=True, type=Path)
     ap.add_argument("--queries-meta", required=True, type=Path)
-    ap.add_argument("--prot2exon-index", required=True, type=Path)
+    ap.add_argument("--fastCDS-index", required=True, type=Path)
     ap.add_argument("--ensdb", required=True, type=Path)
     ap.add_argument("--out-dir", required=True, type=Path)
     ap.add_argument("--rscript", default=None,
                     help="Path to Rscript (default: $CONDA_PREFIX/bin/Rscript if set, else 'Rscript')")
-    ap.add_argument("--prot2exon-bin", default=DEFAULT_BIN, type=Path)
+    ap.add_argument("--fastCDS-bin", default=DEFAULT_BIN, type=Path)
     args = ap.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -142,10 +142,10 @@ def main():
         else:
             rscript = shutil.which("Rscript") or "Rscript"
 
-    # 1) prot2exon
-    p2e_out = args.out_dir / "prot2exon"
-    print("[1/3] running prot2exon ...", file=sys.stderr)
-    run_prot2exon(args.prot2exon_bin, args.prot2exon_index, args.queries_bed, p2e_out)
+    # 1) fastCDS
+    p2e_out = args.out_dir / "fastCDS"
+    print("[1/3] running fastCDS ...", file=sys.stderr)
+    run_fastCDS(args.fastCDS_bin, args.fastCDS_index, args.queries_bed, p2e_out)
 
     # 2) ensembldb (via R subprocess)
     ens_out = args.out_dir / "ensembldb_intervals.tsv"
@@ -162,7 +162,7 @@ def main():
 
     # 3) Compare and bucket
     print("[3/3] classifying ...", file=sys.stderr)
-    p2e_intervals = load_prot2exon_intervals(p2e_out)
+    p2e_intervals = load_fastCDS_intervals(p2e_out)
     ens_intervals = load_ensembldb_intervals(ens_out)
 
     # Load categories
@@ -197,7 +197,7 @@ def main():
     # Write Table 1.
     table_path = args.out_dir / "table1.tsv"
     BUCKETS = ["exact_match", "off_by_one", "structural_mismatch",
-               "only_prot2exon", "only_ensembldb", "neither_mapped"]
+               "only_fastCDS", "only_ensembldb", "neither_mapped"]
     with open(table_path, "w") as f:
         f.write("category\tn\t" + "\t".join(BUCKETS) + "\texact_pct\n")
         # OVERALL first.
@@ -212,7 +212,7 @@ def main():
     # Write per-query discrepancies for follow-up.
     disc_path = args.out_dir / "discrepancies.tsv"
     with open(disc_path, "w") as f:
-        f.write("query_id\tcategory\tbucket\tprot2exon_intervals\tensembldb_intervals\n")
+        f.write("query_id\tcategory\tbucket\tfastCDS_intervals\tensembldb_intervals\n")
         for qid, cat, bucket, ours, theirs in discrepancies:
             f.write(f"{qid}\t{cat}\t{bucket}\t"
                     f"{','.join(f'{c}:{s}-{e}' for c, s, e in ours)}\t"

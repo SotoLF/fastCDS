@@ -34,7 +34,7 @@ def test_output_files_exist(binary, with_tags_index, tmp_path):
     assert not missing, f"missing files under --output all: {missing}"
 
     meta = json.loads((tmp_path / "run_metadata.json").read_text())
-    assert meta["tool"] == "prot2exon"
+    assert meta["tool"] == "fastCDS"
     assert meta["output_kind"] == "all"
     assert meta["query_counts"]["total"] == 1
     assert meta["query_counts"]["mapped"] == 1

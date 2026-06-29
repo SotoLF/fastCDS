@@ -4,13 +4,13 @@
 Usage examples
 --------------
 # Single domain to a PDF
-prot2exon plot --isoform isoform_structure.tsv --input-id RD1 --out RD1.pdf
+fastCDS plot --isoform isoform_structure.tsv --input-id RD1 --out RD1.pdf
 
 # Every query in the TSV to a multipage PDF
-prot2exon plot --isoform isoform_structure.tsv --all --out queries.pdf
+fastCDS plot --isoform isoform_structure.tsv --all --out queries.pdf
 
 # Interactive HTML (requires plotly)
-prot2exon plot --isoform isoform_structure.tsv --input-id RD1 \
+fastCDS plot --isoform isoform_structure.tsv --input-id RD1 \
                     --html RD1.html
 
 Design notes
@@ -832,7 +832,7 @@ def plot(source, *, input_id: str | None = None,
 
     Examples
     --------
-    >>> import prot2exon as p2g
+    >>> import fastCDS as p2g
     >>> r = p2g.map_query("ENSP00000269305", 10, 50, "AD1", index="human.idx")
     >>> p2g.plot(r, out="AD1.pdf")
     >>> # From a DataFrame:
@@ -934,7 +934,7 @@ plot_isoform = plot
 
 def _argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="prot2exon plot",
+        prog="fastCDS plot",
         description="Render isoform_structure.tsv to PDF/PNG/SVG/HTML.",
     )
     p.add_argument("--isoform", required=True,

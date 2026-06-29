@@ -824,7 +824,7 @@ document.getElementById('show-utr').addEventListener('change', renderAll);
       document.documentElement.offsetHeight,
       document.body.offsetHeight
     );
-    window.parent.postMessage({ type: 'prot2exon-resize', height: h }, '*');
+    window.parent.postMessage({ type: 'fastCDS-resize', height: h }, '*');
   };
   window.addEventListener('load', () => setTimeout(broadcast, 30));
   document.querySelectorAll('input').forEach(el =>
