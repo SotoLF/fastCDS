@@ -53,9 +53,46 @@ dist/
 MANUSCRIPT.md
 SUPPLEMENTARY.md
 
-# Domain-conservation analysis: regenerable data outputs (rebuilt by the
-# isoform_domain_conservation_analysis notebook + benchmarks/ scripts).
-# The notebook (figures embedded) and the scripts stay tracked; the heavy
-# intermediate TSVs and the on-disk PNG copies do not.
-tutorial/reproduce_paper/conservation/*.tsv
-tutorial/reproduce_paper/conservation/*.png
+# Isoform-conservation analysis: kept LOCAL, not committed. It is a separate
+# body of work from the manuscript's Section-4 example analysis and is not
+# referenced by any README or the paper's figure manifest. To publish it later,
+# delete the lines below (and add a documenting section to the tutorial README).
+tutorial/reproduce_paper/conservation/
+tutorial/reproduce_paper/slides/
+tutorial/reproduce_paper/end_to_end/isoform_conservation_*.ipynb
+tutorial/reproduce_paper/end_to_end/isoform_domain_conservation_analysis.ipynb
+# conservation figures (share figures_pdf/ with the manuscript PDFs, listed explicitly)
+tutorial/reproduce_paper/figures_pdf/fig_adjusted_control.pdf
+tutorial/reproduce_paper/figures_pdf/fig_appris_concordance.pdf
+tutorial/reproduce_paper/figures_pdf/fig_appris_delta.pdf
+tutorial/reproduce_paper/figures_pdf/fig_appris_vs_mane.pdf
+tutorial/reproduce_paper/figures_pdf/fig_confounders.pdf
+tutorial/reproduce_paper/figures_pdf/fig_conservation_overview.pdf
+tutorial/reproduce_paper/figures_pdf/fig_function_schemes.pdf
+tutorial/reproduce_paper/figures_pdf/fig_gated_identity.pdf
+tutorial/reproduce_paper/figures_pdf/fig_identity_confusion.pdf
+tutorial/reproduce_paper/figures_pdf/fig_identity_spike.pdf
+tutorial/reproduce_paper/figures_pdf/fig_identity_vs_structural.pdf
+tutorial/reproduce_paper/figures_pdf/fig_isoform_multiplicity.pdf
+tutorial/reproduce_paper/figures_pdf/fig_mechanisms.pdf
+tutorial/reproduce_paper/figures_pdf/fig_pathogenic_enrichment.pdf
+# conservation-only benchmark/analysis scripts (share benchmarks/ with the canonical harness)
+tutorial/reproduce_paper/benchmarks/annotate_go_function.py
+tutorial/reproduce_paper/benchmarks/build_isoform_universe.py
+tutorial/reproduce_paper/benchmarks/build_master_table.py
+tutorial/reproduce_paper/benchmarks/clan_matrix.py
+tutorial/reproduce_paper/benchmarks/clan_variant_downstream.py
+tutorial/reproduce_paper/benchmarks/clan_vs_clan.py
+tutorial/reproduce_paper/benchmarks/classify_mechanism.py
+tutorial/reproduce_paper/benchmarks/confounder_both.py
+tutorial/reproduce_paper/benchmarks/confounder_control.py
+tutorial/reproduce_paper/benchmarks/domain_genomic_coords.py
+tutorial/reproduce_paper/benchmarks/gated_identity.py
+tutorial/reproduce_paper/benchmarks/isoform_conservation.py
+tutorial/reproduce_paper/benchmarks/master_downstream.py
+tutorial/reproduce_paper/benchmarks/missense_overlay.py
+tutorial/reproduce_paper/benchmarks/outdomain_baseline.py
+tutorial/reproduce_paper/benchmarks/plot_missense_spread.py
+tutorial/reproduce_paper/benchmarks/sequence_identity.py
+tutorial/reproduce_paper/benchmarks/variant_overlay.py
+tutorial/reproduce_paper/benchmarks/validation/
