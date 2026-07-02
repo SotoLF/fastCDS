@@ -22,7 +22,7 @@ For each input query (a `protein_id` **or** a `transcript_id`, optionally with a
 
 A C++17 binary does the heavy lifting: once the index is loaded, the mapping itself is ~1 µs per query, so end-to-end throughput is dominated by output formatting (~5,800 queries/s for a single-isoform TSV, ~2,800 q/s writing the full `--output all` set). A Python wrapper gives you pandas DataFrames and three plot styles (matplotlib, plotly, and a vanilla-JS standalone HTML viewer).
 
-📖 **[Full documentation lives in the wiki →](https://github.com/SotoLF/fastCDS/wiki)**
+📖 **[Full documentation lives in the wiki](https://github.com/SotoLF/fastCDS/wiki)**
 
 ## Install
 

@@ -1,6 +1,6 @@
 # Tutorials and notebooks
 
-This page walks you from a clean checkout to a rendered figure, then points you at the worked example notebooks that live under [`tutorial/`](https://github.com/SotoLF/fastCDS/tree/main/notebooks) in the repo. Start with the quickstart, then dive into whichever notebook matches your use case.
+This page walks you from a clean checkout to a rendered figure, then points you at the worked example notebooks that live under [`tutorial/`](https://github.com/SotoLF/fastCDS/tree/main/tutorial) in the repo. Start with the quickstart, then open whichever notebook matches your use case.
 
 ## Quickstart: a real run you can copy-paste
 
