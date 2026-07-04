@@ -48,7 +48,7 @@ enum class OutputKind {
     INTRONS,   // domain_introns.{bed,tsv}     — ALL intron rows + overlap column
     SPAN,      // domain_span_with_introns.bed — single envelope row per domain
     ISOFORM,   // isoform_structure.tsv         — UTR/CDS/intron, plot-ready
-    BED12,     // domain_blocks.bed12          — one BED12 per domain, IGV-ready
+    BED12,     // domain_blocks.bed          — one BED12 per domain, IGV-ready
     ALL        // everything plus summary + unmapped + run_metadata
 };
 

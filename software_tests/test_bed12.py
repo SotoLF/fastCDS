@@ -15,7 +15,7 @@ from conftest import BED1
 def test_bed12_block_geometry(out_all):
     """One BED12 row per successful domain query (7 for BED1), with correct
     chrom/start/end and block columns for the single- and split-exon cases."""
-    bed12 = (out_all / "domain_blocks.bed12").read_text().splitlines()
+    bed12 = (out_all / "domain_blocks.bed").read_text().splitlines()
     assert len(bed12) == 7
 
     q1 = [l for l in bed12 if "Q1_ENSP" in l]
@@ -47,10 +47,10 @@ def test_coding_plus_bed12_addon(binary, with_tags_index, out_all, tmp_path):
         check=True, capture_output=True, text=True,
     )
     assert (out_b12 / "domain_cds_segments.tsv").exists()
-    assert (out_b12 / "domain_blocks.bed12").exists()
+    assert (out_b12 / "domain_blocks.bed").exists()
     assert not (out_b12 / "isoform_structure.tsv").exists()
-    assert ((out_b12 / "domain_blocks.bed12").read_bytes()
-            == (out_all / "domain_blocks.bed12").read_bytes())
+    assert ((out_b12 / "domain_blocks.bed").read_bytes()
+            == (out_all / "domain_blocks.bed").read_bytes())
 
 
 def test_batch_size_equivalence(binary, with_tags_index, out_all, tmp_path):
@@ -68,7 +68,7 @@ def test_batch_size_equivalence(binary, with_tags_index, out_all, tmp_path):
         "domain_mapping_summary.tsv", "domain_cds_segments.tsv",
         "domain_cds_segments.bed", "domain_introns.tsv", "domain_introns.bed",
         "domain_span_with_introns.bed", "isoform_structure.tsv",
-        "domain_blocks.bed12", "unmapped_domains.tsv",
+        "domain_blocks.bed", "unmapped_domains.tsv",
     ):
         a = (out_all / fname).read_bytes() if (out_all / fname).exists() else b""
         b = (out_batched / fname).read_bytes() if (out_batched / fname).exists() else b""

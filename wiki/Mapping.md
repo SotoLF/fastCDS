@@ -105,11 +105,11 @@ See [Output description](#output-description) for the BED column meanings.
 
 ### Also emitting BED12 (`--bed12`)
 
-`--bed12` is an add-on flag, not an output mode: it writes one extra file, `domain_blocks.bed12`, *in addition to* whatever `--output` you chose. Use it to get an IGV-ready BED12 alongside a narrower view such as `coding`. It is a no-op under `--output all` or `--output bed12`, which already write the file.
+`--bed12` is an add-on flag, not an output mode: it writes one extra file, `domain_blocks.bed`, *in addition to* whatever `--output` you chose. Use it to get an IGV-ready BED12 alongside a narrower view such as `coding`. It is a no-op under `--output all` or `--output bed12`, which already write the file.
 
 | Output File | Contents |
 |---|---|
-| `domain_blocks.bed12` | one IGV/UCSC-ready BED12 row per domain — the domain envelope drawn thick, with the coding CDS slices as blocks and the in-domain introns as gaps |
+| `domain_blocks.bed` | one IGV/UCSC-ready BED12 row per domain — the domain envelope drawn thick, with the coding CDS slices as blocks and the in-domain introns as gaps |
 
 ```bash
 fastCDS map --index human.idx --bed q.bed --out-dir results --output coding --bed12
@@ -156,10 +156,10 @@ This is the table you feed to a renderer; see [[Plotting]] for turning it into a
 | `introns` | Where are the introns, and which lie in the domain span? | `domain_introns.tsv` | `domain_introns.bed` |
 | `span`    | What is the domain's genomic envelope (introns included)? | — | `domain_span_with_introns.bed` |
 | `isoform` | How is the whole transcript organised? | `isoform_structure.tsv` | — |
-| `bed12`   | One IGV-ready BED12 row per domain. | — | `domain_blocks.bed12` |
+| `bed12`   | One IGV-ready BED12 row per domain. | — | `domain_blocks.bed` |
 | `all` (default) | Everything above. | all 4 TSVs | all 4 BEDs |
 
-`all` additionally writes `run_metadata.json`. The `--bed12` flag adds `domain_blocks.bed12` to any of the first four modes. Regardless of mode, `domain_mapping_summary.tsv` is always written and `unmapped_domains.tsv` is written on any failure.
+`all` additionally writes `run_metadata.json`. The `--bed12` flag adds `domain_blocks.bed` to any of the first four modes. Regardless of mode, `domain_mapping_summary.tsv` is always written and `unmapped_domains.tsv` is written on any failure.
 
 ### Coordinate conventions
 
@@ -237,7 +237,7 @@ All three are 6-column standard BED (`chrom`, `start_0based`, `end`, `name`, `sc
 
 `name` is `protein_id[_domain_id]_<aa_start>-<aa_end>`. No-domain queries contribute zero rows to any companion BED.
 
-### `domain_blocks.bed12`
+### `domain_blocks.bed`
 
 One BED12 row per domain. The whole feature is drawn thick in IGV; blocks are the CDS slices that code the domain. Empty in no-domain mode.
 

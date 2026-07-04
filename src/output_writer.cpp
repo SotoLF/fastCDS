@@ -569,7 +569,7 @@ ErrorCode write_all(const std::string& out_dir,
         #pragma omp section
 #endif
         if (want_bed12)
-            rc_bed12 = write_bed12(join(out_dir, "domain_blocks.bed12"), results);
+            rc_bed12 = write_bed12(join(out_dir, "domain_blocks.bed"), results);
 
 #ifdef USE_OPENMP
         #pragma omp section
@@ -636,7 +636,7 @@ ErrorCode StreamingWriter::open() {
             return ErrorCode::FILE_NOT_FOUND;
     }
     if (kind_ == OutputKind::BED12 || kind_ == OutputKind::ALL || also_bed12_) {
-        if (!open_with_header(bed12_, "domain_blocks.bed12", nullptr))
+        if (!open_with_header(bed12_, "domain_blocks.bed", nullptr))
             return ErrorCode::FILE_NOT_FOUND;
     }
 
@@ -699,7 +699,7 @@ ErrorCode StreamingWriter::finalize(const std::string& gtf_or_index_path,
     close_and_log(introns_bed_, "domain_introns.bed");
     close_and_log(span_bed_,    "domain_span_with_introns.bed");
     close_and_log(isoform_tsv_, "isoform_structure.tsv");
-    close_and_log(bed12_,       "domain_blocks.bed12");
+    close_and_log(bed12_,       "domain_blocks.bed");
     if (unmapped_) close_and_log(*unmapped_, "unmapped_domains.tsv");
 
     if (kind_ == OutputKind::ALL) {

@@ -18,7 +18,7 @@ EXPECTED_FILES_OUTPUT_ALL = [
     "domain_cds_segments.bed",
     "domain_introns.bed",
     "domain_span_with_introns.bed",
-    "domain_blocks.bed12",
+    "domain_blocks.bed",
     # Metadata
     "run_metadata.json",
 ]

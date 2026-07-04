@@ -14,7 +14,7 @@ GOLDEN_FILES = [
     "domain_introns.tsv",
     "domain_introns.bed",
     "domain_span_with_introns.bed",
-    "domain_blocks.bed12",
+    "domain_blocks.bed",
 ]
 
 

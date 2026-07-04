@@ -179,7 +179,7 @@ class MappingResult:
         w_bed(self.cds_bed,      "domain_cds_segments.bed")
         w_bed(self.introns_bed,  "domain_introns.bed")
         w_bed(self.span_bed,     "domain_span_with_introns.bed")
-        w_bed(self.bed12,        "domain_blocks.bed12")
+        w_bed(self.bed12,        "domain_blocks.bed")
         if self.metadata is not None:
             with open(os.path.join(out_dir, "run_metadata.json"), "w") as f:
                 json.dump(self.metadata, f, indent=2)
@@ -203,7 +203,7 @@ def read_results_dir(out_dir: str) -> MappingResult:
         cds_bed=_read_bed(j("domain_cds_segments.bed"), ncols=6),
         introns_bed=_read_bed(j("domain_introns.bed"), ncols=6),
         span_bed=_read_bed(j("domain_span_with_introns.bed"), ncols=6),
-        bed12=_read_bed(j("domain_blocks.bed12"), ncols=12),
+        bed12=_read_bed(j("domain_blocks.bed"), ncols=12),
         unmapped=_read_tsv(j("unmapped_domains.tsv")),
         metadata=meta,
         out_dir=out_dir,

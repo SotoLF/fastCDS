@@ -21,7 +21,7 @@ struct Config {
     OutputKind output_kind = OutputKind::ALL;
     bool build_index = false;
     bool use_index = false;
-    bool also_bed12 = false;  // map mode: emit domain_blocks.bed12 alongside --output
+    bool also_bed12 = false;  // map mode: emit domain_blocks.bed alongside --output
     bool verbose = false;
     int threads = 1;
     // 0 = process all queries at once (current default; lowest overhead,
@@ -69,7 +69,7 @@ void print_usage(const char* program_name) {
 << "  Output selection:\n"
 << "    --output KIND    One of {coding, introns, span, isoform, bed12, all}.\n"
 << "                     Default: all. See OUTPUT MODES below.\n"
-<< "    --bed12          Also write domain_blocks.bed12 alongside the chosen\n"
+<< "    --bed12          Also write domain_blocks.bed alongside the chosen\n"
 << "                     --output (no-op when --output is bed12 or all).\n"
 << "\n"
 << "  Other:\n"
@@ -121,7 +121,7 @@ void print_usage(const char* program_name) {
 << "  --output bed12\n"
 << "    One BED12 row per domain, ready to drop into IGV / UCSC.\n"
 << "    Files written:\n"
-<< "      domain_blocks.bed12   chromStart..chromEnd is the genomic envelope\n"
+<< "      domain_blocks.bed   chromStart..chromEnd is the genomic envelope\n"
 << "                            of the domain (introns included). Blocks are the\n"
 << "                            CDS slices that code the domain. thickStart and\n"
 << "                            thickEnd equal chromStart/chromEnd so the entire\n"
