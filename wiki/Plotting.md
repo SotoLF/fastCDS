@@ -19,21 +19,39 @@ The extension of the output picks the format; there is nothing else to choose ex
 
 `--all` with a `.pdf` target is one multipage PDF; with any other extension it writes one file per query (`figs.<input_id>.ext`). The CLI reads an `isoform_structure.tsv` (`--isoform FILE`); the Python `plot()` also accepts a `MappingResult` or a DataFrame directly.
 
-## The three renderers side by side
+## Three ways to render the same isoform
 
 Same isoform (TP53, DBD highlighted), rendered three ways:
 
-| Static (matplotlib) | Interactive - vanilla JS (default) | Interactive - plotly |
+| Renderer | Command | Notes |
 |---|---|---|
-| ![matplotlib static figure](images/plot_matplotlib.png) | ![vanilla-JS interactive viewer](images/plot_js.gif) | ![plotly interactive viewer](images/plot_plotly.gif) |
-| `--out fig.pdf` (or `.png`/`.svg`) | `--out fig.html` | `--out fig.html --engine plotly` |
-| Publication-ready vector/raster; no interaction. | Self-contained (~40 KB), no deps, offline: box-zoom, pan, wheel-zoom, draggable minimap. | CDN-backed; hover tooltips + bottom rangeslider. |
+| Static (matplotlib) | `--out fig.pdf` (or `.png` / `.svg`) | Publication-ready vector/raster; no interaction. |
+| Interactive, vanilla JS (default) | `--out fig.html` | Self-contained (~40 KB), no dependencies, works offline: box-zoom, pan, wheel-zoom, draggable minimap. |
+| Interactive, plotly | `--out fig.html --engine plotly` | Loads plotly.js from a CDN; hover tooltips and a bottom rangeslider. |
+
+**Static (matplotlib)**
+
+![matplotlib static figure](images/plot_matplotlib.png)
+
+**Interactive, vanilla JS**
+
+![vanilla-JS interactive viewer](images/plot_js.gif)
+
+**Interactive, plotly**
+
+![plotly interactive viewer](images/plot_plotly.gif)
 
 ## Multiple isoforms on one axis
 
-`render_interactive_html_stack` draws every isoform of a gene on a shared genomic axis, with the queried domain marked in red on each isoform that codes it:
+Every isoform of a gene on one shared genomic axis, with the queried domain marked red on each isoform that codes it. Available as a static matplotlib figure and as the interactive stack viewer (`render_interactive_html_stack`).
 
-![isoform stack viewer](images/plot_isoform_stack.gif)
+**Static**
+
+![static isoform stack](images/plot_isoform_stack_static.png)
+
+**Interactive**
+
+![interactive isoform stack viewer](images/plot_isoform_stack.gif)
 
 ## Static figures
 
