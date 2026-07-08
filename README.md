@@ -13,6 +13,14 @@
       src="https://img.shields.io/github/license/SotoLF/fastCDS?color=success"></a>
 </p>
 
+<p align="center">
+  <img alt="fastCDS interactive isoform viewer"
+       src="https://raw.githubusercontent.com/SotoLF/fastCDS/main/wiki/images/plot_isoform_stack.gif"
+       width="840">
+  <br>
+  <em>The TP53 DNA-binding domain mapped across four isoforms on a shared genomic axis (self-contained interactive viewer).</em>
+</p>
+
 Map protein-domain amino-acid coordinates to their underlying genomic CDS / UTR / intron structure, using any Ensembl, GENCODE, or NCBI RefSeq GTF.
 
 For each input query (a `protein_id` **or** a `transcript_id`, optionally with an aa range), fastCDS answers two related but distinct questions:
