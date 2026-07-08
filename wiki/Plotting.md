@@ -29,15 +29,6 @@ Same isoform (TP53, DBD highlighted), rendered three ways:
 | `--out fig.pdf` (or `.png`/`.svg`) | `--out fig.html` | `--out fig.html --engine plotly` |
 | Publication-ready vector/raster; no interaction. | Self-contained (~40 KB), no deps, offline: box-zoom, pan, wheel-zoom, draggable minimap. | CDN-backed; hover tooltips + bottom rangeslider. |
 
-Regenerate all three from the bundled TP53 fixture (no index or network needed) - screenshot the `.html` panels (or record a GIF) to refresh the interactive images:
-
-```bash
-python tutorial/examples/make_plot_gallery.py --out-dir plot_gallery
-# -> plot_gallery/plot_matplotlib.png   (embed as-is)
-#    plot_gallery/plot_js.html          (open in a browser, screenshot / record)
-#    plot_gallery/plot_plotly.html      (plotly ships with fastCDS)
-```
-
 ## Multiple isoforms on one axis
 
 `render_interactive_html_stack` draws every isoform of a gene on a shared genomic axis, with the queried domain marked in red on each isoform that codes it:
