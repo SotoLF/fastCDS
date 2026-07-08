@@ -1,6 +1,6 @@
 # Input preparation scripts
 
-`fastCDS` expects a BED-like file with `ENSP   aa_start   aa_end   domain_id`. Most users don't have that file lying around — they have an InterProScan run, a UniProt entry, or an HMMER Pfam scan. These scripts convert each of those into the BED-like format the mapper takes.
+`fastCDS` expects a BED-like file with `ENSP   aa_start   aa_end   domain_id`. Most users don't have that file lying around - they have an InterProScan run, a UniProt entry, or an HMMER Pfam scan. These scripts convert each of those into the BED-like format the mapper takes.
 
 | Script | Input format | Source |
 |---|---|---|
@@ -10,11 +10,11 @@
 
 All three emit the same 5-column BED-like (`ENSP   aa_start   aa_end   domain_id   description`). Column 5 is free-form context (signature description / Pfam description / UniProt /note=). The mapper ignores it but it makes `head` outputs much easier to read.
 
-## The UniProt → ENSP mapping problem
+## The UniProt -> ENSP mapping problem
 
-UniProt and Ensembl don't share identifiers. A UniProt accession (`P04637`) can map to several Ensembl proteins (`ENSP00000269305`, `ENSP00000455263`, … — one per transcript of *TP53*), and a few ENSPs don't map to any UniProt accession at all. The scripts handle this in two layers:
+UniProt and Ensembl don't share identifiers. A UniProt accession (`P04637`) can map to several Ensembl proteins (`ENSP00000269305`, `ENSP00000455263`, ... - one per transcript of *TP53*), and a few ENSPs don't map to any UniProt accession at all. The scripts handle this in two layers:
 
-1. **Inline xrefs (preferred).** UniProt flat-files and REST JSON carry `DR Ensembl;` lines with the matching ENSP. `prepare_from_uniprot_features.py` reads those *first* — no extra file needed for any entry that has them.
+1. **Inline xrefs (preferred).** UniProt flat-files and REST JSON carry `DR Ensembl;` lines with the matching ENSP. `prepare_from_uniprot_features.py` reads those *first* - no extra file needed for any entry that has them.
 2. **Mapping file fallback.** For inputs that don't carry inline xrefs (notably InterProScan output), pass `--mapping` pointing at Ensembl's per-release UniProt cross-reference TSV. Same column order across releases.
 
 Download once per Ensembl release (~20 MB compressed):

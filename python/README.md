@@ -1,4 +1,4 @@
-# fastCDS — Python client + plotter
+# fastCDS - Python client + plotter
 
 Python wrapper around the [fastCDS](https://github.com/SotoLF/fastCDS)
 C++ mapper. Provides a friendly Python API plus the `fastCDS plot`

@@ -1,6 +1,6 @@
 # Plotting (`fastCDS plot`)
 
-Once you have an `isoform_structure.tsv` from [[Mapping]], `fastCDS plot` renders it as a static figure or as an interactive viewer. There is one output flag, `--out`, and its extension picks the format: `.pdf` / `.png` / `.svg` give a static matplotlib figure, and `.html` gives the interactive viewer. For `.html`, `--engine` chooses the renderer — a self-contained vanilla-JS viewer (`js`, the default, no dependencies) or `plotly`. The plotter reads the TSV directly and never re-derives coordinates from the genome, so anything you can express by editing the table is plottable.
+Once you have an `isoform_structure.tsv` from [[Mapping]], `fastCDS plot` renders it as a static figure or as an interactive viewer. There is one output flag, `--out`, and its extension picks the format: `.pdf` / `.png` / `.svg` give a static matplotlib figure, and `.html` gives the interactive viewer. For `.html`, `--engine` chooses the renderer - a self-contained vanilla-JS viewer (`js`, the default, no dependencies) or `plotly`. The plotter reads the TSV directly and never re-derives coordinates from the genome, so anything you can express by editing the table is plottable.
 
 Together with the BED12 track written by [[Mapping]], these are fastCDS's three output types: the **BED12 track** for genome browsers, the **static figure**, and the **interactive viewer** (`js` or `plotly` engine).
 
@@ -14,8 +14,8 @@ The extension of the output picks the format; there is nothing else to choose ex
 | Interactive, self-contained (default) | `--out fig.html` | `fc.plot(result, input_id="ID", out="fig.html")` |
 | Interactive, plotly | `--out fig.html --engine plotly` | `fc.plot(result, input_id="ID", out="fig.html", engine="plotly")` |
 | Every query at once | `--all --out figs.pdf` | `fc.plot_all(result, out="figs.pdf")` |
-| Just the Figure object (no file) | — | `fig = fc.plot(result, input_id="ID")` |
-| Inline in a Jupyter notebook | — | `fc.render_interactive_jupyter(segs)` |
+| Just the Figure object (no file) | - | `fig = fc.plot(result, input_id="ID")` |
+| Inline in a Jupyter notebook | - | `fc.render_interactive_jupyter(segs)` |
 
 `--all` with a `.pdf` target is one multipage PDF; with any other extension it writes one file per query (`figs.<input_id>.ext`). The CLI reads an `isoform_structure.tsv` (`--isoform FILE`); the Python `plot()` also accepts a `MappingResult` or a DataFrame directly.
 
@@ -23,13 +23,13 @@ The extension of the output picks the format; there is nothing else to choose ex
 
 Same isoform (TP53, DBD highlighted), rendered three ways:
 
-| Static (matplotlib) | Interactive — vanilla JS (default) | Interactive — plotly |
+| Static (matplotlib) | Interactive - vanilla JS (default) | Interactive - plotly |
 |---|---|---|
 | ![matplotlib static figure](images/plot_matplotlib.png) | ![vanilla-JS interactive viewer](images/plot_js.gif) | ![plotly interactive viewer](images/plot_plotly.gif) |
 | `--out fig.pdf` (or `.png`/`.svg`) | `--out fig.html` | `--out fig.html --engine plotly` |
 | Publication-ready vector/raster; no interaction. | Self-contained (~40 KB), no deps, offline: box-zoom, pan, wheel-zoom, draggable minimap. | CDN-backed; hover tooltips + bottom rangeslider. |
 
-Regenerate all three from the bundled TP53 fixture (no index or network needed) — screenshot the `.html` panels (or record a GIF) to refresh the interactive images:
+Regenerate all three from the bundled TP53 fixture (no index or network needed) - screenshot the `.html` panels (or record a GIF) to refresh the interactive images:
 
 ```bash
 python tutorial/examples/make_plot_gallery.py --out-dir plot_gallery
@@ -82,8 +82,8 @@ fc.plot(result, input_id="TP53_DBD", out="tp53.pdf")
 | Flag / kwarg | Default | Effect |
 |---|---|---|
 | `--isoform FILE` | required | Path to the `isoform_structure.tsv` to plot. |
-| `--input-id ID` | — | Render a single query (mutually exclusive with `--all`). |
-| `--all` | — | Render every `input_id`; multipage PDF if `--out` ends in `.pdf`, else one file per query. |
+| `--input-id ID` | - | Render a single query (mutually exclusive with `--all`). |
+| `--all` | - | Render every `input_id`; multipage PDF if `--out` ends in `.pdf`, else one file per query. |
 | `--out FILE` | required | Output file; the extension picks the format (`.pdf`/`.png`/`.svg` static, `.html` interactive). |
 | `--title STR` | derived | Override the auto-generated title. |
 | `--width`, `--height` | 12, 2.6 | Figure size in inches. |
@@ -99,10 +99,10 @@ The Python `plot()` / `plot_all()` functions accept the same toggles as keyword 
 
 ### CLI
 
-An `.html` target renders the interactive viewer. `--engine` picks the renderer; its two values are **`js`** (the default — the self-contained vanilla-JS viewer) and **`plotly`**. So `--out x.html` alone gives you JS; `--engine js` is only needed if you want to be explicit:
+An `.html` target renders the interactive viewer. `--engine` picks the renderer; its two values are **`js`** (the default - the self-contained vanilla-JS viewer) and **`plotly`**. So `--out x.html` alone gives you JS; `--engine js` is only needed if you want to be explicit:
 
 ```bash
-# self-contained vanilla-JS viewer (no CDN, single offline file) — the default
+# self-contained vanilla-JS viewer (no CDN, single offline file) - the default
 fastCDS plot --isoform results/isoform_structure.tsv --input-id TP53_DBD \
     --out tp53.html \
     --link-template 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?p={protein_id}'
@@ -148,7 +148,7 @@ To write standalone HTML files instead of embedding inline, use the file builder
 |---|---|---|
 | `--out FILE` / `out=` | required | Output file; `.html` selects the interactive viewer. |
 | `--engine {js,plotly}` / `engine=` | `js` | Interactive renderer for `.html` output. `js` = self-contained (no CDN, offline); `plotly` = CDN-backed, needs plotly. Ignored for static output. |
-| `--link-template URL` / `link_template=` | — | External linkout next to the title (`.html` only); placeholders `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`, `{start}`, `{end}`. |
+| `--link-template URL` / `link_template=` | - | External linkout next to the title (`.html` only); placeholders `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`, `{start}`, `{end}`. |
 | `--height N` (CLI) | 2.6 | matplotlib figure height in inches (static path). |
 | `plot_height=` (Python) | 140 single / 40 stack | Main-track height in pixels for the Jupyter / standalone viewers. |
 | `height=` (Python) | auto | Pin the Jupyter iframe height in px (for static exports where the auto-resize handshake can't fire). |

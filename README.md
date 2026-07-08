@@ -17,10 +17,10 @@ Map protein-domain amino-acid coordinates to their underlying genomic CDS / UTR 
 
 For each input query (a `protein_id` **or** a `transcript_id`, optionally with an aa range), fastCDS answers two related but distinct questions:
 
-1. **Mapping** — *which exact genomic bases code this domain?*
-2. **Structure** — *how is the whole transcript organised in 5′UTR / CDS / 3′UTR / intron, and where does the domain fall on it?*
+1. **Mapping** - *which exact genomic bases code this domain?*
+2. **Structure** - *how is the whole transcript organised in 5'UTR / CDS / 3'UTR / intron, and where does the domain fall on it?*
 
-A C++17 binary does the heavy lifting: once the index is loaded, the mapping itself is ~1 µs per query, so end-to-end throughput is dominated by output formatting (~5,800 queries/s for a single-isoform TSV, ~2,800 q/s writing the full `--output all` set). fastCDS produces three kinds of output: a **BED12 track** for genome browsers, a **static figure** (matplotlib PDF/PNG/SVG), and an **interactive HTML viewer**. A Python wrapper adds pandas DataFrames; for the viewer you pick the engine (self-contained vanilla JS by default, or plotly).
+A C++17 binary does the heavy lifting: once the index is loaded, the mapping itself is ~1 us per query, so end-to-end throughput is dominated by output formatting (~5,800 queries/s for a single-isoform TSV, ~2,800 q/s writing the full `--output all` set). fastCDS produces three kinds of output: a **BED12 track** for genome browsers, a **static figure** (matplotlib PDF/PNG/SVG), and an **interactive HTML viewer**. A Python wrapper adds pandas DataFrames; for the viewer you pick the engine (self-contained vanilla JS by default, or plotly).
 
 📖 **[Full documentation lives in the wiki](https://github.com/SotoLF/fastCDS/wiki)**
 
@@ -32,11 +32,11 @@ mamba install -c bioconda -c conda-forge fastCDS    # or via conda/mamba
 pixi add -c bioconda -c conda-forge fastCDS         # or via pixi
 ```
 
-The pip wheel bundles the compiled binary, so all four commands work immediately. On platforms without a wheel (e.g. Windows) pip builds from source — see [Installation](https://github.com/SotoLF/fastCDS/wiki/Installation) for the toolchain and a from-source build.
+The pip wheel bundles the compiled binary, so all four commands work immediately. On platforms without a wheel (e.g. Windows) pip builds from source - see [Installation](https://github.com/SotoLF/fastCDS/wiki/Installation) for the toolchain and a from-source build.
 
 ## Quickstart
 
-The workflow is three steps — get an index (`index` from a GTF, or `fetch` a pre-built one), `map` your domain queries onto it, then `plot`:
+The workflow is three steps - get an index (`index` from a GTF, or `fetch` a pre-built one), `map` your domain queries onto it, then `plot`:
 
 ```mermaid
 flowchart LR
@@ -54,7 +54,7 @@ flowchart LR
 ```bash
 # 1. Get an index (one-time per annotation)
 fastCDS index --gtf my.gtf --out human.idx   # build from a GTF you already have
-# or skip the GTF — grab a pre-built index from Zenodo:
+# or skip the GTF - grab a pre-built index from Zenodo:
 fastCDS fetch human --out human.idx
 
 # 2. Map a BED of domain queries
@@ -62,7 +62,7 @@ fastCDS map \
     --index human.idx \
     --bed queries.bed --out-dir results --output all --threads 8
 
-# 3. Plot a single domain — the --out extension picks the format
+# 3. Plot a single domain - the --out extension picks the format
 fastCDS plot \
     --isoform results/isoform_structure.tsv \
     --input-id TP53_DBD \
@@ -90,7 +90,7 @@ result = mapper.map_batch([
 result.summary       # one-row DataFrame
 result.isoform       # plot-ready DataFrame
 
-# 3. Plot — the out extension picks the format; engine picks the HTML renderer
+# 3. Plot - the out extension picks the format; engine picks the HTML renderer
 fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.pdf")                    # static figure
 fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.html")                   # interactive (vanilla JS)
 fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.html", engine="plotly")  # interactive (plotly)
@@ -100,17 +100,17 @@ Full reference: [Building an index](https://github.com/SotoLF/fastCDS/wiki/Index
 
 ## Validation + benchmarks
 
-- **100.00 % exact match vs ensembldb** on 5,000 stratified queries (9 strata covering single/multi-exon, both strands, codon-split, selenoproteins, incomplete CDS) — zero off-by-ones, zero structural mismatches.
-- **~970× faster than ensembldb** (also ~4.4× TransVar, ~5,400× Ensembl REST) — measured *end-to-end*: total wall time from process start to all results written, including the one-time index load, over N = 10,000 queries on one thread (fastCDS 5,847 q/s vs ensembldb 6 q/s). The gap grows with N because fastCDS amortizes its ~1.2 s index load; the per-query mapping itself, once loaded, is faster still.
+- **100.00 % exact match vs ensembldb** on 5,000 stratified queries (9 strata covering single/multi-exon, both strands, codon-split, selenoproteins, incomplete CDS) - zero off-by-ones, zero structural mismatches.
+- **~970x faster than ensembldb** (also ~4.4x TransVar, ~5,400x Ensembl REST) - measured *end-to-end*: total wall time from process start to all results written, including the one-time index load, over N = 10,000 queries on one thread (fastCDS 5,847 q/s vs ensembldb 6 q/s). The gap grows with N because fastCDS amortizes its ~1.2 s index load; the per-query mapping itself, once loaded, is faster still.
 - Full design, numbers, and scaling curves: [Performance and benchmarking](https://github.com/SotoLF/fastCDS/wiki/Performance-and-Benchmarking). Reproduce via [`tutorial/reproduce_paper/benchmarks/README.md`](tutorial/reproduce_paper/benchmarks/README.md).
 
 ## Notebooks
 
-Worked examples under [`tutorial/`](tutorial/) — each opens in [Colab](https://colab.research.google.com/github/SotoLF/fastCDS) or [nbviewer](https://nbviewer.org/github/SotoLF/fastCDS). They reproduce the manuscript's example analyses **end to end, from data download to figure**; see [`tutorial/reproduce_paper/README.md`](tutorial/reproduce_paper/README.md) for the data sources, run order, and runtimes.
+Worked examples under [`tutorial/`](tutorial/) - each opens in [Colab](https://colab.research.google.com/github/SotoLF/fastCDS) or [nbviewer](https://nbviewer.org/github/SotoLF/fastCDS). They reproduce the manuscript's example analyses **end to end, from data download to figure**; see [`tutorial/reproduce_paper/README.md`](tutorial/reproduce_paper/README.md) for the data sources, run order, and runtimes.
 
 | Notebook | What it covers |
 |---|---|
-| [`walkthrough_end_to_end.ipynb`](tutorial/walkthrough_end_to_end.ipynb) ([view on nbviewer](https://nbviewer.org/github/SotoLF/fastCDS/blob/main/tutorial/walkthrough_end_to_end.ipynb)) | Zero-to-figure tour: `fetch_index` → BED prep → `map_batch` → all plot styles. The interactive HTML viewers only render on **nbviewer**, not GitHub. |
+| [`walkthrough_end_to_end.ipynb`](tutorial/walkthrough_end_to_end.ipynb) ([view on nbviewer](https://nbviewer.org/github/SotoLF/fastCDS/blob/main/tutorial/walkthrough_end_to_end.ipynb)) | Zero-to-figure tour: `fetch_index` -> BED prep -> `map_batch` -> all plot styles. The interactive HTML viewers only render on **nbviewer**, not GitHub. |
 | [`domain_functional_atlas.ipynb`](tutorial/reproduce_paper/end_to_end/domain_functional_atlas.ipynb) | The Ensembl-r115 Pfam atlas: single-exon fraction + domain size by function (Fig 1D), domain position along the protein (Q1/Q50/Q100), completeness, all per-family, **and the ClinVar pathogenic-variant enrichment** in domain-coding exons. |
 | [`alphafold_plddt_junctions.ipynb`](tutorial/reproduce_paper/end_to_end/alphafold_plddt_junctions.ipynb) | AlphaFold per-residue pLDDT vs distance to the nearest exon-exon junction (2D density), across the canonical human proteome. |
 | [`software_comparison.ipynb`](tutorial/reproduce_paper/end_to_end/software_comparison.ipynb) | **Speed + accuracy** vs `ensembldb` / GenomicFeatures / TransVar / Ensembl REST / VisProDom / geneplot: agreement + end-to-end throughput + RSS, all on the same human set. |
@@ -122,7 +122,7 @@ A formal citation will land when the accompanying manuscript is posted. Until th
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).
 
 ## Maintainers
 

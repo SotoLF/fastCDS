@@ -2,10 +2,10 @@
 
 Map protein-domain amino-acid coordinates to their underlying genomic CDS/UTR/intron structure, using any GENCODE, Ensembl, or NCBI RefSeq GTF.
 
-For each input query — a `protein_id` **or** a `transcript_id`, optionally with an aa range — fastCDS answers two related questions:
+For each input query - a `protein_id` **or** a `transcript_id`, optionally with an aa range - fastCDS answers two related questions:
 
-1. **Mapping** — *which exact genomic bases code this domain?*
-2. **Structure** — *how is the whole transcript organised into 5′UTR / CDS / 3′UTR / intron, and where does the domain fall on it?*
+1. **Mapping** - *which exact genomic bases code this domain?*
+2. **Structure** - *how is the whole transcript organised into 5'UTR / CDS / 3'UTR / intron, and where does the domain fall on it?*
 
 ## The workflow
 

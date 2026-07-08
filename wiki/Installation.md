@@ -8,14 +8,14 @@ fastCDS ships as a single package containing both a **C++ binary** (the `index` 
 pip install fastCDS
 ```
 
-The wheel bundles the compiled binary (as `fastCDS/_bin/fastCDS-core`), so all four commands work immediately — nothing else to install:
+The wheel bundles the compiled binary (as `fastCDS/_bin/fastCDS-core`), so all four commands work immediately - nothing else to install:
 
 ```bash
 fastCDS --version
 fastCDS fetch list
 ```
 
-Ready-to-use wheels cover **Linux** and **macOS** (Intel + Apple Silicon), Python 3.9+. **Windows is not supported directly** — there's no Windows build, so run fastCDS inside [WSL](https://learn.microsoft.com/windows/wsl/install) (Windows Subsystem for Linux), where it installs and behaves exactly like on Linux.
+Ready-to-use wheels cover **Linux** and **macOS** (Intel + Apple Silicon), Python 3.9+. **Windows is not supported directly** - there's no Windows build, so run fastCDS inside [WSL](https://learn.microsoft.com/windows/wsl/install) (Windows Subsystem for Linux), where it installs and behaves exactly like on Linux.
 
 ## bioconda
 
@@ -40,8 +40,8 @@ pixi global install -c bioconda -c conda-forge fastCDS   # as a global tool
 
 Requirements:
 
-- C++17 toolchain (g++ ≥ 9, clang ≥ 10, or MSVC ≥ 2019)
-- CMake ≥ 3.16
+- C++17 toolchain (g++ >= 9, clang >= 10, or MSVC >= 2019)
+- CMake >= 3.16
 - OpenMP (optional)
 
 ```bash

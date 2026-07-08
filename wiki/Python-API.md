@@ -1,6 +1,6 @@
 # Python API
 
-The wrapper is a thin layer over the C++ binary. It writes inputs to a temp dir, shells out, and reads the TSVs back as pandas DataFrames. The C++ binary remains the source of truth for every mapping decision — Python only assembles BED rows, runs the binary, and parses the outputs.
+The wrapper is a thin layer over the C++ binary. It writes inputs to a temp dir, shells out, and reads the TSVs back as pandas DataFrames. The C++ binary remains the source of truth for every mapping decision - Python only assembles BED rows, runs the binary, and parses the outputs.
 
 ## Getting an index
 
@@ -13,7 +13,7 @@ idx = fc.build_index("combined.gtf", out="human.idx")  # build from a local GTF 
 idx = fc.fetch_index("human")                           # pre-built, from Zenodo (`fastCDS fetch`)
 ```
 
-`fetch_index` only serves the pre-built Zenodo targets (`"human"`, `"mouse"`, `"mouse-vm25"`, `"human-v86"`, `"human-v95"`, `"human-v115"`, `"yeast"` — run `fastCDS fetch list` to see them). For any other release, species, or a custom GTF, build the index yourself with `build_index`.
+`fetch_index` only serves the pre-built Zenodo targets (`"human"`, `"mouse"`, `"mouse-vm25"`, `"human-v86"`, `"human-v95"`, `"human-v115"`, `"yeast"` - run `fastCDS fetch list` to see them). For any other release, species, or a custom GTF, build the index yourself with `build_index`.
 
 `build_index(gtf, out=None, *, binary=None, force=False)` caches: if `out` exists it's returned untouched unless `force=True`.
 
@@ -31,7 +31,7 @@ mapper = fc.Mapper(
 )
 ```
 
-## `Mapper.map(...)` — single query
+## `Mapper.map(...)` - single query
 
 ```python
 result = mapper.map(
@@ -43,13 +43,13 @@ result.isoform       # plot-ready DataFrame
 result.bed12         # IGV-ready DataFrame
 ```
 
-ENST also works — it resolves to the same intervals as the matching ENSP, so the two give identical mapping output:
+ENST also works - it resolves to the same intervals as the matching ENSP, so the two give identical mapping output:
 
 ```python
 mapper.map("ENST00000269305", aa_start=102, aa_end=292, domain_id="TP53_DBD")
 ```
 
-## `Mapper.map_batch(...)` — many queries in one call
+## `Mapper.map_batch(...)` - many queries in one call
 
 ```python
 result = mapper.map_batch([
@@ -67,7 +67,7 @@ result = mapper.map_batch(million_queries)
 
 See [[Performance and Benchmarking]] for the 1 M-query benchmark.
 
-## `map_query(...)` — one-off (creates a `Mapper` internally)
+## `map_query(...)` - one-off (creates a `Mapper` internally)
 
 ```python
 result = fc.map_query(
@@ -77,7 +77,7 @@ result = fc.map_query(
 )
 ```
 
-Use `Mapper(...).map_batch(...)` if you have many queries — each `map_query` call reloads the index from disk.
+Use `Mapper(...).map_batch(...)` if you have many queries - each `map_query` call reloads the index from disk.
 
 ## Persisting outputs (`keep_outputs=`)
 
@@ -100,7 +100,7 @@ result.summary       # pandas DataFrame
 result.isoform       # ...
 ```
 
-`read_results_dir` parses the output directory of a previous run into a fresh `MappingResult` — useful for picking up where a long batch left off, or analysing CLI runs from Python.
+`read_results_dir` parses the output directory of a previous run into a fresh `MappingResult` - useful for picking up where a long batch left off, or analysing CLI runs from Python.
 
 ## Binary discovery
 
@@ -148,20 +148,20 @@ sub = result.by_input_id("TP53_DBD")
 One output argument, `out`, whose extension picks the format: `.pdf`/`.png`/`.svg` render a static matplotlib figure, `.html` renders the interactive viewer (engine chosen by `engine=`).
 
 ```python
-# Static figure — format follows the extension
+# Static figure - format follows the extension
 fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.pdf")   # or .png / .svg
 
-# Interactive viewer — .html; the default engine is the self-contained vanilla JS
+# Interactive viewer - .html; the default engine is the self-contained vanilla JS
 fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.html")
 fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.html", engine="plotly")
 
-# No out= → nothing is written; you get the matplotlib Figure back to tweak
+# No out= -> nothing is written; you get the matplotlib Figure back to tweak
 fig = fc.plot(result, input_id="TP53_DBD")
 ```
 
 `plot()` returns the matplotlib `Figure` for static output (and when `out` is `None`), or `None` for `.html` output.
 
-**`source` (first argument)** accepts three things interchangeably — a `MappingResult`, its isoform DataFrame, or a path to an `isoform_structure.tsv` on disk:
+**`source` (first argument)** accepts three things interchangeably - a `MappingResult`, its isoform DataFrame, or a path to an `isoform_structure.tsv` on disk:
 
 ```python
 fc.plot(result,            input_id="TP53_DBD", out="tp53.pdf")   # a MappingResult
@@ -188,7 +188,7 @@ fc.plot(
 )
 ```
 
-To render **every** `input_id` in the source, use `plot_all` — a `.pdf` target becomes one multipage PDF, any other extension writes one file per query (`base.<input_id>.ext`):
+To render **every** `input_id` in the source, use `plot_all` - a `.pdf` target becomes one multipage PDF, any other extension writes one file per query (`base.<input_id>.ext`):
 
 ```python
 fc.plot_all(result, out="all_queries.pdf")                    # multipage PDF (static)
@@ -201,7 +201,7 @@ fc.plot_all(result, out="all_queries.html", engine="plotly")  # one plotly file 
 
 `fc.plot(..., out="x.html")` is all most people need. These lower-level helpers exist for two cases the top-level `plot()` doesn't cover: embedding the viewer **inline in a Jupyter notebook**, and controlling the viewer's pixel `plot_height`.
 
-They take a `segs` argument — a `list[Segment]` for one query. Build it first, from a `MappingResult` or straight from a TSV on disk:
+They take a `segs` argument - a `list[Segment]` for one query. Build it first, from a `MappingResult` or straight from a TSV on disk:
 
 ```python
 from fastCDS.plot import load_isoform_tsv, _segments_from_dataframe
