@@ -30,9 +30,6 @@ fc.plot(result, out="TP53_DBD.html", engine="plotly")  # interactive (needs plot
 
 ```bash
 pip install fastCDS
-# the vanilla-JS interactive viewer works out of the box;
-# add the plotly engine only if you want it:
-pip install "fastCDS[plotly]"
 ```
 
 ## See also

@@ -41,23 +41,7 @@ classifiers = [
 dependencies = [
     "pandas>=1.4",
     "matplotlib>=3.5",
-]
-
-[project.optional-dependencies]
-# Interactive plotly viewer (plot --out x.html --engine plotly / fc.plot(..., engine="plotly"))
-plotly = ["plotly>=5.0"]
-# Reproducing the validation suite (R + ensembldb live in environment.yml).
-benchmarks = ["scipy>=1.7", "numpy>=1.21"]
-# Building + executing the worked-example notebooks.
-notebooks = ["jupyter>=1.0", "nbconvert>=7.0", "nbclient>=0.7"]
-# Everything above.
-all = [
     "plotly>=5.0",
-    "scipy>=1.7",
-    "numpy>=1.21",
-    "jupyter>=1.0",
-    "nbconvert>=7.0",
-    "nbclient>=0.7",
 ]
 
 [project.urls]

@@ -13,13 +13,8 @@ license = { text = "MIT" }
 dependencies = [
     "pandas>=1.4",
     "matplotlib>=3.5",
+    "plotly>=5.0",
 ]
-
-[project.optional-dependencies]
-# Only needed for the plotly engine of the interactive viewer
-# (plot --out x.html --engine plotly / fc.plot(..., out="x.html", engine="plotly")).
-# The default --engine js viewer is self-contained and needs nothing extra.
-plotly = ["plotly>=5.0"]
 
 [project.scripts]
 # Direct Python entry-point for the plotter. The repo's bash wrapper

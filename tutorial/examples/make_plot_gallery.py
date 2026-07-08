@@ -11,7 +11,7 @@ Uses the in-repo TP53 fixture, so it runs with no index and no network:
 Then:
   * plot_matplotlib.png  — ready to embed as-is
   * plot_js.html         — open in a browser, screenshot or record a GIF
-  * plot_plotly.html     — same (needs `pip install "fastCDS[plotly]"`)
+  * plot_plotly.html     - same (plotly ships with fastCDS)
 """
 from __future__ import annotations
 

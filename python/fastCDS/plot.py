@@ -1021,8 +1021,8 @@ def _argparser() -> argparse.ArgumentParser:
                         "viewer.")
     p.add_argument("--engine", choices=_ENGINES, default="js",
                    help="Interactive engine for .html output: 'js' (default, "
-                        "self-contained, no dependencies) or 'plotly' (needs "
-                        "'pip install plotly'). Ignored for static output.")
+                        "self-contained) or 'plotly'. Both ship with fastCDS. "
+                        "Ignored for static output.")
     p.add_argument("--title", help="Override the figure title.")
     p.add_argument("--width", type=float, default=12.0, help="Figure width in inches.")
     p.add_argument("--height", type=float, default=2.6, help="Figure height in inches.")

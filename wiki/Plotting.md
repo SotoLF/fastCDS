@@ -35,7 +35,7 @@ Regenerate all three from the bundled TP53 fixture (no index or network needed) 
 python tutorial/examples/make_plot_gallery.py --out-dir plot_gallery
 # -> plot_gallery/plot_matplotlib.png   (embed as-is)
 #    plot_gallery/plot_js.html          (open in a browser, screenshot / record)
-#    plot_gallery/plot_plotly.html      (needs: pip install "fastCDS[plotly]")
+#    plot_gallery/plot_plotly.html      (plotly ships with fastCDS)
 ```
 
 ## Multiple isoforms on one axis
@@ -115,7 +115,7 @@ fastCDS plot --isoform results/isoform_structure.tsv --input-id TP53_DBD \
     --out tp53.html --engine plotly
 ```
 
-The default `js` engine has no extra dependencies; `--engine plotly` needs plotly (`pip install "fastCDS[plotly]"`). The standalone `js` viewer supports box-zoom (drag to zoom into a genomic range), shift-drag to pan, mouse-wheel zoom, double-click to reset, a draggable minimap, UTR rendering with strand arrows, and a Compact / True-genomic layout toggle. `--link-template` adds a clickable linkout next to the title using the placeholders `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`, `{start}`, `{end}`.
+Both engines ship with `pip install fastCDS`. The standalone `js` viewer supports box-zoom (drag to zoom into a genomic range), shift-drag to pan, mouse-wheel zoom, double-click to reset, a draggable minimap, UTR rendering with strand arrows, and a Compact / True-genomic layout toggle. `--link-template` adds a clickable linkout next to the title using the placeholders `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`, `{start}`, `{end}`.
 
 With `--all`, an `.html` target writes one file per query (`base.<input_id>.html`).
 
