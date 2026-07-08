@@ -40,12 +40,12 @@ def _default_cache_dir() -> Path:
 # A single HTTPS download of the binary index (typically ~10x smaller than the
 # source GTF); ready to use immediately, no parse + build.
 #
-# The `<RECORD>` placeholder is filled in on first publish (one sed over the
-# URLs + the per-file sha256 from the deposit's MANIFEST.tsv). Until then,
-# `fetch <target>` errors with a pointer to build locally via `fastCDS index`.
+# Published Zenodo deposit: record 21266614 (version DOI 10.5281/zenodo.21266614,
+# concept DOI 10.5281/zenodo.21266613). The per-file sha256 below are verified
+# after download; a mismatch aborts with a pointer to `fastCDS index`.
 # ------------------------------------------------------------------------ #
 
-_ZENODO_BASE = "https://zenodo.org/record/<RECORD>/files"
+_ZENODO_BASE = "https://zenodo.org/api/records/21266614/files"
 
 
 @dataclass(frozen=True)
@@ -56,7 +56,7 @@ class ZenodoIndex:
 
     @property
     def url(self) -> str:
-        return f"{_ZENODO_BASE}/{self.filename}"
+        return f"{_ZENODO_BASE}/{self.filename}/content"
 
     @property
     def published(self) -> bool:
