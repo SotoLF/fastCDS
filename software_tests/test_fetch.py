@@ -68,16 +68,18 @@ def test_fetch_bad_sha_aborts(tmp_path, monkeypatch):
     assert "sha256 mismatch" in str(exc.value)
 
 
-def test_fetch_unpublished_target_points_to_index(tmp_path):
-    """An unpublished (`<RECORD>`) target errors with a build-locally pointer."""
-    proc = subprocess.run(
-        [sys.executable, "-m", "fastCDS.fetch", "human-v86",
-         "--out", str(tmp_path / "v86.idx")],
-        env={**os.environ, "PYTHONPATH": str(REPO_ROOT / "python")},
-        capture_output=True, text=True,
-    )
-    assert proc.returncode != 0
-    assert "fastCDS index" in proc.stderr
+def test_fetch_unpublished_target_points_to_index(tmp_path, monkeypatch):
+    """A target whose Zenodo base is still a `<RECORD>` placeholder errors with
+    a build-locally pointer instead of attempting a broken download. (Real
+    targets are published, so the placeholder is simulated here.)"""
+    from fastCDS import fetch as _fetch
+    monkeypatch.setattr(_fetch, "_ZENODO_BASE",
+                        "https://zenodo.org/api/records/<RECORD>/files")
+    monkeypatch.setitem(_fetch.ZENODO_IDX, "testtarget",
+                        _fetch.ZenodoIndex("testtarget.idx", "0" * 64, "test"))
+    with pytest.raises(SystemExit) as exc:
+        _fetch.fetch_index("testtarget", out=tmp_path / "x.idx", quiet=True)
+    assert "fastCDS index" in str(exc.value)
 
 
 def test_fetch_unknown_target_rejected(tmp_path):
