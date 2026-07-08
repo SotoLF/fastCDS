@@ -44,8 +44,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Interactive HTML output (plot --html / fc.plot(..., html=...))
-html = ["plotly>=5.0"]
+# Interactive plotly viewer (plot --out x.html --engine plotly / fc.plot(..., engine="plotly"))
+plotly = ["plotly>=5.0"]
 # Reproducing the validation suite (R + ensembldb live in environment.yml).
 benchmarks = ["scipy>=1.7", "numpy>=1.21"]
 # Building + executing the worked-example notebooks.

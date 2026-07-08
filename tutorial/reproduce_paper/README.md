@@ -48,21 +48,20 @@ mapped Pfam atlas that the second reuses:
 
 | # | Notebook | Produces (manuscript) | Approx. wall time* |
 |---|---|---|---|
-| 1 | **`end_to_end/domain_functional_atlas.ipynb`** | Builds the r115 index + maps the Pfam atlas, then: single-exon fraction and domain size **by function** (Fig 1C i), domain **position** within the transcript (Fig 1C ii), **completeness** (Fig 1C iii), and the **ClinVar pathogenic-variant enrichment** in domain-coding exons (Fig S4). | ~5 min (first run: + GTF download/index ~3 min, BioMart pull ~6 min, ClinVar VCF ~200 MB) |
-| 2 | `end_to_end/alphafold_plddt_junctions.ipynb` | AlphaFold per-residue pLDDT vs distance to the nearest exon-exon junction, across the whole canonical human proteome (Fig 1D). | ~8 min (first run: + ~18 k AlphaFold JSON fetches ~6 min) |
+| 1 | **`end_to_end/domain_functional_atlas.ipynb`** | Builds the r115 index + maps the Pfam atlas, then domain fragmentation and completeness across isoforms, the source charts for the Figure 1 domain-retention panels. | ~5 min (first run: + GTF download/index ~3 min, BioMart pull ~6 min) |
+| 2 | `end_to_end/alphafold_plddt_junctions.ipynb` | AlphaFold per-residue pLDDT vs distance to the nearest exon-exon junction, across the whole canonical human proteome (Fig 1G). | ~8 min (first run: + ~18 k AlphaFold JSON fetches ~6 min) |
 
 \* on a desktop with a warm network; first-run download times added in italics.
 
 `../walkthrough_end_to_end.ipynb` is a standalone zero-to-figure tour of the API
 and does not depend on the atlas.
 
-## Assembling the manuscript figure set
+## Where the figures land
 
-`assemble_paper_figures.py` collects the notebook-generated PDFs from
-`figures_pdf/` into the submission-named set under
-[`figures_pdf/paper_figures/`](figures_pdf/paper_figures/README.md) (Fig 1B-1D,
-S1-S5). Run it after the notebooks and the benchmark harness have produced their
-outputs.
+Each notebook writes its figure as a vector PDF into
+[`figures_pdf/`](figures_pdf/), named for the manuscript panel it backs (for
+example `Figure_1G_plddt_junctions.pdf`, `Figure_S2A_scaling.pdf`,
+`Figure_S1C_isoform_viewer.pdf`).
 
 ## Counting convention
 

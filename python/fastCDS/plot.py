@@ -925,8 +925,8 @@ def plot(source, *, input_id: str | None = None,
         ids = list(by_id.keys())
         if len(ids) != 1:
             raise ValueError(
-                f"source has {len(ids)} input_ids — pass input_id=... "
-                f"or call plot_all(). Available: {ids[:5]}{'…' if len(ids)>5 else ''}")
+                f"source has {len(ids)} input_ids - pass input_id=... "
+                f"or call plot_all(). Available: {ids[:5]}{'...' if len(ids)>5 else ''}")
         input_id = ids[0]
     if input_id not in by_id:
         keys = ", ".join(sorted(by_id)[:10])

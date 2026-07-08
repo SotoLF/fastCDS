@@ -25,7 +25,7 @@ Same isoform (TP53, DBD highlighted), rendered three ways:
 
 | Static (matplotlib) | Interactive — vanilla JS (default) | Interactive — plotly |
 |---|---|---|
-| ![matplotlib static figure](images/plot_matplotlib.png) | ![vanilla-JS interactive viewer](images/plot_js.png) | ![plotly interactive viewer](images/plot_plotly.png) |
+| ![matplotlib static figure](images/plot_matplotlib.png) | ![vanilla-JS interactive viewer](images/plot_js.gif) | ![plotly interactive viewer](images/plot_plotly.gif) |
 | `--out fig.pdf` (or `.png`/`.svg`) | `--out fig.html` | `--out fig.html --engine plotly` |
 | Publication-ready vector/raster; no interaction. | Self-contained (~40 KB), no deps, offline: box-zoom, pan, wheel-zoom, draggable minimap. | CDN-backed; hover tooltips + bottom rangeslider. |
 
@@ -37,6 +37,12 @@ python tutorial/examples/make_plot_gallery.py --out-dir plot_gallery
 #    plot_gallery/plot_js.html          (open in a browser, screenshot / record)
 #    plot_gallery/plot_plotly.html      (needs: pip install "fastCDS[plotly]")
 ```
+
+## Multiple isoforms on one axis
+
+`render_interactive_html_stack` draws every isoform of a gene on a shared genomic axis, with the queried domain marked in red on each isoform that codes it:
+
+![isoform stack viewer](images/plot_isoform_stack.gif)
 
 ## Static figures
 

@@ -124,7 +124,7 @@ def _verify_sha256(path: Path, expected: str) -> None:
             f"  got:      {got}\n"
             f"Re-run with --force to redownload."
         )
-    sys.stderr.write(f"sha256 OK ({got[:16]}…)\n")
+    sys.stderr.write(f"sha256 OK ({got[:16]}...)\n")
 
 
 _UNPUBLISHED_HINT = (

@@ -1,6 +1,6 @@
 # tutorial/reproduce_paper/benchmarks/
 
-Reproduction harness for the correctness + speed comparisons reported in [[Validation]] and [[Benchmarks]] on the wiki.
+Reproduction harness for the correctness + speed comparisons reported in [[Performance-and-Benchmarking]] on the wiki.
 
 ## At a glance
 
@@ -21,7 +21,7 @@ fastCDS's ~1.2 s index load is amortized over more queries as N rises, while
 ensembldb's per-query cost dominates throughout — so fastCDS-vs-ensembldb is
 ~130× at N = 1,000 and **~970× at N = 10,000**, which is the headline everywhere.
 
-See [`wiki/Performance-and-Benchmarking.md`](../wiki/Performance-and-Benchmarking.md) for the full result tables, design rationale (9-stratum sampler, why each comparator), the GenomicFeatures/ensembldb/VisProDom comparison, and the practical notes worth knowing if you reproduce.
+See [`wiki/Performance-and-Benchmarking.md`](../../../wiki/Performance-and-Benchmarking.md) for the full result tables, design rationale (9-stratum sampler, why each comparator), the GenomicFeatures/ensembldb/VisProDom comparison, and the practical notes worth knowing if you reproduce.
 
 ## Scripts
 
