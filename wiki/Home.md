@@ -13,15 +13,16 @@ Three steps: get an index (build it from a GTF with `index`, or `fetch` a pre-bu
 
 ```mermaid
 flowchart LR
-    GTF[GTF annotation] -->|fastCDS index| IDX[(index<br/>human.idx)]
+    GTF[GTF annotation] -->|fastCDS index| IDX[index<br/>human.idx]
     ZEN[Zenodo] -->|fastCDS fetch| IDX
-    BED[query BED<br/>protein + aa range] --> MAP
-    IDX --> MAP[fastCDS map]
-    MAP --> TSV[isoform_structure.tsv]
-    MAP --> B12[domain_blocks.bed<br/>BED12 track for IGV/UCSC]
-    TSV -->|fastCDS plot| OUT{--out extension}
-    OUT -->|.pdf / .png / .svg| STATIC[static figure]
-    OUT -->|.html| INTER[interactive viewer<br/>engine: js default, or plotly]
+    IDX -->|fastCDS map| TSV[isoform_structure.tsv]
+    BED[query BED<br/>protein + aa range] -->|fastCDS map| TSV
+    IDX -->|fastCDS map| B12[domain_blocks.bed<br/>BED12 for IGV/UCSC]
+    TSV -->|fastCDS plot| STATIC[static figure<br/>.pdf / .png / .svg]
+    TSV -->|fastCDS plot| INTER[interactive viewer<br/>.html: js or plotly]
+
+    classDef file fill:#eef2ff,color:#111111,stroke:#9aa7d0,stroke-width:1px;
+    class GTF,ZEN,IDX,BED,TSV,B12,STATIC,INTER file;
 ```
 
 The same four commands, in order:
