@@ -3,15 +3,26 @@
 
 Usage examples
 --------------
-# Single domain to a PDF
+# Single domain to a static figure (format follows the extension)
 fastCDS plot --isoform isoform_structure.tsv --input-id RD1 --out RD1.pdf
 
 # Every query in the TSV to a multipage PDF
 fastCDS plot --isoform isoform_structure.tsv --all --out queries.pdf
 
-# Interactive HTML (requires plotly)
+# Interactive HTML viewer (self-contained vanilla JS by default)
+fastCDS plot --isoform isoform_structure.tsv --input-id RD1 --out RD1.html
+
+# ...or the plotly engine for the same .html output
 fastCDS plot --isoform isoform_structure.tsv --input-id RD1 \
-                    --html RD1.html
+                    --out RD1.html --engine plotly
+
+One output target, one rule: the ``--out`` extension picks the format.
+``.pdf`` / ``.png`` / ``.svg`` render a static matplotlib figure; ``.html``
+renders the interactive viewer, whose engine (``js`` or ``plotly``) is chosen
+with ``--engine``. This mirrors the paper's three output types -- the BED12
+track (written by ``fastCDS map``), the static figure, and the interactive
+viewer -- where ``js`` and ``plotly`` are two engines of the same viewer, not
+separate output types.
 
 Design notes
 ------------
@@ -42,7 +53,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Iterable
 
-# matplotlib is required; plotly is optional and only imported when --html is set.
+# matplotlib is required; plotly is optional and only imported when the
+# interactive viewer is requested with --engine plotly.
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -504,7 +516,9 @@ def render_html(segs: list[Segment], out: str, *, highlight_domain: bool = True,
         import plotly.graph_objects as go
     except ImportError:
         raise SystemExit(
-            "plotly is required for --html output. Install with: pip install plotly"
+            "plotly is required for --engine plotly. Install it with "
+            "'pip install plotly', or use the default --engine js viewer "
+            "(no extra dependencies)."
         )
 
     # ---- filter & group ------------------------------------------------ #
@@ -690,8 +704,14 @@ def render_html(segs: list[Segment], out: str, *, highlight_domain: bool = True,
             # extend the boxes, etc." — drag its handles to update the main
             # view in real time. Plotly renders a mini-thumbnail of the bars
             # inside it, which doubles as an overview map.
+            #
+            # Pin its range to the same window as the main axis (autorange off),
+            # otherwise plotly re-derives a slightly wider extent for the slider
+            # and the minimap thumbnail no longer lines up under the main plot.
             rangeslider=dict(
                 visible=True,
+                autorange=False,
+                range=[xmin - pad, xmax + pad],
                 thickness=0.10,
                 bgcolor="#f5f5f5",
                 bordercolor="#ccc",
@@ -787,9 +807,62 @@ def _segments_from_source(source) -> dict[str, list[Segment]]:
     )
 
 
+# Static image extensions handled by matplotlib. Everything else is routed by
+# `_out_kind`; only ``.html`` (the interactive viewer) is also supported.
+_STATIC_EXTS = (".pdf", ".png", ".svg")
+_ENGINES = ("js", "plotly")
+
+
+def _out_kind(out: str) -> str:
+    """Classify an output path by extension: ``"static"`` or ``"html"``.
+
+    Raises ValueError (with the offending value and the valid set) for any
+    other extension, so callers fail fast with an actionable message.
+    """
+    ext = os.path.splitext(out)[1].lower()
+    if ext in _STATIC_EXTS:
+        return "static"
+    if ext == ".html":
+        return "html"
+    raise ValueError(
+        f"unsupported output extension {ext or '(none)'!r} for out={out!r}. "
+        f"Use a static image ({', '.join(_STATIC_EXTS)}) or an interactive "
+        f"viewer (.html)."
+    )
+
+
+def _render_one_target(segs, out, *, engine, width, height, title,
+                       show_introns, show_utr, highlight_domain,
+                       spliced, compact_genomic, link_template, fig=None):
+    """Render one query's segments to a single ``out`` file, dispatching on the
+    extension. Returns the matplotlib Figure for static output, else None.
+
+    ``engine``/``spliced``/``compact_genomic``/``width``/``height`` only affect
+    the path they belong to (engine -> .html; the rest -> static); they are
+    ignored for the other format.
+    """
+    if _out_kind(out) == "static":
+        return render_one(segs, out=out, width=width, height=height,
+                          title=title, show_introns=show_introns,
+                          show_utr=show_utr, highlight_domain=highlight_domain,
+                          spliced=spliced, compact_genomic=compact_genomic,
+                          fig=fig)
+    # .html interactive viewer.
+    if engine not in _ENGINES:
+        raise ValueError(
+            f"unknown engine {engine!r}; choose one of {_ENGINES}.")
+    if engine == "plotly":
+        render_html(segs, out, highlight_domain=highlight_domain,
+                    show_introns=show_introns, show_utr=show_utr,
+                    link_template=link_template)
+    else:  # "js" — self-contained, no CDN, no plotly dependency.
+        render_interactive_html(segs, out, link_template=link_template)
+    return None
+
+
 def plot(source, *, input_id: str | None = None,
          out: str | None = None,
-         html: str | None = None,
+         engine: str = "js",
          title: str | None = None,
          width: float = 12.0,
          height: float = 2.6,
@@ -798,9 +871,14 @@ def plot(source, *, input_id: str | None = None,
          highlight_domain: bool = True,
          spliced: bool = False,
          compact_genomic: bool = False,
-         link_template: str | None = None,
-         html_interactive: str | None = None):
+         link_template: str | None = None):
     """Render one query (or every query) from a mapping result.
+
+    The ``out`` extension picks the format: ``.pdf`` / ``.png`` / ``.svg``
+    render a static matplotlib figure, and ``.html`` renders the interactive
+    viewer. For ``.html``, ``engine`` selects the renderer -- ``"js"`` (the
+    default, a self-contained vanilla-JS viewer with no dependencies) or
+    ``"plotly"`` (needs ``pip install plotly``).
 
     Parameters
     ----------
@@ -813,30 +891,32 @@ def plot(source, *, input_id: str | None = None,
         query, that one is used; otherwise pass ``input_id`` explicitly.
         Use :func:`plot_all` for batches.
     out : str | None
-        Output file. Extension drives the format (``.pdf`` / ``.png`` /
-        ``.svg``). If both ``out`` and ``html`` are None the figure is
-        returned without being saved.
-    html : str | None
-        Optional interactive HTML output (plotly).
+        Output file. Extension drives the format (see above). If ``None``,
+        a static figure is built and returned without being saved.
+    engine : {"js", "plotly"}
+        Interactive renderer for ``.html`` output. Ignored for static output.
     title : str | None
         Override the auto-generated title.
     width, height : float
-        Figure size in inches. Defaults match the CLI defaults.
-    show_introns, show_utr, highlight_domain, spliced : bool
+        Static figure size in inches (matplotlib path only).
+    show_introns, show_utr, highlight_domain, spliced, compact_genomic : bool
         Same toggles as the CLI flags.
 
     Returns
     -------
-    matplotlib.figure.Figure
-        The figure object (still useful when nothing was saved).
+    matplotlib.figure.Figure | None
+        The Figure for static output (or when ``out`` is ``None``); ``None``
+        for ``.html`` output.
 
     Examples
     --------
-    >>> import fastCDS as p2g
-    >>> r = p2g.map_query("ENSP00000269305", 10, 50, "AD1", index="human.idx")
-    >>> p2g.plot(r, out="AD1.pdf")
+    >>> import fastCDS as fc
+    >>> r = fc.map_query("ENSP00000269305", 10, 50, "AD1", index="human.idx")
+    >>> fc.plot(r, out="AD1.pdf")                  # static
+    >>> fc.plot(r, out="AD1.html")                 # interactive (vanilla JS)
+    >>> fc.plot(r, out="AD1.html", engine="plotly")
     >>> # From a DataFrame:
-    >>> p2g.plot(r.isoform, input_id="AD1", out="AD1.pdf")
+    >>> fc.plot(r.isoform, input_id="AD1", out="AD1.pdf")
     """
     by_id = _segments_from_source(source)
     if not by_id:
@@ -852,23 +932,22 @@ def plot(source, *, input_id: str | None = None,
         keys = ", ".join(sorted(by_id)[:10])
         raise KeyError(f"input_id {input_id!r} not in source. Sample: {keys}")
 
-    fig = render_one(by_id[input_id], out=out, width=width, height=height,
-                     title=title, show_introns=show_introns, show_utr=show_utr,
-                     highlight_domain=highlight_domain, spliced=spliced,
-                     compact_genomic=compact_genomic)
-    if html:
-        render_html(by_id[input_id], html,
-                    highlight_domain=highlight_domain,
-                    show_introns=show_introns, show_utr=show_utr,
-                    link_template=link_template)
-    if html_interactive:
-        render_interactive_html(by_id[input_id], html_interactive,
-                             link_template=link_template)
-    return fig
+    if out is None:
+        # No file requested — hand back the static figure for programmatic use.
+        return render_one(by_id[input_id], out=None, width=width,
+                          height=height, title=title,
+                          show_introns=show_introns, show_utr=show_utr,
+                          highlight_domain=highlight_domain, spliced=spliced,
+                          compact_genomic=compact_genomic)
+    return _render_one_target(
+        by_id[input_id], out, engine=engine, width=width, height=height,
+        title=title, show_introns=show_introns, show_utr=show_utr,
+        highlight_domain=highlight_domain, spliced=spliced,
+        compact_genomic=compact_genomic, link_template=link_template)
 
 
 def plot_all(source, *, out: str,
-             html: str | None = None,
+             engine: str = "js",
              width: float = 12.0,
              height: float = 2.6,
              show_introns: bool = True,
@@ -876,11 +955,11 @@ def plot_all(source, *, out: str,
              highlight_domain: bool = True,
              spliced: bool = False,
              compact_genomic: bool = False,
-             link_template: str | None = None,
-             html_interactive: str | None = None) -> int:
-    """Render every input_id in ``source``. With a ``.pdf`` output the result
-    is a multipage PDF; otherwise one file per ``input_id`` is written
-    (``base.<input_id>.ext``).
+             link_template: str | None = None) -> int:
+    """Render every input_id in ``source``. The ``out`` extension drives the
+    format exactly like :func:`plot`. A ``.pdf`` target becomes a single
+    multipage PDF (one query per page); any other target (``.png`` / ``.svg``
+    / ``.html``) writes one file per query named ``base.<input_id>.ext``.
 
     Returns the number of pages / files written.
     """
@@ -889,7 +968,9 @@ def plot_all(source, *, out: str,
     if not ids:
         raise ValueError("source has no plottable rows.")
 
-    if out.lower().endswith(".pdf"):
+    kind = _out_kind(out)  # validate up front
+
+    if kind == "static" and out.lower().endswith(".pdf"):
         with PdfPages(out) as pdf:
             for i in ids:
                 fig = plt.figure(figsize=(width, height),
@@ -904,23 +985,12 @@ def plot_all(source, *, out: str,
     else:
         base, ext = os.path.splitext(out)
         for i in ids:
-            render_one(by_id[i], out=f"{base}.{i}{ext}",
-                       width=width, height=height,
-                       show_introns=show_introns, show_utr=show_utr,
-                       highlight_domain=highlight_domain, spliced=spliced,
-                       compact_genomic=compact_genomic)
-    if html:
-        base, ext = os.path.splitext(html)
-        for i in ids:
-            render_html(by_id[i], f"{base}.{i}{ext}",
-                        highlight_domain=highlight_domain,
-                        show_introns=show_introns, show_utr=show_utr,
-                        link_template=link_template)
-    if html_interactive:
-        base, ext = os.path.splitext(html_interactive)
-        for i in ids:
-            render_interactive_html(by_id[i], f"{base}.{i}{ext}",
-                                 link_template=link_template)
+            _render_one_target(
+                by_id[i], f"{base}.{i}{ext}", engine=engine,
+                width=width, height=height, title=None,
+                show_introns=show_introns, show_utr=show_utr,
+                highlight_domain=highlight_domain, spliced=spliced,
+                compact_genomic=compact_genomic, link_template=link_template)
     return len(ids)
 
 
@@ -935,7 +1005,9 @@ plot_isoform = plot
 def _argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="fastCDS plot",
-        description="Render isoform_structure.tsv to PDF/PNG/SVG/HTML.",
+        description="Render isoform_structure.tsv. The --out extension picks "
+                    "the format: .pdf/.png/.svg (static matplotlib) or .html "
+                    "(interactive viewer; engine via --engine).",
     )
     p.add_argument("--isoform", required=True,
                    help="Path to isoform_structure.tsv (the plot-ready table).")
@@ -943,8 +1015,14 @@ def _argparser() -> argparse.ArgumentParser:
     g.add_argument("--input-id", help="A single input_id to render.")
     g.add_argument("--all", action="store_true",
                    help="Render every input_id (multipage PDF if --out ends in .pdf).")
-    p.add_argument("--out", help="Output file (.pdf/.png/.svg).")
-    p.add_argument("--html", help="Optional interactive HTML output (plotly).")
+    p.add_argument("--out", required=True,
+                   help="Output file. Format follows the extension: "
+                        ".pdf/.png/.svg -> static figure, .html -> interactive "
+                        "viewer.")
+    p.add_argument("--engine", choices=_ENGINES, default="js",
+                   help="Interactive engine for .html output: 'js' (default, "
+                        "self-contained, no dependencies) or 'plotly' (needs "
+                        "'pip install plotly'). Ignored for static output.")
     p.add_argument("--title", help="Override the figure title.")
     p.add_argument("--width", type=float, default=12.0, help="Figure width in inches.")
     p.add_argument("--height", type=float, default=2.6, help="Figure height in inches.")
@@ -961,20 +1039,11 @@ def _argparser() -> argparse.ArgumentParser:
                         "fixed display width (best for long-intron genes).")
     p.add_argument("--link-template", default=None,
                    help="URL template for an external linkout shown next to "
-                        "the title in --html / --html-interactive output. "
+                        "the title in .html output. "
                         "Placeholders: {protein_id}, {gene_name}, "
                         "{transcript_id}, {chrom}, {start}, {end}. Example: "
                         "'https://www.ensembl.org/Homo_sapiens/Transcript/"
                         "ProteinSummary?p={protein_id}'")
-    # Primary flag — `dest=html_interactive` so the kwarg/attribute matches.
-    p.add_argument("--html-interactive", dest="html_interactive", default=None,
-                   help="Write a self-contained interactive HTML viewer "
-                        "(vanilla JS — no external dependencies, no CDN). "
-                        "Pass alongside --html to compare against plotly.")
-    # Deprecated alias — old --html-tfregdb2 still works for one release.
-    p.add_argument("--html-tfregdb2", dest="html_interactive",
-                   default=argparse.SUPPRESS,
-                   help=argparse.SUPPRESS)
     p.set_defaults(highlight=True, introns=True, utr=True)
     return p
 
@@ -1000,72 +1069,47 @@ def main(argv: list[str] | None = None) -> int:
     else:
         ids = list(by_id.keys())
 
-    if args.out:
-        if args.out.lower().endswith(".pdf") and len(ids) > 1:
-            with PdfPages(args.out) as pdf:
-                for i in ids:
-                    fig = plt.figure(figsize=(args.width, args.height),
-                                     constrained_layout=True)
-                    render_one(by_id[i], fig=fig,
-                               width=args.width, height=args.height,
-                               title=(args.title if len(ids) == 1 else None),
-                               show_introns=args.introns, show_utr=args.utr,
-                               highlight_domain=args.highlight,
-                               spliced=args.spliced,
-                               compact_genomic=args.compact_genomic)
-                    pdf.savefig(fig)
-                    plt.close(fig)
-            print(f"Wrote {args.out} ({len(ids)} pages)", file=sys.stderr)
-        else:
-            if len(ids) > 1:
-                # Non-PDF can only hold one figure; emit one file per id.
-                base, ext = os.path.splitext(args.out)
-                for i in ids:
-                    out_i = f"{base}.{i}{ext}"
-                    render_one(by_id[i], out=out_i,
-                               width=args.width, height=args.height,
-                               title=args.title,
-                               show_introns=args.introns, show_utr=args.utr,
-                               highlight_domain=args.highlight,
-                               spliced=args.spliced,
-                               compact_genomic=args.compact_genomic)
-            else:
-                render_one(by_id[ids[0]], out=args.out,
+    # Validate the output extension once, up front, with a clear message.
+    try:
+        kind = _out_kind(args.out)
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+
+    if kind == "static" and args.out.lower().endswith(".pdf") and len(ids) > 1:
+        # Multipage PDF — one query per page.
+        with PdfPages(args.out) as pdf:
+            for i in ids:
+                fig = plt.figure(figsize=(args.width, args.height),
+                                 constrained_layout=True)
+                render_one(by_id[i], fig=fig,
                            width=args.width, height=args.height,
-                           title=args.title,
                            show_introns=args.introns, show_utr=args.utr,
                            highlight_domain=args.highlight,
-                           spliced=args.spliced)
-
-    if args.html:
-        if len(ids) > 1:
-            base, ext = os.path.splitext(args.html)
-            for i in ids:
-                render_html(by_id[i], f"{base}.{i}{ext}",
-                            highlight_domain=args.highlight,
-                            show_introns=args.introns, show_utr=args.utr,
-                            link_template=args.link_template)
-        else:
-            render_html(by_id[ids[0]], args.html,
-                        highlight_domain=args.highlight,
-                        show_introns=args.introns, show_utr=args.utr,
-                        link_template=args.link_template)
-
-    if args.html_interactive:
-        if len(ids) > 1:
-            base, ext = os.path.splitext(args.html_interactive)
-            for i in ids:
-                render_interactive_html(by_id[i], f"{base}.{i}{ext}",
-                                     link_template=args.link_template)
-        else:
-            render_interactive_html(by_id[ids[0]], args.html_interactive,
-                                 link_template=args.link_template)
-        print(f"Wrote {args.html_interactive}", file=sys.stderr)
-
-    if not args.out and not args.html and not args.html_interactive:
-        print("Nothing to do: pass --out, --html, or --html-interactive.",
-              file=sys.stderr)
-        return 1
+                           spliced=args.spliced,
+                           compact_genomic=args.compact_genomic)
+                pdf.savefig(fig)
+                plt.close(fig)
+        print(f"Wrote {args.out} ({len(ids)} pages)", file=sys.stderr)
+    elif len(ids) > 1:
+        # Any other target holds one query per file: base.<input_id>.ext.
+        base, ext = os.path.splitext(args.out)
+        for i in ids:
+            _render_one_target(
+                by_id[i], f"{base}.{i}{ext}", engine=args.engine,
+                width=args.width, height=args.height, title=None,
+                show_introns=args.introns, show_utr=args.utr,
+                highlight_domain=args.highlight, spliced=args.spliced,
+                compact_genomic=args.compact_genomic,
+                link_template=args.link_template)
+    else:
+        _render_one_target(
+            by_id[ids[0]], args.out, engine=args.engine,
+            width=args.width, height=args.height, title=args.title,
+            show_introns=args.introns, show_utr=args.utr,
+            highlight_domain=args.highlight, spliced=args.spliced,
+            compact_genomic=args.compact_genomic,
+            link_template=args.link_template)
     return 0
 
 

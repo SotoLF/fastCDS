@@ -50,13 +50,13 @@ def test_compact_genomic_spliced_mutually_exclusive(out_all, tmp_path):
 
 
 def test_link_template_html(out_all, tmp_path):
-    """`--html --link-template` renders a plotly figure with the `{protein_id}`
-    placeholder expanded into the linkout URL."""
+    """`--out x.html --engine plotly --link-template` renders a plotly figure
+    with the `{protein_id}` placeholder expanded into the linkout URL."""
     pytest.importorskip("plotly")
     from fastCDS.plot import main
     html = tmp_path / "link.html"
     rc = main(["--isoform", _isoform_tsv(out_all), "--input-id", "Q1_ENSP",
-               "--html", str(html),
+               "--out", str(html), "--engine", "plotly",
                "--link-template", "https://example.com/{protein_id}/entry"])
     assert rc == 0
     assert html.exists() and html.stat().st_size > 0
@@ -66,19 +66,28 @@ def test_link_template_html(out_all, tmp_path):
     assert "{protein_id}" not in text      # raw placeholder gone
 
 
-def test_html_interactive_is_self_contained(out_all, tmp_path):
-    """`--html-interactive` writes the vanilla-JS viewer: no plotly CDN, the
-    transcript id embedded in the JS payload, and a populated domains array."""
+def test_html_engine_js_is_self_contained(out_all, tmp_path):
+    """`--out x.html` (default `--engine js`) writes the vanilla-JS viewer: no
+    plotly CDN, the transcript id embedded in the JS payload, and a populated
+    domains array."""
     from fastCDS.plot import main
     html = tmp_path / "interactive.html"
     rc = main(["--isoform", _isoform_tsv(out_all), "--input-id", "Q1_ENSP",
-               "--html-interactive", str(html)])
+               "--out", str(html)])
     assert rc == 0
     assert html.exists() and html.stat().st_size > 0
     text = html.read_text()
     assert "cdn.plot.ly" not in text and "esm.sh" not in text
     assert "ENST1" in text
     assert '"domains":' in text and '"type": "Other"' in text
+
+
+def test_unsupported_out_extension_is_rejected(out_all, tmp_path):
+    """An out path with an unknown extension fails fast (rc 2), not a crash."""
+    from fastCDS.plot import main
+    rc = main(["--isoform", _isoform_tsv(out_all), "--input-id", "Q1_ENSP",
+               "--out", str(tmp_path / "nope.jpeg")])
+    assert rc == 2
 
 
 def test_render_to_string_plot_height(out_all):

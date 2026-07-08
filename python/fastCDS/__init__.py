@@ -3,17 +3,17 @@
 Quick start
 -----------
 
->>> import fastCDS as p2g
->>> mapper = p2g.Mapper(index="human.idx")
+>>> import fastCDS as fc
+>>> mapper = fc.Mapper(index="human.idx")
 >>> result = mapper.map("ENSP00000269305", aa_start=10, aa_end=50,
 ...                     domain_id="AD1")
 >>> result.summary
->>> p2g.plot(result, input_id="AD1", out="AD1.pdf")
+>>> fc.plot(result, input_id="AD1", out="AD1.pdf")
 
 For one-off calls (creates a Mapper internally):
 
->>> result = p2g.map_query("ENSP00000269305", 10, 50, "AD1",
-...                        index="human.idx")
+>>> result = fc.map_query("ENSP00000269305", aa_start=10, aa_end=50,
+...                       domain_id="AD1", index="human.idx")
 
 Batch:
 
@@ -32,7 +32,7 @@ index from disk.
 
 from ._client import Mapper, map_query, build_index
 from ._result import MappingResult, read_results_dir
-from .plot import plot, plot_isoform
+from .plot import plot, plot_all, plot_isoform
 from ._interactive_html import render_interactive_html, render_interactive_jupyter
 from ._interactive_stack_html import (
     render_interactive_html_stack, render_interactive_jupyter_stack,
@@ -74,6 +74,7 @@ __all__ = [
     "map_query",
     "build_index",
     "plot",
+    "plot_all",
     "plot_isoform",
     "read_results_dir",
     "render_interactive_html",

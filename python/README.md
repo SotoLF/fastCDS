@@ -5,15 +5,17 @@ C++ mapper. Provides a friendly Python API plus the `fastCDS plot`
 subcommand for rendering domain-overlay isoform figures.
 
 ```python
-import fastCDS as p2g
+import fastCDS as fc
 
-mapper = p2g.Mapper("human.idx")
+mapper = fc.Mapper("human.idx")
 result = mapper.map("ENSP00000269305", aa_start=95, aa_end=288, domain_id="DBD")
-result.coding.head()
-result.isoform.head()
+result.summary.head()        # one row per query
+result.isoform.head()        # plot-ready isoform structure
+result.cds_segments.head()   # the exact coding blocks
 
-p2g.plot(result, out="TP53_DBD.png")          # static figure
-p2g.plot(result, html="TP53_DBD.html")        # interactive (needs plotly)
+fc.plot(result, out="TP53_DBD.png")                    # static figure
+fc.plot(result, out="TP53_DBD.html")                   # interactive (vanilla JS)
+fc.plot(result, out="TP53_DBD.html", engine="plotly")  # interactive (needs plotly)
 ```
 
 ## Requirements
@@ -22,14 +24,15 @@ p2g.plot(result, html="TP53_DBD.html")        # interactive (needs plotly)
   `fastCDS` or `fastCDS-core`, or pointed to via `$FASTCDS_BIN`.
   Build it from the [main repo](https://github.com/SotoLF/fastCDS)
   or install via `mamba install -c bioconda fastCDS`.
-- A binary index produced by `fastCDS --build-index --gtf X --index X.idx`.
+- A binary index produced by `fastCDS index --gtf X --out X.idx`.
 
 ## Install
 
 ```bash
 pip install fastCDS
-# or, with interactive HTML output:
-pip install "fastCDS[html]"
+# the vanilla-JS interactive viewer works out of the box;
+# add the plotly engine only if you want it:
+pip install "fastCDS[plotly]"
 ```
 
 ## See also

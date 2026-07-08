@@ -7,9 +7,24 @@ For each input query — a `protein_id` **or** a `transcript_id`, optionally wit
 1. **Mapping** — *which exact genomic bases code this domain?*
 2. **Structure** — *how is the whole transcript organised into 5′UTR / CDS / 3′UTR / intron, and where does the domain fall on it?*
 
-## The four commands
+## The workflow
 
-The whole workflow is four commands, used in order:
+Three steps: get an index (build it from a GTF with `index`, or `fetch` a pre-built one), `map` your queries onto it, then `plot`.
+
+```mermaid
+flowchart LR
+    GTF[GTF annotation] -->|fastCDS index| IDX[(index<br/>human.idx)]
+    ZEN[Zenodo] -->|fastCDS fetch| IDX
+    BED[query BED<br/>protein + aa range] --> MAP
+    IDX --> MAP[fastCDS map]
+    MAP --> TSV[isoform_structure.tsv]
+    MAP --> B12[domain_blocks.bed<br/>BED12 track for IGV/UCSC]
+    TSV -->|fastCDS plot| OUT{--out extension}
+    OUT -->|.pdf / .png / .svg| STATIC[static figure]
+    OUT -->|.html| INTER[interactive viewer<br/>engine: js default, or plotly]
+```
+
+The same four commands, in order:
 
 ```bash
 fastCDS index gencode.v49.primary_assembly.annotation.gtf  # 1a build an index 

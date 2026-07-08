@@ -11,8 +11,9 @@ import fastCDS as fc
 
 idx = fc.build_index("combined.gtf", out="human.idx")  # build from a local GTF (`fastCDS index`)
 idx = fc.fetch_index("human")                           # pre-built, from Zenodo (`fastCDS fetch`)
-idx = fc.fetch_index("human", release="50")             # or build a specific release
 ```
+
+`fetch_index` only serves the pre-built Zenodo targets (`"human"`, `"mouse"`, `"mouse-vm25"`, `"human-v86"`, `"human-v95"`, `"human-v115"`, `"yeast"` — run `fastCDS fetch list` to see them). For any other release, species, or a custom GTF, build the index yourself with `build_index`.
 
 `build_index(gtf, out=None, *, binary=None, force=False)` caches: if `out` exists it's returned untouched unless `force=True`.
 
@@ -70,7 +71,8 @@ See [[Performance and Benchmarking]] for the 1 M-query benchmark.
 
 ```python
 result = fc.map_query(
-    "ENSP00000269305", 102, 292, "TP53_DBD",
+    "ENSP00000269305",
+    aa_start=102, aa_end=292, domain_id="TP53_DBD",
     index="human.idx",
 )
 ```
@@ -82,7 +84,8 @@ Use `Mapper(...).map_batch(...)` if you have many queries — each `map_query` c
 By default `Mapper.map` / `map_batch` use a temp dir that's deleted when the `MappingResult` goes out of scope. Pass `keep_outputs="path/"` to keep the TSVs and BEDs on disk:
 
 ```python
-result = mapper.map("ENSP00000269305", 102, 292, "TP53_DBD",
+result = mapper.map("ENSP00000269305",
+                    aa_start=102, aa_end=292, domain_id="TP53_DBD",
                     keep_outputs="my_results/")
 # my_results/{domain_mapping_summary.tsv, isoform_structure.tsv, ...}
 ```
@@ -142,38 +145,75 @@ sub = result.by_input_id("TP53_DBD")
 
 ## `plot(...)`
 
+One output argument, `out`, whose extension picks the format: `.pdf`/`.png`/`.svg` render a static matplotlib figure, `.html` renders the interactive viewer (engine chosen by `engine=`).
+
+```python
+# Static figure — format follows the extension
+fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.pdf")   # or .png / .svg
+
+# Interactive viewer — .html; the default engine is the self-contained vanilla JS
+fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.html")
+fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.html", engine="plotly")
+
+# No out= → nothing is written; you get the matplotlib Figure back to tweak
+fig = fc.plot(result, input_id="TP53_DBD")
+```
+
+`plot()` returns the matplotlib `Figure` for static output (and when `out` is `None`), or `None` for `.html` output.
+
+**`source` (first argument)** accepts three things interchangeably — a `MappingResult`, its isoform DataFrame, or a path to an `isoform_structure.tsv` on disk:
+
+```python
+fc.plot(result,            input_id="TP53_DBD", out="tp53.pdf")   # a MappingResult
+fc.plot(result.isoform,    input_id="TP53_DBD", out="tp53.pdf")   # its isoform DataFrame
+fc.plot("run/isoform_structure.tsv", input_id="TP53_DBD", out="tp53.pdf")  # a file on disk
+```
+
+**Full keyword list** (all keyword-only after `source`):
+
 ```python
 fc.plot(
-    source,                # a MappingResult, an isoform DataFrame, or a path to isoform_structure.tsv
-    input_id="TP53_DBD",
-    out="tp53_dbd.pdf",    # matplotlib
-    html=None,             # plotly HTML
-    html_interactive=None,     # interactive HTML
-    show_introns=True,
-    show_utr=True,
-    compact_genomic=False, # clamp introns to 80 bp
-    spliced=False,         # drop introns entirely (mutex with compact_genomic)
-    link_template=None,    # URL template with {protein_id}, {gene_name}, {transcript_id}, {chrom}
-    title=None,
+    result,                # MappingResult | isoform DataFrame | path to isoform_structure.tsv
+    input_id="TP53_DBD",   # which query to draw (optional if the source has exactly one)
+    out="tp53_dbd.pdf",    # extension picks the format: .pdf/.png/.svg static, .html interactive
+    engine="js",           # interactive renderer for .html: "js" (default) or "plotly"
+    show_introns=True,     # draw intron lines
+    show_utr=True,         # draw UTR boxes
+    highlight_domain=True, # colour the CDS-in-domain segments red
+    compact_genomic=False, # keep genomic order but clamp long introns to a fixed display width
+    spliced=False,         # drop introns entirely, concatenate exons (mutex with compact_genomic)
+    link_template=None,    # linkout URL; {protein_id},{gene_name},{transcript_id},{chrom},{start},{end}
+    title=None,            # override the auto-generated title
+    width=12.0, height=2.6,  # static figure size in inches
 )
 ```
 
-To render every `input_id` in the source, pass `all=True` instead of `input_id`, or use the explicit helper:
+To render **every** `input_id` in the source, use `plot_all` — a `.pdf` target becomes one multipage PDF, any other extension writes one file per query (`base.<input_id>.ext`):
 
 ```python
-fc.plot_all(result, out="all_queries.pdf")    # multipage PDF (matplotlib)
-fc.plot_all(result, html="all_queries.html")  # one plotly file per input_id
-```
-
-`source` can be a `MappingResult`, an isoform DataFrame, or a path to `isoform_structure.tsv` — all three are accepted:
-
-```python
-fc.plot(result, input_id="TP53_DBD", out="tp53.pdf")
-fc.plot(result.isoform, input_id="TP53_DBD", out="tp53.pdf")
-fc.plot("results/isoform_structure.tsv", input_id="TP53_DBD", out="tp53.pdf")
+fc.plot_all(result, out="all_queries.pdf")                    # multipage PDF (static)
+fc.plot_all(result, out="all_queries.png")                    # all_queries.TP53_DBD.png, ...
+fc.plot_all(result, out="all_queries.html")                   # one vanilla-JS file per input_id
+fc.plot_all(result, out="all_queries.html", engine="plotly")  # one plotly file per input_id
 ```
 
 ## Interactive viewer helpers
+
+`fc.plot(..., out="x.html")` is all most people need. These lower-level helpers exist for two cases the top-level `plot()` doesn't cover: embedding the viewer **inline in a Jupyter notebook**, and controlling the viewer's pixel `plot_height`.
+
+They take a `segs` argument — a `list[Segment]` for one query. Build it first, from a `MappingResult` or straight from a TSV on disk:
+
+```python
+from fastCDS.plot import load_isoform_tsv, _segments_from_dataframe
+
+# from a MappingResult already in memory
+segs = _segments_from_dataframe(result.isoform)["TP53_DBD"]
+
+# ...or load from disk
+segs = load_isoform_tsv("results/isoform_structure.tsv")["TP53_DBD"]
+```
+
+Then render it:
 
 ```python
 # Standalone HTML file (any browser, offline)
@@ -181,26 +221,11 @@ fc.render_interactive_html(segs, "out.html",
                          link_template="https://...",
                          plot_height=80)
 
-# Inline in a Jupyter notebook
+# Inline in a Jupyter notebook (returns an IPython.display.HTML)
 fc.render_interactive_jupyter(segs,
                             height=None,     # default: auto-resize via postMessage
                             plot_height=140, # main-track height in px
                             link_template="https://...")
-```
-
-`segs` is a `list[Segment]`. Build it from a `MappingResult`:
-
-```python
-from fastCDS.plot import _segments_from_dataframe
-segs_by_id = _segments_from_dataframe(result.isoform)
-segs = segs_by_id["TP53_DBD"]
-```
-
-Or load straight from disk:
-
-```python
-from fastCDS.plot import load_isoform_tsv
-segs_by_id = load_isoform_tsv("results/isoform_structure.tsv")
 ```
 
 See [[Plotting]] for renderer-specific gestures and flags.

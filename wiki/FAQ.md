@@ -41,9 +41,9 @@ Two common causes:
 
 Use compact mode. CLI: `--compact-genomic` (matplotlib) or the **Compact (introns = 80 bp)** radio in the interactive viewer. Long human genes (TP53 spans ~19 kb) become legible at exon resolution.
 
-## My `--html` plotly file is huge
+## My `--engine plotly` HTML file is huge
 
-That's expected — plotly bundles its full JS engine in every standalone HTML (~3 MB). If size matters, use `--html-interactive` instead — the interactive viewer is ~35 KB and has no JS dependency.
+That's expected — plotly bundles its full JS engine in every standalone HTML (~3 MB). If size matters, drop `--engine plotly` and use the default `js` engine (`--out x.html`) — that viewer is ~35 KB and has no JS dependency.
 
 ## Can I run fastCDS on Windows?
 

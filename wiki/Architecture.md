@@ -68,11 +68,11 @@ GTF ──▶ gtf_parser ──▶ index (.idx)
 
 ## Three renderers, one input
 
-All three plot paths consume the same `Segment` list (from `_segments_from_dataframe` or `load_isoform_tsv`). The renderer is chosen by which output flag you pass:
+All three renderers consume the same `Segment` list (from `_segments_from_dataframe` or `load_isoform_tsv`). `_out_kind(out)` classifies the `--out` extension and `_render_one_target` dispatches:
 
-- `--out` → matplotlib (`_draw_genomic`, `_draw_compact_genomic`, or `_draw_spliced`)
-- `--html` → plotly (`render_html` with `Bar` + `Scattergl` + rangeslider)
-- `--html-interactive` → `render_interactive_html` (vanilla JS template in `_interactive_html.py`)
+- `.pdf` / `.png` / `.svg` → matplotlib (`_draw_genomic`, `_draw_compact_genomic`, or `_draw_spliced`)
+- `.html` + `engine="js"` (default) → `render_interactive_html` (vanilla JS template in `_interactive_html.py`)
+- `.html` + `engine="plotly"` → plotly (`render_html` with `Bar` + `Scattergl` + rangeslider)
 
 The JS template renders a shared-axis view (compact-mode collapses introns to 80 virtual bp) with a vCRE-style minimap and box-zoom on the main plot. Both file output (`render_interactive_html`) and Jupyter embedding (`render_interactive_jupyter`) share the same `_render_to_string` helper.
 

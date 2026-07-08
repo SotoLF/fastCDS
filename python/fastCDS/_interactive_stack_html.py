@@ -60,7 +60,7 @@ HTML_TEMPLATE = """<!doctype html>
   .meta b {{ color: #0f172a; }}
   .controls {{ display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
               margin-bottom: 14px; font-size: 12px; }}
-  .controls label {{ cursor: pointer; user-select: none; }}
+  .controls label {{ display: inline-flex; align-items: center; cursor: pointer; user-select: none; }}
   .controls input[type=radio], .controls input[type=checkbox] {{ margin-right: 4px; }}
   .controls button {{
     font-size: 11px; padding: 3px 10px; border: 1px solid #cbd5e1;
@@ -176,6 +176,9 @@ HTML_TEMPLATE = """<!doctype html>
   .mini-feat.cds-domain {{ background: #d62728; }}
   .viewport {{
     position: absolute; top: 0; height: 100%;
+    box-sizing: border-box;   /* keep the 2px side borders inside width:100% so
+                                 the right edge isn't pushed past the clipped
+                                 minimap and rendered thinner than the left */
     background: rgba(79, 70, 229, 0.16);
     border-left: 2px solid rgba(79, 70, 229, 0.7);
     border-right: 2px solid rgba(79, 70, 229, 0.7);
@@ -186,8 +189,9 @@ HTML_TEMPLATE = """<!doctype html>
     position: absolute; top: 0; height: 100%; width: 6px;
     background: rgba(79, 70, 229, 0.7); cursor: ew-resize;
   }}
-  .viewport-handle.left  {{ left: -3px; }}
-  .viewport-handle.right {{ right: -3px; }}
+  /* flush to the inner edges so neither handle is clipped at the extremes */
+  .viewport-handle.left  {{ left: 0; }}
+  .viewport-handle.right {{ right: 0; }}
   .help-text {{ font-size: 10.5px; color: #94a3b8; margin-top: 6px; }}
   .tooltip {{
     position: fixed; background: white; border: 1px solid #cbd5e1; border-radius: 6px;

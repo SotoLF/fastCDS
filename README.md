@@ -20,7 +20,7 @@ For each input query (a `protein_id` **or** a `transcript_id`, optionally with a
 1. **Mapping** — *which exact genomic bases code this domain?*
 2. **Structure** — *how is the whole transcript organised in 5′UTR / CDS / 3′UTR / intron, and where does the domain fall on it?*
 
-A C++17 binary does the heavy lifting: once the index is loaded, the mapping itself is ~1 µs per query, so end-to-end throughput is dominated by output formatting (~5,800 queries/s for a single-isoform TSV, ~2,800 q/s writing the full `--output all` set). A Python wrapper gives you pandas DataFrames and three plot styles (matplotlib, plotly, and a vanilla-JS standalone HTML viewer).
+A C++17 binary does the heavy lifting: once the index is loaded, the mapping itself is ~1 µs per query, so end-to-end throughput is dominated by output formatting (~5,800 queries/s for a single-isoform TSV, ~2,800 q/s writing the full `--output all` set). fastCDS produces three kinds of output: a **BED12 track** for genome browsers, a **static figure** (matplotlib PDF/PNG/SVG), and an **interactive HTML viewer**. A Python wrapper adds pandas DataFrames; for the viewer you pick the engine (self-contained vanilla JS by default, or plotly).
 
 📖 **[Full documentation lives in the wiki](https://github.com/SotoLF/fastCDS/wiki)**
 
@@ -36,7 +36,20 @@ The pip wheel bundles the compiled binary, so all four commands work immediately
 
 ## Quickstart
 
-The workflow is four commands — `index` (or `fetch`) to get an index, `map` to project queries, `plot` to render:
+The workflow is three steps — get an index (`index` from a GTF, or `fetch` a pre-built one), `map` your domain queries onto it, then `plot`:
+
+```mermaid
+flowchart LR
+    GTF[GTF annotation] -->|fastCDS index| IDX[(index<br/>human.idx)]
+    ZEN[Zenodo] -->|fastCDS fetch| IDX
+    BED[query BED<br/>protein + aa range] --> MAP
+    IDX --> MAP[fastCDS map]
+    MAP --> TSV[isoform_structure.tsv]
+    MAP --> B12[domain_blocks.bed<br/>BED12 track for IGV/UCSC]
+    TSV -->|fastCDS plot| OUT{--out extension}
+    OUT -->|.pdf / .png / .svg| STATIC[static figure]
+    OUT -->|.html| INTER[interactive viewer<br/>engine: js default, or plotly]
+```
 
 ```bash
 # 1. Get an index (one-time per annotation)
@@ -49,11 +62,13 @@ fastCDS map \
     --index human.idx \
     --bed queries.bed --out-dir results --output all --threads 8
 
-# 3. Plot a single domain
+# 3. Plot a single domain — the --out extension picks the format
 fastCDS plot \
     --isoform results/isoform_structure.tsv \
     --input-id TP53_DBD \
-    --html-interactive tp53_dbd.html
+    --out tp53_dbd.pdf              # static figure (.pdf/.png/.svg)
+#   --out tp53_dbd.html            # interactive viewer (vanilla JS by default)
+#   --out tp53_dbd.html --engine plotly
 ```
 
 Run `fastCDS fetch list` to see every target and source.
@@ -75,10 +90,10 @@ result = mapper.map_batch([
 result.summary       # one-row DataFrame
 result.isoform       # plot-ready DataFrame
 
-# 3. Plot — three rendering paths, same data
-fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.pdf")                # matplotlib
-fc.plot(result, input_id="TP53_DBD", html="tp53_dbd.html")              # plotly
-fc.plot(result, input_id="TP53_DBD", html_interactive="tp53_dbd.html")  # vanilla JS
+# 3. Plot — the out extension picks the format; engine picks the HTML renderer
+fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.pdf")                    # static figure
+fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.html")                   # interactive (vanilla JS)
+fc.plot(result, input_id="TP53_DBD", out="tp53_dbd.html", engine="plotly")  # interactive (plotly)
 ```
 
 Full reference: [Building an index](https://github.com/SotoLF/fastCDS/wiki/Index), [Mapping](https://github.com/SotoLF/fastCDS/wiki/Mapping), [Plotting](https://github.com/SotoLF/fastCDS/wiki/Plotting), [Python API](https://github.com/SotoLF/fastCDS/wiki/Python-API).
