@@ -45,7 +45,7 @@ def _default_cache_dir() -> Path:
 # after download; a mismatch aborts with a pointer to `fastCDS index`.
 # ------------------------------------------------------------------------ #
 
-_ZENODO_BASE = "https://zenodo.org/api/records/21266614/files"
+_ZENODO_BASE = "https://zenodo.org/records/21266614/files"
 
 
 @dataclass(frozen=True)
@@ -56,7 +56,7 @@ class ZenodoIndex:
 
     @property
     def url(self) -> str:
-        return f"{_ZENODO_BASE}/{self.filename}/content"
+        return f"{_ZENODO_BASE}/{self.filename}"
 
     @property
     def published(self) -> bool:
