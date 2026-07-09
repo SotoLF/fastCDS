@@ -201,28 +201,22 @@ fc.plot_all(result, out="all_queries.html", engine="plotly")  # one plotly file 
 
 `fc.plot(..., out="x.html")` is all most people need. These lower-level helpers exist for two cases the top-level `plot()` doesn't cover: embedding the viewer **inline in a Jupyter notebook**, and controlling the viewer's pixel `plot_height`.
 
-They take a `segs` argument - a `list[Segment]` for one query. Build it first, from a `MappingResult` or straight from a TSV on disk:
-
-```python
-from fastCDS.plot import load_isoform_tsv, _segments_from_dataframe
-
-# from a MappingResult already in memory
-segs = _segments_from_dataframe(result.isoform)["TP53_DBD"]
-
-# ...or load from disk
-segs = load_isoform_tsv("results/isoform_structure.tsv")["TP53_DBD"]
-```
-
-Then render it:
+Their first argument, `source`, takes whatever you already have: a `MappingResult`, an isoform DataFrame, or a path to an `isoform_structure.tsv`. When the source holds more than one isoform, pass `input_id=` to pick one:
 
 ```python
 # Standalone HTML file (any browser, offline)
-fc.render_interactive_html(segs, "out.html",
+fc.render_interactive_html(result, "out.html",
+                         input_id="TP53_DBD",
                          link_template="https://...",
                          plot_height=80)
 
+# ...or straight from a TSV on disk
+fc.render_interactive_html("results/isoform_structure.tsv", "out.html",
+                         input_id="TP53_DBD")
+
 # Inline in a Jupyter notebook (returns an IPython.display.HTML)
-fc.render_interactive_jupyter(segs,
+fc.render_interactive_jupyter(result,
+                            input_id="TP53_DBD",
                             height=None,     # default: auto-resize via postMessage
                             plot_height=140, # main-track height in px
                             link_template="https://...")

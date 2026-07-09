@@ -1,3 +1,8 @@
+<p align="center">
+  <img alt="fastCDS" width="300"
+       src="https://raw.githubusercontent.com/SotoLF/fastCDS/main/wiki/images/fastcds_icon.png">
+</p>
+
 # fastCDS
 
 <p align="center">
@@ -55,15 +60,16 @@ flowchart LR
     IDX --> MAP([fastCDS map])
     BED[query BED<br/>protein + aa range] --> MAP
     MAP --> TSV[isoform_structure.tsv]
-    MAP --> B12[domain_blocks.bed<br/>BED12 for IGV/UCSC]
+    MAP --> B12[BED tracks<br/>BED12 + coding / introns / span]
     TSV --> PLOT([fastCDS plot])
     PLOT --> STATIC[static figure<br/>.pdf / .png / .svg]
     PLOT --> INTER[interactive viewer<br/>.html: js or plotly]
+    B12 --> IGV[genome browser<br/>IGV / UCSC]
 
     classDef cmd fill:#2f6db0,color:#ffffff,stroke:#1c4a7d,stroke-width:1px;
     classDef file fill:#eef2ff,color:#111111,stroke:#9aa7d0,stroke-width:1px;
     class INDEX,FETCH,MAP,PLOT cmd;
-    class GTF,ZEN,IDX,BED,TSV,B12,STATIC,INTER file;
+    class GTF,ZEN,IDX,BED,TSV,B12,STATIC,INTER,IGV file;
 ```
 
 ```bash

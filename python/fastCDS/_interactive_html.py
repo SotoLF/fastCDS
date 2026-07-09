@@ -1010,18 +1010,12 @@ def _render_to_string(segs, *,
                   getattr(s0, "transcript_id", "") or ""]
     title = " · ".join(b for b in title_bits if b) or "fastCDS"
 
-    if link_template:
-        try:
-            fields = {
-                "protein_id":    payload["proteinId"],
-                "gene_name":     payload["geneName"],
-                "transcript_id": payload["transcriptId"],
-                "chrom":         payload["chrom"],
-            }
-            url = link_template.format(**fields)
-            payload["externalLink"] = url
-        except (KeyError, IndexError):
-            pass
+    # A user template wins; otherwise auto-link from the ID (Ensembl / RefSeq /
+    # UniProt). Custom-GTF IDs resolve to None, so no link is shown.
+    from .plot import _resolve_link   # lazy: avoids an import cycle
+    url = _resolve_link(link_template, s0)
+    if url:
+        payload["externalLink"] = url
 
     return HTML_TEMPLATE.format(
         title_safe=html.escape(title),
@@ -1032,15 +1026,50 @@ def _render_to_string(segs, *,
     )
 
 
-def render_interactive_html(segs, out: str, *,
+def _coerce_segments(source, input_id: str | None = None) -> list:
+    """Accept either a ready ``Segment`` list (used as-is) or a high-level
+    source — a :class:`MappingResult`, an isoform DataFrame, or a path to an
+    ``isoform_structure.tsv`` — and return one isoform's ``Segment`` list.
+
+    With several isoforms, pass ``input_id`` to pick one; a lone isoform is
+    chosen automatically. Keeps callers off the private
+    ``_segments_from_dataframe`` helper.
+    """
+    if isinstance(source, list):
+        return source
+    from .plot import _segments_from_source   # lazy: avoids an import cycle
+    by_id = _segments_from_source(source)
+    if input_id is not None:
+        try:
+            return by_id[input_id]
+        except KeyError:
+            raise KeyError(
+                f"input_id {input_id!r} not found; available: {sorted(by_id)}"
+            ) from None
+    if len(by_id) == 1:
+        return next(iter(by_id.values()))
+    raise ValueError(
+        f"source has {len(by_id)} isoforms {sorted(by_id)}; "
+        "pass input_id= to choose one."
+    )
+
+
+def render_interactive_html(source, out: str, *,
+                         input_id: str | None = None,
                          link_template: str | None = None,
                          plot_height: int = 80) -> None:
-    """Write a TFRegDB2-style standalone HTML viewer to `out`.
+    """Write a standalone HTML viewer to `out`.
 
     Vanilla JS + inline CSS — no CDN, no external deps. Includes a vCRE-style
     minimap with a draggable viewport rectangle, drag-to-box-zoom on the main
     plot, and wheel-zoom around the cursor.
+
+    `source` is either a ``Segment`` list or a high-level source (a
+    :class:`MappingResult`, an isoform DataFrame, or a path to
+    ``isoform_structure.tsv``); pass ``input_id`` to pick one isoform when the
+    source holds several.
     """
+    segs = _coerce_segments(source, input_id)
     html_out = _render_to_string(
         segs, link_template=link_template, plot_height=plot_height,
     )
@@ -1051,11 +1080,12 @@ def render_interactive_html(segs, out: str, *,
 _JUPYTER_IFRAME_SEQ = 0
 
 
-def render_interactive_jupyter(segs, *,
+def render_interactive_jupyter(source, *,
+                            input_id: str | None = None,
                             height: int | None = None,
                             plot_height: int = 140,
                             link_template: str | None = None):
-    """Embed the TFRegDB2 viewer in a Jupyter notebook.
+    """Embed the viewer in a Jupyter notebook.
 
     Returns an ``IPython.display.HTML`` value that the notebook frontend
     renders inline. The viewer runs inside a sandboxed iframe (via
@@ -1066,9 +1096,13 @@ def render_interactive_jupyter(segs, *,
 
     Parameters
     ----------
-    segs : list[Segment]
-        Segments from ``fastCDS.plot.load_isoform_tsv`` or
-        ``_segments_from_dataframe``.
+    source : list[Segment] or MappingResult or DataFrame or path
+        Either a ready ``Segment`` list, or a high-level source (a
+        :class:`MappingResult`, an isoform DataFrame, or a path to an
+        ``isoform_structure.tsv``). No need to touch internal helpers.
+    input_id : str, optional
+        Which isoform to draw when ``source`` holds several; a lone
+        isoform is picked automatically.
     height : int, optional
         Pin the iframe height in pixels. By default the iframe sizes
         itself to fit the viewer exactly. Pass an int to override (e.g.,
@@ -1078,10 +1112,13 @@ def render_interactive_jupyter(segs, *,
         CDS/UTR boxes more prominent — useful in a notebook where the
         viewer competes for attention with other cells.
     link_template : str, optional
-        URL template with placeholders ``{protein_id}``, ``{gene_name}``,
-        ``{transcript_id}``, ``{chrom}``. Renders as a link in the header.
+        Override the header linkout, which is otherwise auto-derived from the
+        ID (Ensembl / RefSeq / UniProt; none for custom IDs). A URL template
+        with placeholders ``{protein_id}``, ``{gene_name}``,
+        ``{transcript_id}``, ``{chrom}``, ``{start}``, ``{end}``.
     """
     from IPython.display import HTML  # local import — only needed in notebooks
+    segs = _coerce_segments(source, input_id)
     html_str = _render_to_string(
         segs, link_template=link_template, plot_height=plot_height,
     )

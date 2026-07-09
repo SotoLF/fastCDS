@@ -1,6 +1,6 @@
 # Plotting (`fastCDS plot`)
 
-Once you have an `isoform_structure.tsv` from [[Mapping]], `fastCDS plot` renders it as a static figure or as an interactive viewer. There is one output flag, `--out`, and its extension picks the format: `.pdf` / `.png` / `.svg` give a static matplotlib figure, and `.html` gives the interactive viewer. For `.html`, `--engine` chooses the renderer - a self-contained vanilla-JS viewer (`js`, the default, no dependencies) or `plotly`. The plotter reads the TSV directly and never re-derives coordinates from the genome, so anything you can express by editing the table is plottable.
+Once you have an `isoform_structure.tsv` from [[Mapping]], `fastCDS plot` renders it as a static figure or as an interactive viewer. That TSV is the plotter's only input - it is written by `--output isoform` or the default `--output all`, so a plain `fastCDS map` produces it; the `coding` / `introns` / `span` / `bed12` outputs are BED/TSV tracks for a genome browser, not plotter input. There is one output flag, `--out`, and its extension picks the format: `.pdf` / `.png` / `.svg` give a static matplotlib figure, and `.html` gives the interactive viewer. For `.html`, `--engine` chooses the renderer - a self-contained vanilla-JS viewer (`js`, the default, no dependencies) or `plotly`. The plotter reads the TSV directly and never re-derives coordinates from the genome, so anything you can express by editing the table is plottable.
 
 Together with the BED12 track written by [[Mapping]], these are fastCDS's three output types: the **BED12 track** for genome browsers, the **static figure**, and the **interactive viewer** (`js` or `plotly` engine).
 
@@ -23,11 +23,30 @@ The extension of the output picks the format; there is nothing else to choose ex
 
 Same isoform (TP53, DBD highlighted), rendered three ways:
 
-| Renderer | Command | Notes |
-|---|---|---|
-| Static (matplotlib) | `--out fig.pdf` (or `.png` / `.svg`) | Publication-ready vector/raster; no interaction. |
-| Interactive, vanilla JS (default) | `--out fig.html` | Self-contained (~40 KB), no dependencies, works offline: box-zoom, pan, wheel-zoom, draggable minimap. |
-| Interactive, plotly | `--out fig.html --engine plotly` | Loads plotly.js from a CDN; hover tooltips and a bottom rangeslider. |
+<table>
+<thead>
+<tr><th>Type</th><th>Renderer</th><th>Command</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>Static</td>
+  <td>matplotlib</td>
+  <td><code>--out fig.pdf</code> (or <code>.png</code> / <code>.svg</code>)</td>
+  <td>Publication-ready vector/raster; no interaction.</td>
+</tr>
+<tr>
+  <td rowspan="2">Interactive</td>
+  <td>vanilla JS (default)</td>
+  <td><code>--out fig.html</code></td>
+  <td>Self-contained (~40 KB), no dependencies, works offline: box-zoom, pan, wheel-zoom, draggable minimap.</td>
+</tr>
+<tr>
+  <td>plotly</td>
+  <td><code>--out fig.html --engine plotly</code></td>
+  <td>Loads plotly.js from a CDN; hover tooltips and a bottom rangeslider.</td>
+</tr>
+</tbody>
+</table>
 
 **Static (matplotlib)**
 
@@ -124,7 +143,7 @@ fastCDS plot --isoform results/isoform_structure.tsv --input-id TP53_DBD \
     --out tp53.html --engine plotly
 ```
 
-Both engines ship with `pip install fastCDS`. The standalone `js` viewer supports box-zoom (drag to zoom into a genomic range), shift-drag to pan, mouse-wheel zoom, double-click to reset, a draggable minimap, UTR rendering with strand arrows, and a Compact / True-genomic layout toggle. `--link-template` adds a clickable linkout next to the title using the placeholders `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`, `{start}`, `{end}`.
+Both engines ship with `pip install fastCDS`. The standalone `js` viewer supports box-zoom (drag to zoom into a genomic range), shift-drag to pan, mouse-wheel zoom, double-click to reset, a draggable minimap, UTR rendering with strand arrows, and a Compact / True-genomic layout toggle. A clickable linkout next to the title is added **automatically** from the ID - Ensembl stable IDs (ENSP/ENST/ENSG) link to Ensembl, RefSeq (`NP_`/`XP_`/`NM_`/`XM_`) to NCBI, UniProt accessions to UniProt; custom-GTF IDs get no link. Pass `--link-template` to override it with your own URL, using the placeholders `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`, `{start}`, `{end}`.
 
 With `--all`, an `.html` target writes one file per query (`base.<input_id>.html`).
 
@@ -134,22 +153,19 @@ For a single isoform, obtain the segments from a result and embed the viewer inl
 
 ```python
 import fastCDS as fc
-from fastCDS.plot import _segments_from_dataframe
 
 result = fc.map_query("ENSP00000269305", aa_start=10, aa_end=50, domain_id="TP53_DBD", index="human.idx")
-segments = _segments_from_dataframe(result.isoform)["TP53_DBD"]
 
-fc.render_interactive_jupyter(segments, plot_height=160)
+fc.render_interactive_jupyter(result, input_id="TP53_DBD", plot_height=160)
 ```
 
-For several isoforms stacked in one viewer, pass the whole `dict[input_id -> segments]` to the stack variant:
+For several isoforms stacked in one viewer, hand the whole `result` (or a TSV path) to the stack variant - every isoform in it is stacked:
 
 ```python
-segs_by_id = _segments_from_dataframe(result.isoform)
-fc.render_interactive_jupyter_stack(segs_by_id, plot_height=40)
+fc.render_interactive_jupyter_stack(result, plot_height=40)
 ```
 
-To write standalone HTML files instead of embedding inline, use the file builders `fc.render_interactive_html(segments, "tp53.html")` and `fc.render_interactive_html_stack(segs_by_id, "stack.html")`. See [[Tutorials and Notebooks]] for end-to-end notebook examples.
+To write standalone HTML files instead of embedding inline, use the file builders `fc.render_interactive_html(result, "tp53.html", input_id="TP53_DBD")` and `fc.render_interactive_html_stack(result, "stack.html")`. See [[Tutorials and Notebooks]] for end-to-end notebook examples.
 
 ### Arguments
 
@@ -157,7 +173,7 @@ To write standalone HTML files instead of embedding inline, use the file builder
 |---|---|---|
 | `--out FILE` / `out=` | required | Output file; `.html` selects the interactive viewer. |
 | `--engine {js,plotly}` / `engine=` | `js` | Interactive renderer for `.html` output. `js` = self-contained (no CDN, offline); `plotly` = CDN-backed, needs plotly. Ignored for static output. |
-| `--link-template URL` / `link_template=` | - | External linkout next to the title (`.html` only); placeholders `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`, `{start}`, `{end}`. |
+| `--link-template URL` / `link_template=` | auto | External linkout next to the title (`.html` only). Auto-derived from the ID by default (Ensembl / RefSeq / UniProt; none for custom IDs); pass a URL to override, with placeholders `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`, `{start}`, `{end}`. |
 | `--height N` (CLI) | 2.6 | matplotlib figure height in inches (static path). |
 | `plot_height=` (Python) | 140 single / 40 stack | Main-track height in pixels for the Jupyter / standalone viewers. |
 | `height=` (Python) | auto | Pin the Jupyter iframe height in px (for static exports where the auto-resize handshake can't fire). |

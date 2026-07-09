@@ -48,6 +48,7 @@ from __future__ import annotations
 import argparse
 import csv
 import os
+import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -496,6 +497,46 @@ def _expand_link_template(template: str, s0: Segment) -> str | None:
     return url
 
 
+# UniProt accession grammar (the official 6/10-char pattern).
+_UNIPROT_RE = re.compile(
+    r"^([OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2})$"
+)
+
+
+def _auto_link(s0: Segment) -> str | None:
+    """Build a sensible external linkout from the ID form alone, so a plain
+    `fastCDS plot` gets a working link with no `--link-template`.
+
+    Recognises Ensembl stable IDs (ENSP/ENST/ENSG and their species-prefixed
+    forms), NCBI RefSeq (NP_/XP_/YP_ proteins, NM_/XM_/NR_/XR_ transcripts),
+    and UniProt accessions. Custom GTF IDs match nothing, so no link is
+    emitted (returns None) rather than a dead one.
+    """
+    pid = (s0.protein_id or "").split(".")[0]
+    tid = (s0.transcript_id or "").split(".")[0]
+    # Ensembl: the species-agnostic /id/ resolver redirects a protein ID to its
+    # protein page and a transcript ID to its transcript page, so we never need
+    # to know the species. Prefer the protein ID, fall back to the transcript.
+    for x in (pid, tid):
+        if re.fullmatch(r"ENS[A-Z]*[GTP][0-9]+", x):
+            return f"https://www.ensembl.org/id/{x}"
+    if re.fullmatch(r"[NXY]P_[0-9]+", pid):          # RefSeq protein
+        return f"https://www.ncbi.nlm.nih.gov/protein/{pid}"
+    if re.fullmatch(r"[NX][MR]_[0-9]+", tid):        # RefSeq transcript / mRNA
+        return f"https://www.ncbi.nlm.nih.gov/nuccore/{tid}"
+    if _UNIPROT_RE.match(pid):                        # UniProt accession
+        return f"https://www.uniprot.org/uniprotkb/{pid}/entry"
+    return None
+
+
+def _resolve_link(link_template: str | None, s0: Segment) -> str | None:
+    """A user `--link-template` wins; otherwise fall back to the automatic
+    ID-based linkout. Returns a ready URL, or None for no link."""
+    if link_template:
+        return _expand_link_template(link_template, s0)
+    return _auto_link(s0)
+
+
 def render_html(segs: list[Segment], out: str, *, highlight_domain: bool = True,
                 show_introns: bool = True, show_utr: bool = True,
                 link_template: str | None = None) -> None:
@@ -654,16 +695,15 @@ def render_html(segs: list[Segment], out: str, *, highlight_domain: bool = True,
     if s0.is_ensembl_canonical == "true": flags.append("Ensembl_canonical")
     if flags: title_bits.append("[" + ",".join(flags) + "]")
     title_bits.append(f"({s0.chrom} {strand})")
-    # Optional clickable linkout (e.g. TFRegDB2 entry page, UniProt, UCSC).
+    # Optional clickable linkout (Ensembl / RefSeq / UniProt, auto by ID).
     # Rendered as an `<a href>` inside the plotly title — plotly title text
     # accepts a small set of HTML tags including `<a>`.
-    if link_template:
-        url = _expand_link_template(link_template, s0)
-        if url:
-            title_bits.append(
-                f'<a href="{url}" target="_blank" '
-                f'style="color:#1f77b4;text-decoration:underline">↗ link</a>'
-            )
+    url = _resolve_link(link_template, s0)
+    if url:
+        title_bits.append(
+            f'<a href="{url}" target="_blank" '
+            f'style="color:#1f77b4;text-decoration:underline">↗ link</a>'
+        )
     title = "   ".join(title_bits)
 
     fig.update_layout(
@@ -1038,12 +1078,14 @@ def _argparser() -> argparse.ArgumentParser:
                    help="Keep genomic order, but clamp every intron to a "
                         "fixed display width (best for long-intron genes).")
     p.add_argument("--link-template", default=None,
-                   help="URL template for an external linkout shown next to "
-                        "the title in .html output. "
-                        "Placeholders: {protein_id}, {gene_name}, "
-                        "{transcript_id}, {chrom}, {start}, {end}. Example: "
-                        "'https://www.ensembl.org/Homo_sapiens/Transcript/"
-                        "ProteinSummary?p={protein_id}'")
+                   help="Override the external linkout shown next to the title "
+                        "in .html output. By default the link is chosen "
+                        "automatically from the ID (Ensembl / NCBI RefSeq / "
+                        "UniProt; custom-GTF IDs get no link). Pass a URL "
+                        "template to override, with placeholders {protein_id}, "
+                        "{gene_name}, {transcript_id}, {chrom}, {start}, {end}. "
+                        "Example: 'https://www.ensembl.org/Homo_sapiens/"
+                        "Transcript/ProteinSummary?p={protein_id}'")
     p.set_defaults(highlight=True, introns=True, utr=True)
     return p
 

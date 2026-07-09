@@ -33,9 +33,18 @@ The index that `map` reads is built with `fastCDS index` - see [[Index]]. (Build
 
 Every `--output` mode describes the *same* mapping; they are complementary views of where a domain sits in the genome. Pick the one that answers your question, or use the default `all` to get everything (see [Output description](#output-description)).
 
+<p align="center">
+  <img alt="a protein domain mapped onto the transcript's exon / intron / UTR structure"
+       src="images/output_map.png" width="620">
+</p>
+
+A protein domain (top) maps down onto the transcript's exon / intron / UTR structure: the domain-coding bases fall in the red CDS blocks, and the boxed region marks its genomic span. `--output all` then reports that one mapping four complementary ways - **coding**, **introns**, **span**, and **isoform** - shown per section below. The first three become BED tracks for a genome browser; `isoform_structure.tsv` is what `fastCDS plot` draws (see [[Plotting]]).
+
 ### Coding exons (`--output coding`)
 
 Answers *which CDS exons code the domain?* - every CDS exon of the transcript, classified by whether it overlaps the domain.
+
+<p align="center"><img alt="coding output: the CDS exons that code the domain" src="images/output_coding.png" width="560"></p>
 
 | Output File | Contents |
 |---|---|
@@ -64,6 +73,8 @@ result.cds_segments   # DataFrame of CDS rows
 
 Answers *which introns fall inside the domain's genomic span?* - every intron of the transcript, classified by whether it lies within the domain envelope.
 
+<p align="center"><img alt="introns output: the introns inside the domain span" src="images/output_introns.png" width="560"></p>
+
 | Output File | Contents |
 |---|---|
 | `domain_introns.tsv` | one row per intron of the transcript, each with an `overlaps_domain` column |
@@ -85,6 +96,8 @@ result.introns        # DataFrame of intron rows
 ### Genomic span (`--output span`)
 
 Answers *what is the single genomic envelope of the domain, introns included?* - one interval per domain, from its first coding base to its last.
+
+<p align="center"><img alt="span output: one genomic envelope from first to last domain-coding base" src="images/output_span.png" width="560"></p>
 
 | Output File | Contents |
 |---|---|
@@ -129,6 +142,8 @@ Field-by-field meaning in [Output description](#output-description).
 
 `--output isoform` writes the plot-ready `isoform_structure.tsv`: one row per structural feature of the transcript - `five_prime_UTR`, `CDS`, `three_prime_UTR`, and inferred `intron` rows. CDS exons that the domain only partially covers are *split* into separate rows (the overlapping and non-overlapping portions), and every row carries a `plot_group` string for direct colour mapping.
 
+<p align="center"><img alt="isoform output: the whole transcript structure with the domain marked" src="images/output_isoform.png" width="560"></p>
+
 ```bash
 fastCDS map --index human.idx --bed q.bed --out-dir results --output isoform
 ```
@@ -157,7 +172,7 @@ This is the table you feed to a renderer; see [[Plotting]] for turning it into a
 | `span`    | What is the domain's genomic envelope (introns included)? | - | `domain_span_with_introns.bed` |
 | `isoform` | How is the whole transcript organised? | `isoform_structure.tsv` | - |
 | `bed12`   | One IGV-ready BED12 row per domain. | - | `domain_blocks.bed` |
-| `all` (default) | Everything above. | all 4 TSVs | all 4 BEDs |
+| `all` (default) | Everything above. | all 3 feature TSVs | all 4 BEDs |
 
 `all` additionally writes `run_metadata.json`. The `--bed12` flag adds `domain_blocks.bed` to any of the first four modes. Regardless of mode, `domain_mapping_summary.tsv` is always written and `unmapped_domains.tsv` is written on any failure.
 

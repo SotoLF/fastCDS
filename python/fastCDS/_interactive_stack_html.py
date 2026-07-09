@@ -893,18 +893,16 @@ def _render_stack_to_string(segs_by_id: dict[str, list], *,
     if not payloads:
         raise ValueError("no isoforms with mappable segments")
 
-    if link_template:
-        for p in payloads:
-            try:
-                fields = {
-                    "protein_id":    p.get("proteinId", ""),
-                    "gene_name":     p.get("geneName", ""),
-                    "transcript_id": p.get("transcriptId", ""),
-                    "chrom":         p.get("chrom", ""),
-                }
-                p["externalLink"] = link_template.format(**fields)
-            except (KeyError, IndexError):
-                pass
+    # Per-isoform linkout: a user template wins, otherwise auto-link from the
+    # ID (Ensembl / RefSeq / UniProt). Custom-GTF IDs get no link.
+    from .plot import _resolve_link   # lazy: avoids an import cycle
+    for p in payloads:
+        segs = segs_by_id.get(p.get("inputId"))
+        if not segs:
+            continue
+        url = _resolve_link(link_template, segs[0])
+        if url:
+            p["externalLink"] = url
 
     # Header title from the primary (MANE / canonical / first) structure.
     primary = next((p for p in payloads if p.get("isManeSelect")), None) \
@@ -922,7 +920,19 @@ def _render_stack_to_string(segs_by_id: dict[str, list], *,
     )
 
 
-def render_interactive_html_stack(segs_by_id: dict[str, list],
+def _coerce_segments_by_id(source) -> dict:
+    """Accept either a ready ``{input_id: [Segment, ...]}`` dict (used as-is)
+    or a high-level source — a :class:`MappingResult`, an isoform DataFrame,
+    or a path to an ``isoform_structure.tsv`` — and return the by-id dict.
+    Keeps callers off the private ``_segments_from_dataframe`` helper.
+    """
+    if isinstance(source, dict):
+        return source
+    from .plot import _segments_from_source   # lazy: avoids an import cycle
+    return _segments_from_source(source)
+
+
+def render_interactive_html_stack(source,
                                out: str,
                                *,
                                link_template: str | None = None,
@@ -934,9 +944,10 @@ def render_interactive_html_stack(segs_by_id: dict[str, list],
 
     Parameters
     ----------
-    segs_by_id : dict[str, list[Segment]]
-        One entry per isoform — use ``_segments_from_dataframe(df)``
-        or ``load_isoform_tsv(path)`` to build this.
+    source : dict[str, list[Segment]] or MappingResult or DataFrame or path
+        Either a ready ``{input_id: [Segment, ...]}`` dict, or a high-level
+        source (a :class:`MappingResult`, an isoform DataFrame, or a path to
+        an ``isoform_structure.tsv``). All of its isoforms are stacked.
     out : str
         Output HTML path.
     link_template : str, optional
@@ -945,6 +956,7 @@ def render_interactive_html_stack(segs_by_id: dict[str, list],
         Per-isoform track height in pixels (default 40, suited for
         4–8 isoforms — bump for taller rows).
     """
+    segs_by_id = _coerce_segments_by_id(source)
     html_out = _render_stack_to_string(
         segs_by_id, link_template=link_template, plot_height=plot_height,
     )
@@ -955,13 +967,19 @@ def render_interactive_html_stack(segs_by_id: dict[str, list],
 _JUPYTER_STACK_SEQ = 0
 
 
-def render_interactive_jupyter_stack(segs_by_id: dict[str, list],
+def render_interactive_jupyter_stack(source,
                                   *,
                                   height: int | None = None,
                                   plot_height: int = 40,
                                   link_template: str | None = None):
-    """Embed the multi-isoform stack viewer in a Jupyter notebook."""
+    """Embed the multi-isoform stack viewer in a Jupyter notebook.
+
+    ``source`` is a ``{input_id: [Segment, ...]}`` dict or a high-level source
+    (a :class:`MappingResult`, an isoform DataFrame, or a path to an
+    ``isoform_structure.tsv``); every isoform in it is stacked.
+    """
     from IPython.display import HTML  # noqa: F401 — needed only in notebooks
+    segs_by_id = _coerce_segments_by_id(source)
     html_str = _render_stack_to_string(
         segs_by_id, link_template=link_template, plot_height=plot_height,
     )
