@@ -136,6 +136,22 @@ def load_isoform_tsv(path: str) -> dict[str, list[Segment]]:
                 is_ensembl_canonical=row.get("is_ensembl_canonical", "NA") or "NA",
             )
             by_id[seg.input_id].append(seg)
+
+    # `isoform_structure.tsv` is the plotter's input, but the sibling
+    # `domain_cds_segments.tsv` / `domain_introns.tsv` share its exact header,
+    # so they load without a column error and would draw a partial view. A real
+    # transcript structure always has CDS rows; if there are none, the file is
+    # almost certainly an introns-only / non-coding output, not an isoform TSV.
+    types = {s.feature_type for segs in by_id.values() for s in segs}
+    if by_id and "CDS" not in types:
+        print(
+            f"note: {path!r} has no CDS rows (feature types {sorted(types)}); "
+            "this does not look like an isoform_structure.tsv. `fastCDS plot` "
+            "renders isoform_structure.tsv (from `--output isoform` or the "
+            "default `--output all`); the coding/introns/span outputs are "
+            "genome-browser tracks, not plot input.",
+            file=sys.stderr,
+        )
     return by_id
 
 
