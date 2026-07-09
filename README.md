@@ -48,15 +48,21 @@ The workflow is three steps - get an index (`index` from a GTF, or `fetch` a pre
 
 ```mermaid
 flowchart LR
-    GTF[GTF annotation] -->|fastCDS index| IDX[index<br/>human.idx]
-    ZEN[Zenodo] -->|fastCDS fetch| IDX
-    IDX -->|fastCDS map| TSV[isoform_structure.tsv]
-    BED[query BED<br/>protein + aa range] -->|fastCDS map| TSV
-    IDX -->|fastCDS map| B12[domain_blocks.bed<br/>BED12 for IGV/UCSC]
-    TSV -->|fastCDS plot| STATIC[static figure<br/>.pdf / .png / .svg]
-    TSV -->|fastCDS plot| INTER[interactive viewer<br/>.html: js or plotly]
+    GTF[GTF annotation] --> INDEX([fastCDS index])
+    ZEN[Zenodo] --> FETCH([fastCDS fetch])
+    INDEX --> IDX[index<br/>human.idx]
+    FETCH --> IDX
+    IDX --> MAP([fastCDS map])
+    BED[query BED<br/>protein + aa range] --> MAP
+    MAP --> TSV[isoform_structure.tsv]
+    MAP --> B12[domain_blocks.bed<br/>BED12 for IGV/UCSC]
+    TSV --> PLOT([fastCDS plot])
+    PLOT --> STATIC[static figure<br/>.pdf / .png / .svg]
+    PLOT --> INTER[interactive viewer<br/>.html: js or plotly]
 
+    classDef cmd fill:#2f6db0,color:#ffffff,stroke:#1c4a7d,stroke-width:1px;
     classDef file fill:#eef2ff,color:#111111,stroke:#9aa7d0,stroke-width:1px;
+    class INDEX,FETCH,MAP,PLOT cmd;
     class GTF,ZEN,IDX,BED,TSV,B12,STATIC,INTER file;
 ```
 
