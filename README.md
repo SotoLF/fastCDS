@@ -60,16 +60,18 @@ flowchart LR
     IDX --> MAP([fastCDS map])
     BED[query BED<br/>protein + aa range] --> MAP
     MAP --> TSV[isoform_structure.tsv]
-    MAP --> B12[BED tracks<br/>BED12 + coding / introns / span]
+    MAP --> BEDS[BED tracks<br/>bed12 + coding / introns / span]
+    MAP --> TAB[feature + summary TSVs<br/>coding / introns / mapping_summary]
     TSV --> PLOT([fastCDS plot])
     PLOT --> STATIC[static figure<br/>.pdf / .png / .svg]
     PLOT --> INTER[interactive viewer<br/>.html: js or plotly]
-    B12 --> IGV[genome browser<br/>IGV / UCSC]
+    BEDS --> IGV[genome browser<br/>IGV / UCSC]
+    TAB --> AN[your analysis<br/>pandas / stats]
 
     classDef cmd fill:#2f6db0,color:#ffffff,stroke:#1c4a7d,stroke-width:1px;
     classDef file fill:#eef2ff,color:#111111,stroke:#9aa7d0,stroke-width:1px;
     class INDEX,FETCH,MAP,PLOT cmd;
-    class GTF,ZEN,IDX,BED,TSV,B12,STATIC,INTER,IGV file;
+    class GTF,ZEN,IDX,BED,TSV,BEDS,TAB,STATIC,INTER,IGV,AN file;
 ```
 
 ```bash
