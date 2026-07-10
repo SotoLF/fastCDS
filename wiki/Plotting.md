@@ -131,10 +131,9 @@ An `.html` target renders the interactive viewer. `--engine` picks the renderer;
 
 ```bash
 # self-contained vanilla-JS viewer (no CDN, single offline file) - the default
-fastCDS plot --isoform results/isoform_structure.tsv --input-id TP53_DBD \
-    --out tp53.html \
-    --link-template 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?p={protein_id}'
-# identical to the line above, engine spelled out:
+fastCDS plot --isoform results/isoform_structure.tsv --input-id TP53_DBD --out tp53.html
+# the title linkout is automatic from the ID; add --link-template 'URL' to override it
+# identical to the first command, engine spelled out:
 fastCDS plot --isoform results/isoform_structure.tsv --input-id TP53_DBD \
     --out tp53.html --engine js
 

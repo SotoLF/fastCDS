@@ -182,7 +182,7 @@ fc.plot(
     highlight_domain=True, # colour the CDS-in-domain segments red
     compact_genomic=False, # keep genomic order but clamp long introns to a fixed display width
     spliced=False,         # drop introns entirely, concatenate exons (mutex with compact_genomic)
-    link_template=None,    # linkout URL; {protein_id},{gene_name},{transcript_id},{chrom},{start},{end}
+    link_template=None,    # title linkout; None = auto from the ID (Ensembl/RefSeq/UniProt), or a URL to override
     title=None,            # override the auto-generated title
     width=12.0, height=2.6,  # static figure size in inches
 )
@@ -201,13 +201,12 @@ fc.plot_all(result, out="all_queries.html", engine="plotly")  # one plotly file 
 
 `fc.plot(..., out="x.html")` is all most people need. These lower-level helpers exist for two cases the top-level `plot()` doesn't cover: embedding the viewer **inline in a Jupyter notebook**, and controlling the viewer's pixel `plot_height`.
 
-Their first argument, `source`, takes whatever you already have: a `MappingResult`, an isoform DataFrame, or a path to an `isoform_structure.tsv`. When the source holds more than one isoform, pass `input_id=` to pick one:
+Their first argument, `source`, takes whatever you already have: a `MappingResult`, an isoform DataFrame, or a path to an `isoform_structure.tsv`. When the source holds more than one isoform, pass `input_id=` to pick one. The title linkout is added automatically from the ID; pass `link_template=` only to override it.
 
 ```python
 # Standalone HTML file (any browser, offline)
 fc.render_interactive_html(result, "out.html",
                          input_id="TP53_DBD",
-                         link_template="https://...",
                          plot_height=80)
 
 # ...or straight from a TSV on disk
@@ -217,9 +216,8 @@ fc.render_interactive_html("results/isoform_structure.tsv", "out.html",
 # Inline in a Jupyter notebook (returns an IPython.display.HTML)
 fc.render_interactive_jupyter(result,
                             input_id="TP53_DBD",
-                            height=None,     # default: auto-resize via postMessage
-                            plot_height=140, # main-track height in px
-                            link_template="https://...")
+                            height=None,      # default: auto-resize via postMessage
+                            plot_height=140)  # main-track height in px
 ```
 
 See [[Plotting]] for renderer-specific gestures and flags.
