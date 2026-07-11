@@ -3,8 +3,8 @@
 Inputs:
   --scaling-tsv     output of scaling_benchmark.py (per-rep timings)
   --parallel-tsv    output of parallel_benchmark.py (per-rep timings at varying threads)
-  --p2e-index-size  bytes — `ls -l human_v86.idx` (or any fastCDS index)
-  --ensdb-size      bytes — EnsDb sqlite file size
+  --p2e-index-size  bytes - `ls -l human_v86.idx` (or any fastCDS index)
+  --ensdb-size      bytes - EnsDb sqlite file size
   --agreement       OVERALL exact-match percentage from matched-annotation validation (e.g. 100.00)
 
 Outputs in --out-dir:
@@ -77,11 +77,11 @@ def main():
 
     def fmt_rss(tool, n):
         v = med_rss.get((tool, n))
-        return f"{v} MB" if v else "—"
+        return f"{v} MB" if v else "-"
 
     def fmt_throughput(tool, n):
         w = med_wall.get((tool, n))
-        return f"{int(n / w):,} q/s" if w else "—"
+        return f"{int(n / w):,} q/s" if w else "-"
 
     # Largest N each tool covered.
     p2e_max_n = max((n for (t, n) in med_wall if t == "fastCDS"), default=0)

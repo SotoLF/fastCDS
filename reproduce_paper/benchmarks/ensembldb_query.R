@@ -49,7 +49,7 @@ con <- file(out_path, open = "w")
 writeLines("query_id\tchrom\tstart\tend\tstrand\tstatus", con)
 
 if (is.null(res)) {
-  # Whole batch failed — emit error rows so downstream classifies them.
+  # Whole batch failed - emit error rows so downstream classifies them.
   for (i in seq_len(nrow(q))) {
     writeLines(paste(q$query_id[i], "NA", "NA", "NA", "NA", "error", sep = "\t"), con)
   }

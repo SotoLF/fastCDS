@@ -27,7 +27,7 @@ PEAK_RSS_RE = re.compile(r"^BENCH_PEAK_RSS_MB\s+(\d+)", re.M)
 
 
 def run_with_time(cmd: list[str], *, env=None) -> dict:
-    """Run cmd; return wall_s + peak_rss_mb (via os.wait4 — per-child max RSS)."""
+    """Run cmd; return wall_s + peak_rss_mb (via os.wait4 - per-child max RSS)."""
     t0 = time.perf_counter()
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                             text=True, env=env)

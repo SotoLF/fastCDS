@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Benchmark VisProDom's CreDat() — the package's batch domain->genome mapper
+# Benchmark VisProDom's CreDat() - the package's batch domain->genome mapper
 # (pure R/dplyr; maps InterProScan/RPS-BLAST domain aa-coords onto a GFF gene
 # model). Reports wall time, mapped rows, and peak RSS on the bundled example
 # (maize proteome), and a 100/1k/10k scaling slice.

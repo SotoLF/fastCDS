@@ -172,7 +172,7 @@ def main():
     print(f"transvar finished in {wall_s:.1f}s (rc={proc.returncode})", file=sys.stderr)
     if proc.returncode != 0:
         sys.stderr.write(proc.stderr[:1000] + "\n")
-        # Continue — TransVar often returns non-zero on partial failures but still writes results.
+        # Continue - TransVar often returns non-zero on partial failures but still writes results.
 
     # Map HGVS back to query_id.
     hgvs_to_qid = {h: q for q, h in hgvs_pairs}

@@ -60,7 +60,7 @@ def load_fastCDS_intervals(out_dir: Path) -> dict[str, list[tuple[str, int, int]
         for row in csv.DictReader(f, delimiter="\t"):
             if row["overlaps_domain"] != "coding_overlap":
                 continue
-            # Use the domain_overlap_genomic_* sub-interval — that's the actual
+            # Use the domain_overlap_genomic_* sub-interval - that's the actual
             # bases coding the domain, not the whole CDS slice.
             start = row["domain_overlap_genomic_start"]
             end = row["domain_overlap_genomic_end"]
@@ -114,7 +114,7 @@ def classify(ours: list[tuple[str, int, int]], theirs: list[tuple[str, int, int]
     o_len = total_length(ours)
     t_len = total_length(theirs)
     if abs(o_len - t_len) <= 2:
-        # Same envelope but the boundary differs by 1-2 bp — usually codon-split.
+        # Same envelope but the boundary differs by 1-2 bp - usually codon-split.
         return "off_by_one"
     return "structural_mismatch"
 

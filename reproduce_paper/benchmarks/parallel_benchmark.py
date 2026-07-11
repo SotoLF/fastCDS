@@ -1,7 +1,7 @@
 """Parallel scaling: fastCDS at threads = 1, 2, 4, 8 with fixed N.
 
 Reports wall time + speedup + parallel efficiency per thread count.
-ensembldb is single-threaded by design — no parallel comparison.
+ensembldb is single-threaded by design - no parallel comparison.
 """
 
 from __future__ import annotations

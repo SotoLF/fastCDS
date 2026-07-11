@@ -8,9 +8,9 @@
 #                                   <out_intervals_tsv> <timing_tsv>
 #   tool in {ensembldb, genomicfeatures}
 #
-# ensembldb      : ensembldb::proteinToGenome(IRanges-by-protein, EnsDb) — queries
+# ensembldb      : ensembldb::proteinToGenome(IRanges-by-protein, EnsDb) - queries
 #                  the EnsDb SQLite per call.
-# genomicfeatures: GenomicFeatures::proteinToGenome(IRanges-by-tx, GRangesList) —
+# genomicfeatures: GenomicFeatures::proteinToGenome(IRanges-by-tx, GRangesList) -
 #                  builds a CDS-by-transcript GRangesList once (setup), then maps
 #                  entirely in memory (no SQLite during mapping).
 

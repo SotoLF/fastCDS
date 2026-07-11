@@ -2,21 +2,21 @@
 from a GENCODE/Ensembl GTF, .
 
 The 9 strata (totaling 5,000 by default):
-    1,000 single-exon DOMAINS      — aa range fits inside one CDS exon
-    1,000 multi-exon DOMAINS       — aa range spans >= 2 CDS exons
-      500 codon-split-boundary DOMAINS — aa range covers a codon that straddles an exon boundary
-    1,000 plus-strand GENES        — random aa range on a + strand transcript
-    1,000 minus-strand GENES       — random aa range on a - strand transcript
-      200 CDS-incomplete proteins  — cds_start_NF / cds_end_NF tagged
+    1,000 single-exon DOMAINS      - aa range fits inside one CDS exon
+    1,000 multi-exon DOMAINS       - aa range spans >= 2 CDS exons
+      500 codon-split-boundary DOMAINS - aa range covers a codon that straddles an exon boundary
+    1,000 plus-strand GENES        - random aa range on a + strand transcript
+    1,000 minus-strand GENES       - random aa range on a - strand transcript
+      200 CDS-incomplete proteins  - cds_start_NF / cds_end_NF tagged
     (cds_incomplete is EXCLUSIVE: the other eight categories draw only from
      complete-CDS transcripts, so every incomplete-CDS query lands here)
-      100 selenoproteins           — curated gene-name list
-      100 single-exon GENES        — transcripts with 1 CDS exon
-      100 many-exon GENES          — transcripts with > 20 CDS exons
+      100 selenoproteins           - curated gene-name list
+      100 single-exon GENES        - transcripts with 1 CDS exon
+      100 many-exon GENES          - transcripts with > 20 CDS exons
 
 Outputs:
-  queries.bed       — 5,000 lines: protein_id\\taa_start\\taa_end\\tQUERY_<i>\\t<category>
-  queries_meta.tsv  — one row per query: query_id, category, protein_id, transcript_id,
+  queries.bed       - 5,000 lines: protein_id\\taa_start\\taa_end\\tQUERY_<i>\\t<category>
+  queries_meta.tsv  - one row per query: query_id, category, protein_id, transcript_id,
                       strand, n_cds_exons, gene_name, aa_start, aa_end
 
 The metadata TSV is what the validation script uses for stratified reporting
@@ -56,7 +56,7 @@ def parse_gtf(gtf_path: Path):
 
     Returns dicts:
         transcript_id, protein_id, gene_name, strand, chrom,
-        cds_lengths (in translation order — ascending genomic on '+', reversed on '-'),
+        cds_lengths (in translation order - ascending genomic on '+', reversed on '-'),
         n_cds_exons, has_cds_NF (True if cds_start_NF or cds_end_NF tagged),
         protein_length_aa (sum(cds_lengths) // 3),
         codon_split_aas (set of aa positions where a codon straddles an exon boundary)
@@ -85,7 +85,7 @@ def parse_gtf(gtf_path: Path):
             tid_unv = tid.split(".")[0]
 
             if feat == "transcript":
-                # Tag list — GENCODE writes multiple `tag "X"` entries; ATTR_RE keeps the last.
+                # Tag list - GENCODE writes multiple `tag "X"` entries; ATTR_RE keeps the last.
                 tags = re.findall(r'tag "([^"]+)"', parts[8])
                 transcript_meta[tid_unv] = {
                     "chrom": parts[0],
@@ -100,7 +100,7 @@ def parse_gtf(gtf_path: Path):
                 current_tx.setdefault(tid_unv, []).append(
                     (int(parts[3]), int(parts[4]), parts[6])
                 )
-                # Ensembl puts protein_id only on CDS rows — backfill if the transcript
+                # Ensembl puts protein_id only on CDS rows - backfill if the transcript
                 # record didn't already carry it.
                 meta = transcript_meta.get(tid_unv)
                 if meta is not None and not meta["protein_id"]:
@@ -166,7 +166,7 @@ def pick_single_exon_domain_range(tx, rng: random.Random) -> tuple[int, int] | N
     # Simpler: enumerate candidate aas and keep ones whose nt range [3*(aa-1)+1, 3*aa] is inside the exon's nt range.
     exon_nt_start = cum_before + 1
     exon_nt_end = cum_before + L
-    first_aa = (exon_nt_start + 2) // 3  # may start mid-codon — bump to next aa fully inside
+    first_aa = (exon_nt_start + 2) // 3  # may start mid-codon - bump to next aa fully inside
     while first_aa <= tx["protein_length_aa"] and (first_aa - 1) * 3 + 1 < exon_nt_start:
         first_aa += 1
     last_aa = exon_nt_end // 3

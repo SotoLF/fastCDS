@@ -1,4 +1,4 @@
-"""Build Supplementary Table S1 — per-tool, per-category agreement with fastCDS.
+"""Build Supplementary Table S1 - per-tool, per-category agreement with fastCDS.
 
 Assembles one combined table across the four comparators from the per-category
 agreement tables written by classify_external.py (one per tool), applying two

@@ -1,4 +1,4 @@
-"""Build Supplementary Table S2 — mapping speed and peak memory.
+"""Build Supplementary Table S2 - mapping speed and peak memory.
 
 Single-core performance for each tool: throughput (queries per second) and peak
 resident set size, each measured at the tool's benchmark query count. fastCDS,

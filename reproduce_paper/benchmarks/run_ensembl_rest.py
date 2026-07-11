@@ -51,7 +51,7 @@ def query_one(pid: str, start: int, end: int, retries: int = 3) -> tuple[list, s
                 backoff *= 2
                 continue
             if e.code in (400, 404):
-                # Bad request / not found — protein not in their annotation.
+                # Bad request / not found - protein not in their annotation.
                 return [], "no_result"
             return [], f"error_http{e.code}"
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
