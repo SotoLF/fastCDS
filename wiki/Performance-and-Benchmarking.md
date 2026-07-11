@@ -123,14 +123,13 @@ A few practical points matter when reproducing this. Installing ensembldb is bes
 
 The same 5,000-query stratified set drives a head-to-head against the three tools users most often choose between: ensembldb (the R/Bioconductor canonical), TransVar (the HGVS-based variant-annotation perspective, popular with clinical teams), and Ensembl REST (the no-install zero-overhead path). Tools considered and rejected include GeneMANIA (no per-domain output), peptidomics tools (a different problem), and VEP (genome->protein, the opposite direction). Reproduce with [`scaling_benchmark.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/scaling_benchmark.py), [`run_transvar.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/run_transvar.py), [`run_ensembl_rest.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/run_ensembl_rest.py), and the [`software_comparison.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/notebooks/software_comparison.ipynb) notebook.
 
-> **The one number to quote: ~970x faster than ensembldb.** It is measured
-> **end-to-end at N = 10,000, single thread** - total wall time from process
-> start until all results are written, *including the one-time index load*,
-> divided by N. That's the number a user actually waits for, and a fair one (it
-> charges fastCDS for its own load). The only caveat is that you must **state
-> N**, because the ratio grows with N: fastCDS's ~1.2 s index load is amortized
-> over more queries, so fastCDS-vs-ensembldb is ~130x at N = 1,000 and ~970x at
-> N = 10,000. We use N = 10,000 everywhere as the headline.
+> **~970x faster than ensembldb**, measured end-to-end at N = 10,000, single
+> thread: total wall time from process start until all results are written,
+> including the one-time index load, divided by N. This basis charges fastCDS for
+> its own index load. State N when quoting the ratio, because it grows with N:
+> fastCDS's ~1.2 s index load is amortized over more queries, so
+> fastCDS-vs-ensembldb is ~130x at N = 1,000 and ~970x at N = 10,000. N = 10,000
+> is used throughout as the headline figure.
 
 | Metric | fastCDS | ensembldb | TransVar | Ensembl REST |
 |---|---|---|---|---|

@@ -2,12 +2,12 @@
 
 Reproduction harness for the correctness + speed comparisons reported in [[Performance-and-Benchmarking]] on the wiki.
 
-## At a glance
+## Results
 
-| Question | Headline |
+| Question | Result |
 |---|---|
-| Are the coordinates correct? | **100.00 % exact match vs ensembldb _and_ GenomicFeatures::proteinToGenome** — three-way agreement, zero off-by-ones, zero structural mismatches. |
-| Is it fast enough? | **5,847 q/s** on one thread (N = 10,000, end-to-end) — **~970× ensembldb, ~4.4× TransVar, ~5,400× Ensembl REST**. |
+| Are the coordinates correct? | 100.00% exact match against both Bioconductor `proteinToGenome` methods (ensembldb and GenomicFeatures) on the 5,000-query set: zero off-by-ones, zero structural mismatches. |
+| Is it fast enough? | 5,847 q/s on one thread (N = 10,000, end-to-end): ~970x ensembldb, >200x GenomicFeatures, ~4.4x TransVar, ~5,400x Ensembl REST. |
 
 ### How "speedup" is measured
 

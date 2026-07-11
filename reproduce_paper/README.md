@@ -23,7 +23,7 @@ reproduction harness and covers `software_comparison.ipynb` and
 `../tutorial/walkthrough_end_to_end.ipynb` is a standalone zero-to-figure tour of
 the API and does not depend on these.
 
-## What lands where
+## Data directory and outputs
 
 All notebooks read and write a single data directory,
 `~/Desktop/protein2genomic_data/` (set once at the top of each notebook as

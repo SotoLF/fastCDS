@@ -4,7 +4,7 @@ Once you have an `isoform_structure.tsv` from [[Mapping]], `fastCDS plot` render
 
 Together with the BED12 track written by [[Mapping]], these are fastCDS's three output types: the **BED12 track** for genome browsers, the **static figure**, and the **interactive viewer** (`js` or `plotly` engine).
 
-## At a glance
+## Choosing the output format
 
 The extension of the output picks the format; there is nothing else to choose except the interactive engine.
 
