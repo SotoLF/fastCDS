@@ -1,0 +1,7 @@
+tool	queries_per_s	peak_rss_mb	n
+fastCDS	5886	808	10000
+GenomicFeatures (GRanges)	27.5	1270	10000
+VisProDom	18	2406	1000
+geneplot	8.1	317	1000
+ensembldb	6.0	1191	10000
+Ensembl REST	1.29	28	1000

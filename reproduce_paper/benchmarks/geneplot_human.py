@@ -1,3 +1,9 @@
+"""geneplot on the human set (offline benchmark harness).
+
+Times the geneplot mapper over the human Ensembl-86 query set to measure its
+speed on real human data. Assumes the offline harness layout under
+/tmp/p2gbench/ (geneplot checkout + inputs); see benchmarks/README.md.
+"""
 import time, sys, os, io, contextlib, logging
 sys.path.insert(0, "/tmp/p2gbench/geneplot")
 logging.getLogger("geneplot").setLevel(logging.ERROR)

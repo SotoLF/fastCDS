@@ -4,7 +4,7 @@ breakdown as validate_vs_ensembldb.py, but for any tool whose output is in the
 common 6-column TSV (query_id, chrom, start, end, strand, status).
 
 Useful for comparing TransVar and Ensembl REST against the same reference
-that ensembldb was compared to in Phase 2.
+that ensembldb was compared to in matched-annotation validation.
 """
 
 from __future__ import annotations

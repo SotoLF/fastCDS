@@ -1,4 +1,4 @@
-# tutorial/reproduce_paper/benchmarks/
+# reproduce_paper/benchmarks/
 
 Reproduction harness for the correctness + speed comparisons reported in [[Performance-and-Benchmarking]] on the wiki.
 
@@ -27,8 +27,9 @@ See [`wiki/Performance-and-Benchmarking.md`](../../../wiki/Performance-and-Bench
 
 | File | Purpose |
 |---|---|
-| `sample_validation_queries.py` | GTF parser + 9-stratum sampler (1 K plus / 1 K minus / 1 K single-exon / 1 K multi-exon / 500 codon-split / 200 incomplete CDS / 100 selenoprotein / 100 single-exon-gene / 100 many-exon-gene) |
-| `ensembldb_query.R` | Batch `proteinToGenome` via R subprocess |
+| `sample_validation_queries.py` | GTF parser + 9-category sampler (1 K plus / 1 K minus / 1 K single-exon / 1 K multi-exon / 500 codon-split / 200 incomplete CDS / 100 selenoprotein / 100 single-exon-gene / 100 many-exon-gene). `cds_incomplete` is **exclusive**: the other eight categories draw only from complete-CDS transcripts, so every `cds_start_NF`/`cds_end_NF` query lands in `cds_incomplete`. |
+| `ensembldb_query.R` | Batch `ensembldb::proteinToGenome` (EnsDb method) via R subprocess |
+| `genomicfeatures_query.R` | Batch `GenomicFeatures::proteinToGenome` (GRangesList method, in-memory) via R subprocess — the independent second reference implementation |
 | `proteintogenome_bench.R` | Speed + RAM for `ensembldb::proteinToGenome` (SQLite-backed) vs `GenomicFeatures::proteinToGenome` (GRangesList, in-memory) on the same queries |
 | `visprodom_bench.R` | Speed + RAM for VisProDom's `CreDat()` batch mapper (pure R/dplyr; O(genome) per call) |
 | `compare_intervals.py` | Per-query exact-segment agreement across mappers (ensembldb / GenomicFeatures / fastCDS) |
@@ -39,15 +40,15 @@ See [`wiki/Performance-and-Benchmarking.md`](../../../wiki/Performance-and-Bench
 | `run_ensembl_rest.py` | Rate-limited REST client |
 | `run_transvar.py` | Builds HGVS from EnsDb sequences, drives TransVar |
 | `classify_external.py` | Bucket-classifier (use `--envelope-only` for TransVar) |
-| `make_scaling_outputs.py` | 2-tool Table 1 + scaling.png |
-| `make_table_1.py` | 4-tool Table 1 |
-| `make_figure_1.py` | 4-panel composite (paper Figure 1) |
+| `make_scaling_outputs.py` | scaling.png + wall-time summary |
+| `make_table_s1.py` | **Table S1** — per-tool, per-category agreement (ensembldb, GenomicFeatures, TransVar, REST across the 9 categories; TransVar reported NA where a category has multi-CDS-block queries; REST split into exact / off-by-one / no-mapping) |
+| `make_table_s2.py` | **Table S2** — mapping speed and peak memory across the six tools (fastCDS, GenomicFeatures, VisProDom, geneplot, ensembldb, REST) |
 
 ## Reproducing in one block
 
 ```bash
 # 0) Environment (R + Bioconductor — conda is the path of least friction)
-conda env create -f tutorial/reproduce_paper/benchmarks/environment.yml
+conda env create -f reproduce_paper/benchmarks/environment.yml
 conda activate prot2exon-val
 Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org"); \
             BiocManager::install(c("ensembldb", "GenomicFeatures", \
@@ -58,23 +59,23 @@ Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org");
 ./build/fastCDS index --gtf Homo_sapiens.GRCh38.86.chr.gtf --out human_v86.idx
 
 # 2) 5,000 stratified queries
-python tutorial/reproduce_paper/benchmarks/sample_validation_queries.py \
+python reproduce_paper/benchmarks/sample_validation_queries.py \
     --gtf Homo_sapiens.GRCh38.86.chr.gtf \
     --out-bed queries_v86.bed --out-meta queries_v86_meta.tsv
 
 # 3) Correctness validation
 EnsDb_v86_path=$(Rscript -e 'cat(system.file("extdata/EnsDb.Hsapiens.v86.sqlite",
                                               package="EnsDb.Hsapiens.v86"))')
-python tutorial/reproduce_paper/benchmarks/validate_vs_ensembldb.py \
+python reproduce_paper/benchmarks/validate_vs_ensembldb.py \
     --queries-bed queries_v86.bed --queries-meta queries_v86_meta.tsv \
     --fastCDS-index human_v86.idx --ensdb "$EnsDb_v86_path" \
     --out-dir validation_v86
 
 # 4) Scaling + parallel
-python tutorial/reproduce_paper/benchmarks/scaling_benchmark.py \
+python reproduce_paper/benchmarks/scaling_benchmark.py \
     --bin build/fastCDS --p2e-index human_v86.idx \
     --ensdb "$EnsDb_v86_path" \
-    --rscript $CONDA_PREFIX/bin/Rscript --r-helper tutorial/reproduce_paper/benchmarks/ensembldb_query.R \
+    --rscript $CONDA_PREFIX/bin/Rscript --r-helper reproduce_paper/benchmarks/ensembldb_query.R \
     --source-bed queries_v86.bed --work-dir bench \
     --sizes 100 1000 10000 100000 1000000 \
     --p2e-reps 2 --ensembldb-reps 1 --ensembldb-max-n 10000 \
@@ -82,7 +83,7 @@ python tutorial/reproduce_paper/benchmarks/scaling_benchmark.py \
 
 # combined threads × batch-size grid (wall + peak RSS in one sweep).
 # one-shot at N=1M holds ~13 GB in RAM — drop the `0` batch on a small-RAM box.
-python tutorial/reproduce_paper/benchmarks/threads_batch_grid.py \
+python reproduce_paper/benchmarks/threads_batch_grid.py \
     --bin build/fastCDS --index human_v86.idx \
     --bed bench/queries_n1000000.bed --work-dir bench/grid \
     --threads 1 4 8 16 32 --batch-sizes 0 10000 50000 100000 --reps 2 \
@@ -91,18 +92,18 @@ python tutorial/reproduce_paper/benchmarks/threads_batch_grid.py \
 # 5) ensembldb vs GenomicFeatures::proteinToGenome (speed + RAM, same queries)
 head -1000 queries_v86.bed > q1k.bed
 for tool in ensembldb genomicfeatures; do
-  Rscript tutorial/reproduce_paper/benchmarks/proteintogenome_bench.R $tool "$EnsDb_v86_path" \
+  Rscript reproduce_paper/benchmarks/proteintogenome_bench.R $tool "$EnsDb_v86_path" \
       q1k.bed ${tool}_intervals.tsv ${tool}_timing.tsv
 done
 build/fastCDS map --index human_v86.idx --bed q1k.bed --out-dir p2e_q1k --output coding
-python tutorial/reproduce_paper/benchmarks/compare_intervals.py \
+python reproduce_paper/benchmarks/compare_intervals.py \
     ensembldb=ensembldb_intervals.tsv \
     genomicfeatures=genomicfeatures_intervals.tsv \
     fastCDS=p2e_q1k/domain_cds_segments.tsv
 
 # 6) VisProDom CreDat() batch-mapper characterization (its own maize example data)
 git clone --depth 1 https://github.com/whweve/VisProDom /tmp/VisProDom
-Rscript tutorial/reproduce_paper/benchmarks/visprodom_bench.R /tmp/VisProDom
+Rscript reproduce_paper/benchmarks/visprodom_bench.R /tmp/VisProDom
 ```
 
 Total wall: validation ~5 min, scaling ~50 min (ensembldb N = 10K is ~26 min of that), parallel ~1 min, proteinToGenome head-to-head ~5 min (ensembldb N = 1K is ~3.5 min of that), VisProDom ~1 min.

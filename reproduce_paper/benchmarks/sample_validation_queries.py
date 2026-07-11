@@ -1,5 +1,5 @@
 """Sample a stratified validation set of (protein_id, aa_start, aa_end) queries
-from a GENCODE/Ensembl GTF, per PLAN.txt Phase 2.
+from a GENCODE/Ensembl GTF, .
 
 The 9 strata (totaling 5,000 by default):
     1,000 single-exon DOMAINS      — aa range fits inside one CDS exon
@@ -8,6 +8,8 @@ The 9 strata (totaling 5,000 by default):
     1,000 plus-strand GENES        — random aa range on a + strand transcript
     1,000 minus-strand GENES       — random aa range on a - strand transcript
       200 CDS-incomplete proteins  — cds_start_NF / cds_end_NF tagged
+    (cds_incomplete is EXCLUSIVE: the other eight categories draw only from
+     complete-CDS transcripts, so every incomplete-CDS query lands here)
       100 selenoproteins           — curated gene-name list
       100 single-exon GENES        — transcripts with 1 CDS exon
       100 many-exon GENES          — transcripts with > 20 CDS exons
@@ -18,7 +20,7 @@ Outputs:
                       strand, n_cds_exons, gene_name, aa_start, aa_end
 
 The metadata TSV is what the validation script uses for stratified reporting
-in Table 1.
+in Supplementary Table S1.
 """
 
 from __future__ import annotations
@@ -216,15 +218,15 @@ def pick_random_range(tx, rng: random.Random) -> tuple[int, int] | None:
 
 STRATA_SPEC = [
     # (category_name, target_count, transcript_filter, range_picker)
-    ("single_exon_domain", 1000, lambda tx: True, pick_single_exon_domain_range),
-    ("multi_exon_domain", 1000, lambda tx: tx["n_cds_exons"] >= 2, pick_multi_exon_domain_range),
-    ("codon_split_boundary", 500, lambda tx: len(tx["codon_split_aas"]) > 0, pick_codon_split_range),
-    ("plus_strand_gene", 1000, lambda tx: tx["strand"] == "+", pick_random_range),
-    ("minus_strand_gene", 1000, lambda tx: tx["strand"] == "-", pick_random_range),
+    ("single_exon_domain", 1000, lambda tx: not tx["has_cds_NF"], pick_single_exon_domain_range),
+    ("multi_exon_domain", 1000, lambda tx: tx["n_cds_exons"] >= 2 and not tx["has_cds_NF"], pick_multi_exon_domain_range),
+    ("codon_split_boundary", 500, lambda tx: len(tx["codon_split_aas"]) > 0 and not tx["has_cds_NF"], pick_codon_split_range),
+    ("plus_strand_gene", 1000, lambda tx: tx["strand"] == "+" and not tx["has_cds_NF"], pick_random_range),
+    ("minus_strand_gene", 1000, lambda tx: tx["strand"] == "-" and not tx["has_cds_NF"], pick_random_range),
     ("cds_incomplete", 200, lambda tx: tx["has_cds_NF"], pick_random_range),
-    ("selenoprotein", 100, lambda tx: tx["gene_name"] in SELENOPROTEINS, pick_random_range),
-    ("single_exon_gene", 100, lambda tx: tx["n_cds_exons"] == 1, pick_random_range),
-    ("many_exon_gene", 100, lambda tx: tx["n_cds_exons"] > 20, pick_random_range),
+    ("selenoprotein", 100, lambda tx: tx["gene_name"] in SELENOPROTEINS and not tx["has_cds_NF"], pick_random_range),
+    ("single_exon_gene", 100, lambda tx: tx["n_cds_exons"] == 1 and not tx["has_cds_NF"], pick_random_range),
+    ("many_exon_gene", 100, lambda tx: tx["n_cds_exons"] > 20 and not tx["has_cds_NF"], pick_random_range),
 ]
 
 

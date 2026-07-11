@@ -23,7 +23,7 @@ fastCDS/
 │   ├── examples/             small fixtures (tp53_isoforms.tsv, ...)
 │   └── reproduce_paper/      reproduce the paper end to end
 │       ├── benchmarks/       1M-query + scaling + validation harness
-│       └── end_to_end/       atlas / ClinVar / AlphaFold / validation notebooks
+│       └── notebooks/       atlas / ClinVar / AlphaFold / validation notebooks
 ├── software_tests/           pytest suite (golden-file + integration)
 └── wiki/                     these pages
 ```

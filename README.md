@@ -125,19 +125,19 @@ Full reference: [Building an index](https://github.com/SotoLF/fastCDS/wiki/Index
 
 - **100.00 % exact match vs ensembldb** on 5,000 stratified queries (9 strata covering single/multi-exon, both strands, codon-split, selenoproteins, incomplete CDS) - zero off-by-ones, zero structural mismatches.
 - **~970x faster than ensembldb** (also ~4.4x TransVar, ~5,400x Ensembl REST) - measured *end-to-end*: total wall time from process start to all results written, including the one-time index load, over N = 10,000 queries on one thread (fastCDS 5,847 q/s vs ensembldb 6 q/s). The gap grows with N because fastCDS amortizes its ~1.2 s index load; the per-query mapping itself, once loaded, is faster still.
-- Full design, numbers, and scaling curves: [Performance and benchmarking](https://github.com/SotoLF/fastCDS/wiki/Performance-and-Benchmarking). Reproduce via [`tutorial/reproduce_paper/benchmarks/README.md`](tutorial/reproduce_paper/benchmarks/README.md).
+- Full design, numbers, and scaling curves: [Performance and benchmarking](https://github.com/SotoLF/fastCDS/wiki/Performance-and-Benchmarking). Reproduce via [`reproduce_paper/benchmarks/README.md`](reproduce_paper/benchmarks/README.md).
 
 ## Notebooks
 
-Worked examples under [`tutorial/`](tutorial/) - each opens in [Colab](https://colab.research.google.com/github/SotoLF/fastCDS) or [nbviewer](https://nbviewer.org/github/SotoLF/fastCDS). They reproduce the manuscript's example analyses **end to end, from data download to figure**; see [`tutorial/reproduce_paper/README.md`](tutorial/reproduce_paper/README.md) for the data sources, run order, and runtimes.
+Worked examples under [`tutorial/`](tutorial/) - each opens in [Colab](https://colab.research.google.com/github/SotoLF/fastCDS) or [nbviewer](https://nbviewer.org/github/SotoLF/fastCDS). They reproduce the manuscript's example analyses **end to end, from data download to figure**; see [`reproduce_paper/README.md`](reproduce_paper/README.md) for the data sources, run order, and runtimes.
 
 | Notebook | What it covers |
 |---|---|
 | [`walkthrough_end_to_end.ipynb`](tutorial/walkthrough_end_to_end.ipynb) ([view on nbviewer](https://nbviewer.org/github/SotoLF/fastCDS/blob/main/tutorial/walkthrough_end_to_end.ipynb)) | Zero-to-figure tour: `fetch_index` -> BED prep -> `map_batch` -> all plot styles. The interactive HTML viewers only render on **nbviewer**, not GitHub. |
-| [`domain_functional_atlas.ipynb`](tutorial/reproduce_paper/end_to_end/domain_functional_atlas.ipynb) | The Ensembl-r115 Pfam atlas: single-exon fraction + domain size by function (Fig 1D), domain position along the protein (Q1/Q50/Q100), completeness, all per-family, **and the ClinVar pathogenic-variant enrichment** in domain-coding exons. |
-| [`alphafold_plddt_junctions.ipynb`](tutorial/reproduce_paper/end_to_end/alphafold_plddt_junctions.ipynb) | AlphaFold per-residue pLDDT vs distance to the nearest exon-exon junction (2D density), across the canonical human proteome. |
-| [`software_comparison.ipynb`](tutorial/reproduce_paper/end_to_end/software_comparison.ipynb) | **Speed + accuracy** vs `ensembldb` / GenomicFeatures / TransVar / Ensembl REST / VisProDom / geneplot: agreement + end-to-end throughput + RSS, all on the same human set. |
-| [`scaling_and_ram.ipynb`](tutorial/reproduce_paper/end_to_end/scaling_and_ram.ipynb) | fastCDS measured against itself (not other tools): wall-clock + peak-RSS scaling curves, OpenMP speedup, and the `--batch-size` RAM cap at N = 1 M. |
+| [`isoform_domain_conservation_analysis.ipynb`](reproduce_paper/notebooks/isoform_domain_conservation_analysis.ipynb) | Projects every source-isoform Pfam domain onto a gene's alternative protein-coding isoforms and scores retention (intact / partially trimmed / skipped) - the analysis behind **Figure 1C-F**. |
+| [`alphafold_plddt_junctions.ipynb`](reproduce_paper/notebooks/alphafold_plddt_junctions.ipynb) | AlphaFold per-residue pLDDT vs distance to the nearest exon-exon junction (2D density), across the canonical human proteome. |
+| [`software_comparison.ipynb`](reproduce_paper/notebooks/software_comparison.ipynb) | **Speed + accuracy** vs `ensembldb` / GenomicFeatures / TransVar / Ensembl REST / VisProDom / geneplot: agreement + end-to-end throughput + RSS, all on the same human set. |
+| [`scaling_and_ram.ipynb`](reproduce_paper/notebooks/scaling_and_ram.ipynb) | fastCDS measured against itself (not other tools): wall-clock + peak-RSS scaling curves, OpenMP speedup, and the `--batch-size` RAM cap at N = 1 M. |
 
 ## Citation
 

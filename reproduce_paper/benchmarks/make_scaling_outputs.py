@@ -1,14 +1,14 @@
-"""Generate Phase 3 deliverables from the raw timing TSVs.
+"""Generate paper benchmark outputs from the raw timing TSVs.
 
 Inputs:
   --scaling-tsv     output of scaling_benchmark.py (per-rep timings)
   --parallel-tsv    output of parallel_benchmark.py (per-rep timings at varying threads)
   --p2e-index-size  bytes — `ls -l human_v86.idx` (or any fastCDS index)
   --ensdb-size      bytes — EnsDb sqlite file size
-  --agreement       OVERALL exact-match percentage from Phase 2 (e.g. 100.00)
+  --agreement       OVERALL exact-match percentage from matched-annotation validation (e.g. 100.00)
 
 Outputs in --out-dir:
-  table1.tsv         paper Table 1 — tool × metric
+  paper speed/memory summary (now Supplementary Table S2)
   scaling.png        log-log runtime + parallel efficiency, two panels
   parallel.tsv       per-thread median wall + speedup + efficiency
 """
@@ -56,7 +56,7 @@ def main():
     ap.add_argument("--p2e-index-size", type=int, required=True, help="bytes")
     ap.add_argument("--ensdb-size", type=int, required=True, help="bytes")
     ap.add_argument("--agreement", type=float, default=100.0,
-                    help="OVERALL exact-match percentage from Phase 2")
+                    help="OVERALL exact-match percentage from matched-annotation validation")
     ap.add_argument("--out-dir", required=True, type=Path)
     args = ap.parse_args()
 
@@ -68,7 +68,7 @@ def main():
     med_wall = median_by(scaling, "tool", "n", value="wall_s")
     med_rss = median_by(scaling, "tool", "n", value="peak_rss_mb")
 
-    # ----- Table 1 -----
+    # ----- speed/memory summary (Supplementary Table S2) -----
     # Pick reference N = 10,000 for "Runtime 10K" since both tools have it.
     REF_N = 10000
 

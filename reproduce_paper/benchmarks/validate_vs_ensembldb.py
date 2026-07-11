@@ -1,5 +1,5 @@
 """Run fastCDS and ensembldb on the same query set, classify every query into
-the 5 PLAN.txt buckets, and emit Table 1 of the paper (stratified agreement).
+the agreement buckets, and emit Supplementary Table S1 (9 categories) (stratified agreement).
 
 Inputs:
   --queries-bed       BED-like, 4 cols (protein_id, aa_start, aa_end, query_id)
@@ -8,7 +8,7 @@ Inputs:
   --ensdb             EnsDb sqlite path
   --rscript           path to Rscript (default: $CONDA_PREFIX/bin/Rscript or `Rscript`)
   --fastCDS-bin     path to fastCDS binary (default: ../build/fastCDS)
-  --out-dir           where to write intermediate outputs + Table 1
+  --out-dir           where to write intermediate outputs + Supplementary Table S1
 
 Outputs in --out-dir:
   fastCDS/*                       fastCDS's own output files
@@ -194,7 +194,7 @@ def main():
                                   p2e_intervals.get(qid, []),
                                   ens_intervals.get(qid, [])))
 
-    # Write Table 1.
+    # Write Supplementary Table S1.
     table_path = args.out_dir / "table1.tsv"
     BUCKETS = ["exact_match", "off_by_one", "structural_mismatch",
                "only_fastCDS", "only_ensembldb", "neither_mapped"]
@@ -219,7 +219,7 @@ def main():
                     f"{','.join(f'{c}:{s}-{e}' for c, s, e in theirs)}\n")
     print(f"wrote {disc_path} ({len(discrepancies):,} discrepancy rows)", file=sys.stderr)
 
-    # Print Table 1 to stdout for the user.
+    # Print Supplementary Table S1 to stdout for the user.
     print()
     print(table_path.read_text())
 

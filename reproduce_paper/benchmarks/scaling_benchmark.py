@@ -1,4 +1,4 @@
-"""Phase 3 scaling benchmark: fastCDS vs ensembldb at increasing query scales.
+"""Scaling benchmark: fastCDS vs ensembldb at increasing query scales.
 
 Builds query subsets at N = 100, 1k, 10k, 100k (and 1M for fastCDS only),
 runs each tool, captures wall time and peak RSS, and writes timings.tsv.

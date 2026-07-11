@@ -1,3 +1,7 @@
+# VisProDom (CreDat) on the human set (offline benchmark harness).
+# Measures VisProDom speed/RAM mapping the human Ensembl-86 query set.
+# Assumes the offline harness layout under /tmp/p2gbench/ (VisProDom checkout
+# + visprodom_human.gff input); see benchmarks/README.md.
 suppressMessages({library(dplyr); library(data.table)})
 source("/tmp/p2gbench/VisProDom/R/CreDat.r")
 gff <- as.data.frame(fread("visprodom_human.gff", header=FALSE, sep="\t", quote=""))

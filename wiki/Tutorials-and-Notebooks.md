@@ -48,14 +48,14 @@ It's the guided, executed version of the [Quickstart](#quickstart-a-real-run-you
 
 Notebook: [`walkthrough_end_to_end.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/tutorial/walkthrough_end_to_end.ipynb) - [**view on nbviewer**](https://nbviewer.org/github/SotoLF/fastCDS/blob/main/tutorial/walkthrough_end_to_end.ipynb) (the inline interactive HTML viewers render on nbviewer, not on GitHub's notebook view)
 
-## Domain functional atlas (and ClinVar)
+## Domain conservation across isoforms
 
-This notebook maps every Pfam-A domain on the human proteome (Ensembl release 115) onto genomic exon structure and, counting one canonical isoform per gene, reports: the single-exon fraction **and** domain size by function (Fig 1D), where each domain sits along its protein (start / middle / end landmarks, in amino-acid space so UTRs play no part), and how fully a domain fills the exons that encode it (completeness) - each also broken down per Pfam family. It then runs the **ClinVar** test on the same atlas: whether pathogenic missense variants are enriched in CDS exons that code a Pfam-A domain (Fisher's exact, Panel C).
+This notebook projects every Pfam-A domain defined on a gene's reference isoform (MANE Select / Ensembl canonical) onto the gene's other protein-coding isoforms and scores whether each domain is retained - and in the same reading frame - classifying it as intact, partially trimmed, or skipped. It is the analysis behind the manuscript's **Figure 1C-F** (domain retention, per-isoform intactness distribution, and Pfam-clan intactness / exon architecture).
 
-Notebook: [`domain_functional_atlas.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/tutorial/reproduce_paper/end_to_end/domain_functional_atlas.ipynb)
+Notebook: [`isoform_domain_conservation_analysis.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/notebooks/isoform_domain_conservation_analysis.ipynb)
 
 ## AlphaFold pLDDT at splice junctions
 
 Per-residue AlphaFold pLDDT against distance (in nucleotides) to the nearest exon-exon junction, across the canonical human proteome - a 2D density showing model confidence dipping right at the splice site.
 
-Notebook: [`alphafold_plddt_junctions.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/tutorial/reproduce_paper/end_to_end/alphafold_plddt_junctions.ipynb)
+Notebook: [`alphafold_plddt_junctions.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/notebooks/alphafold_plddt_junctions.ipynb)

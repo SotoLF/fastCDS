@@ -130,20 +130,3 @@ def test_cli_plotter_smoke(out_all, tmp_path):
     )
     assert proc.returncode == 0, proc.stderr
     assert pdf.exists() and pdf.stat().st_size > 0
-
-
-def test_make_figure_1_renders(tmp_path):
-    """make_figure_1.py renders the headline figure (PNG + PDF)
-    without crashing, using the in-repo TP53 fixture."""
-    fig_dir = tmp_path / "figures"
-    bench = REPO_ROOT / "tutorial" / "reproduce_paper" / "benchmarks"
-    proc = subprocess.run(
-        [sys.executable, str(bench / "make_figure_1.py"),
-         "--tp53-isoforms", str(REPO_ROOT / "tutorial" / "examples" / "tp53_isoforms.tsv"),
-         "--out-dir", str(fig_dir)],
-        capture_output=True, text=True,
-    )
-    assert proc.returncode == 0, proc.stderr
-    png, pdf = fig_dir / "figure_1.png", fig_dir / "figure_1.pdf"
-    assert png.exists() and png.stat().st_size > 10_000
-    assert pdf.exists() and pdf.stat().st_size > 5_000

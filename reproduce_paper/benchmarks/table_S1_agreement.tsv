@@ -1,0 +1,11 @@
+category	n	ensembldb_pct	GenomicFeatures_pct	TransVar_pct	REST_exact	REST_off	REST_no_map	REST_pct
+single_exon_domain	1000	100	100	100	998	0	2	99.8
+multi_exon_domain	1000	100	100	NA	999	0	1	99.9
+codon_split_boundary	500	100	100	NA	498	0	2	99.6
+plus_strand_gene	1000	100	100	NA	997	0	3	99.7
+minus_strand_gene	1000	100	100	NA	1000	0	0	100.0
+cds_incomplete	200	100	100	NA	163	37	0	81.5
+selenoprotein	100	100	100	NA	98	0	2	98.0
+single_exon_gene	100	100	100	100	100	0	0	100.0
+many_exon_gene	100	100	100	NA	100	0	0	100.0
+OVERALL	5000	100	100	NA	4953	37	10	99.06
