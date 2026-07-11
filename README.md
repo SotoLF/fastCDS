@@ -3,7 +3,8 @@
        src="https://raw.githubusercontent.com/SotoLF/fastCDS/main/wiki/images/fastcds_icon.png">
 </p>
 
-# fastCDS
+<h3 align="center">Fast, exact protein-to-genome coordinate mapping</h3>
+<p align="center"><em>map a protein feature's amino-acid range onto its genomic exon and CDS structure</em></p>
 
 <p align="center">
   <a href="https://pypi.org/project/fastCDS/"><img alt="PyPI"
