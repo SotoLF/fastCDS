@@ -21,8 +21,8 @@ Effective throughput at 100k is roughly 2,800 q/s producing all outputs and 5,70
 
 ### Parallelism and memory: `--threads` x `--batch-size`
 
-Two knobs, two independent axes - one trades wall time, the other trades peak
-RAM, so we sweep them together rather than in separate tables:
+The two flags control independent axes: one trades wall time, the other trades
+peak RAM, so they are swept together rather than in separate tables:
 
 - **`--threads`** runs per-query processing in an OpenMP loop (and the per-file
   writes via OpenMP `sections`). It cuts **wall time**.
@@ -44,11 +44,11 @@ workstation (enough RAM that nothing swaps, so this is the *pure* tradeoff):
 
 **Peak RSS depends only on the batch size, not the thread count** (it's flat down
 every column): one-shot **13.3 GB**, `--batch-size 100000 / 50000 / 10000` =
-**2.4 / 1.6 / 0.9 GB**. So the two knobs really are orthogonal - `--threads` for
+**2.4 / 1.6 / 0.9 GB**. So the two flags are orthogonal - `--threads` for
 wall time, `--batch-size` for memory.
 
-Reading the grid down a column: **`--threads` cuts wall time ~2.1x** by 16
-threads (22.9 -> 10.8 s one-shot; ~1.5x already at 2 threads), then plateaus as the
+Down a column, `--threads` cuts wall time ~2.1x by 16
+threads (22.9 to 10.8 s one-shot; ~1.5x already at 2 threads), then plateaus as the
 single-threaded TSV writer and memory bandwidth take over - set `--threads` to
 your physical core count. Across a row: once you have **>= 4 threads, bigger
 batches are slightly faster** (closer to one-shot, since fewer flush cycles) but
@@ -57,7 +57,7 @@ use proportionally more RAM - a genuine speed/memory dial. The one exception is
 1 M results (13.3 GB) in memory thrashes the allocator and cache, and any batch
 fixes it.
 
-**Rule of thumb:** one-shot is fastest when you have spare cores *and* spare RAM;
+In practice, one-shot is fastest when both spare cores and spare RAM are available;
 otherwise `--batch-size 10000` gives ~14x less memory (0.9 vs 13.3 GB) for
 ~10-15 % more wall, with byte-identical output. Batch when N is large or RAM is
 tight.
@@ -72,9 +72,9 @@ Reproduce the grid with [`reproduce_paper/benchmarks/threads_batch_grid.py`](htt
 
 Coordinate correctness is validated against ensembldb, the Bioconductor canonical for protein-to-genome mapping (~800 paper citations). Because ensembldb is an independent R/SQL implementation on top of EnsDb, an agreement is genuine cross-validation rather than testing the same code twice. The validator drives the fastCDS binary and shells out to `Rscript` for ensembldb; reproduce it with [`validate_vs_ensembldb.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/validate_vs_ensembldb.py) and the [`software_comparison.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/notebooks/software_comparison.ipynb) notebook.
 
-The headline result is 100.00% exact match against ensembldb on a 5,000-query stratified set - zero off-by-ones and zero structural mismatches. Random sampling would underweight the corner cases that matter, so a 9-stratum sampler ([`sample_validation_queries.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/sample_validation_queries.py)) ensures every condition that historically breaks these tools is represented:
+fastCDS matches ensembldb exactly (100.00%) on a 5,000-query set, with zero off-by-ones and zero structural mismatches. Random sampling would under-represent the difficult cases, so the set is drawn by a 9-category sampler ([`sample_validation_queries.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/sample_validation_queries.py)) that covers each condition known to break these tools:
 
-| Stratum | n | What it stresses |
+| Category | n | What it stresses |
 |---|---:|---|
 | `single_exon_domain` | 1,000 | The common shape (high test coverage) |
 | `multi_exon_domain` | 1,000 | The hard case - find all CDS pieces |
@@ -86,7 +86,7 @@ The headline result is 100.00% exact match against ensembldb on a 5,000-query st
 | `single_exon_gene` | 100 | Boundary case for the multi-exon path |
 | `many_exon_gene` | 100 | > 20 CDS exons - exon-walker stress |
 
-Every stratum returns 100% exact agreement on the matched-annotation (v86) path:
+Every category returns 100% exact agreement on the matched-annotation (v86) path:
 
 ```
 category               n     exact  off_by_one  structural  only_fCDS only_ens  exact_pct
@@ -110,7 +110,7 @@ A second run tests annotation drift, comparing fastCDS on a current GENCODE GTF 
 
 ### Matched-pairwise agreement with TransVar and Ensembl REST
 
-Each comparator is pinned to a different Ensembl release - ensembldb to its packaged EnsDb (v86), TransVar to its bundled Ensembl 95 (the download URL is hard-coded in TransVar's `config.py`; there is no "latest" option), and the REST API to whatever release is live (currently 115). A single shared release is therefore impossible, so fastCDS is re-indexed to **each tool's** release and the same 9-stratum sampler is rerun there. Matching the annotation is essential: comparing across releases measures annotation drift, not coordinate agreement.
+Each comparator is pinned to a different Ensembl release - ensembldb to its packaged EnsDb (v86), TransVar to its bundled Ensembl 95 (the download URL is hard-coded in TransVar's `config.py`; there is no "latest" option), and the REST API to whatever release is live (currently 115). A single shared release is therefore impossible, so fastCDS is re-indexed to **each tool's** release and the same 9-category sampler is rerun there. Matching the annotation is essential: comparing across releases measures annotation drift, not coordinate agreement.
 
 - **TransVar (Ensembl 95):** TransVar returns a single enclosing genomic span, not the individual CDS intervals, so it can be scored at fastCDS's per-exon resolution only for categories where every query maps to a single CDS block (`single_exon_domain`, `single_exon_gene`) - **100% exact** there. The spanning categories are reported as **NA** (Table S1), because one span cannot represent a multi-block answer. (The 5,000-query set is sampled from the **intersection** of the Ensembl 95 GTF and TransVar's built `transvardb`, keeping the denominator a clean 5,000; a naive *cross-release* comparison scores only ~35%, but that is pure annotation drift and disappears on matched v95.)
 - **Ensembl REST (Ensembl 115):** **4,953 / 5,000 = 99.06% exact**, with 37 `off_by_one` (all <= 2 nt) and **0 structural mismatches**. The nine categories are defined so that incomplete-CDS transcripts (`cds_start_NF` / `cds_end_NF`) are confined to an **exclusive** `cds_incomplete` category; under that design **every** off-by-one falls in `cds_incomplete` (163 / 200 exact, 81.5%), while the eight complete-CDS categories are **100% exact** (the only other gap is 10 queries the live REST service returned an error for). ensembldb and GenomicFeatures match fastCDS exactly on all 5,000.
@@ -121,7 +121,7 @@ A few practical points matter when reproducing this. Installing ensembldb is bes
 
 ## Speed vs other tools
 
-The same 5,000-query stratified set drives a head-to-head against the three tools users most often choose between: ensembldb (the R/Bioconductor canonical), TransVar (the HGVS-based variant-annotation perspective, popular with clinical teams), and Ensembl REST (the no-install zero-overhead path). Tools considered and rejected include GeneMANIA (no per-domain output), peptidomics tools (a different problem), and VEP (genome->protein, the opposite direction). Reproduce with [`scaling_benchmark.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/scaling_benchmark.py), [`run_transvar.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/run_transvar.py), [`run_ensembl_rest.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/run_ensembl_rest.py), and the [`software_comparison.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/notebooks/software_comparison.ipynb) notebook.
+The same 5,000-query query set drives a head-to-head against the three most common alternatives: ensembldb (the R/Bioconductor canonical), TransVar (the HGVS-based variant-annotation perspective, popular with clinical teams), and Ensembl REST (the no-install zero-overhead path). Tools considered and rejected include GeneMANIA (no per-domain output), peptidomics tools (a different problem), and VEP (genome->protein, the opposite direction). Reproduce with [`scaling_benchmark.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/scaling_benchmark.py), [`run_transvar.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/run_transvar.py), [`run_ensembl_rest.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/run_ensembl_rest.py), and the [`software_comparison.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/notebooks/software_comparison.ipynb) notebook.
 
 > **~970x faster than ensembldb**, measured end-to-end at N = 10,000, single
 > thread: total wall time from process start until all results are written,

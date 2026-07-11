@@ -1,4 +1,4 @@
-# reproduce_paper/ — reproduce the paper's example analyses
+# reproduce_paper/ - reproduce the paper's example analyses
 
 These notebooks reproduce the manuscript's example application end to end. Every
 heavy input is fetched by the notebook itself (nothing needs to be staged by
@@ -27,7 +27,7 @@ the API and does not depend on these.
 
 All notebooks read and write a single data directory,
 `~/Desktop/protein2genomic_data/` (set once at the top of each notebook as
-`DATA` — edit that line to relocate). The first run downloads the inputs there;
+`DATA` - edit that line to relocate). The first run downloads the inputs there;
 later runs and the other notebooks reuse them. Figures are written as vector PDFs
 into [`figures/`](figures/), named for the manuscript panel they back (for
 example `Figure_1G_plddt_junctions.pdf`, `Figure_S2A_scaling.pdf`).
@@ -40,7 +40,7 @@ pip install fastCDS pandas numpy scipy matplotlib jupyter
 ```
 
 (The benchmark notebooks additionally need an R/Bioconductor + TransVar
-environment — see [`benchmarks/README.md`](benchmarks/README.md).)
+environment - see [`benchmarks/README.md`](benchmarks/README.md).)
 
 ## Data sources (all downloaded automatically)
 
