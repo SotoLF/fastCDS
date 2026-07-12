@@ -49,9 +49,6 @@ dist/
 .vscode/
 .idea/
 
-# Manuscript working draft (not tracked)
-MANUSCRIPT.md
-SUPPLEMENTARY.md
 
 # Reproduce-paper conservation analysis: large, regenerable outputs kept local
 # (the isoform_domain_conservation notebook rebuilds them, cache-aware). The
