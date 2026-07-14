@@ -42,7 +42,7 @@ Initial public-facing release. Baseline functionality:
 - Python wrapper (`pip install -e python/`) with `Mapper` / `MappingResult` / `plot()`.
 - Phase 1: 10-test golden-file suite (now 118 tests).
 - Phase 2: 100.00 % exact match against ensembldb's v86 on 5,000 stratified queries.
-- Phase 3: 4-tool head-to-head (ensembldb / TransVar / Ensembl REST) — 5,847 q/s single-threaded.
+- Phase 3: 3-tool head-to-head (ensembldb / Ensembl REST) - 5,847 q/s single-threaded.
 - Phase 4: Pfam-A proteome atlas + ClinVar enrichment notebooks.
 - Phase 6: `prepare_from_interpro.py`, `prepare_from_pfam.py`, `prepare_from_uniprot_features.py`.
 

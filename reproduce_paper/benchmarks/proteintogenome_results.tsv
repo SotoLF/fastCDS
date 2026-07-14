@@ -9,9 +9,6 @@ tool	setup_s	map_s	total_s	map_q_per_s	peak_rss_mb	exact_match_pct	notes
 fastCDS	1.19	0.014	1.20	71429	674	100.00	C++ binary; setup = v86 index load; map = 14ms for 1000 queries.
 GenomicFeatures::proteinToGenome	5.99	37.71	43.70	27	1364	100.00	GRangesList method; setup = cdsBy(edb,'tx') + protein->tx map; in-memory R lapply.
 ensembldb::proteinToGenome	0.00	160.12	160.12	6	1163	100.00	EnsDb (SQLite) backed; per-batch proteinToGenome.
-# VisProDom::CreDat (benchmarks/visprodom_bench.R, bundled maize proteome): wall
-# time flat across query count (no index, O(genome) per call) --
-# N=100 5.61s / N=1000 3.96s / N=10000 4.83s / FULL 10.33s (262392 rows, 910 MB).
 # geneplot (Python gffutils+BioPython): per-gene mapping ~0.6 ms (~1680 genes/s)
 # once loaded, but one gene per call and builds a gffutils SQLite db from the GFF3
 # first (O(genome)); plot-oriented, not a proteome-scale batch mapper.

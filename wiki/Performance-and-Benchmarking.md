@@ -131,19 +131,19 @@ The same 5,000-query query set drives a head-to-head against the three most comm
 > fastCDS-vs-ensembldb is ~130x at N = 1,000 and ~970x at N = 10,000. N = 10,000
 > is used throughout as the headline figure.
 
-| Metric | fastCDS | ensembldb | TransVar | Ensembl REST |
-|---|---|---|---|---|
-| Exact agreement vs fastCDS | ref | 100.00% (5,000 / 5,000) | 100.00% (1,761 / 1,761) | 98.30% (983 / 1,000) |
-| Runtime @ N = 10,000 (1 thread) | 1.71 s | 1,558 s | 7.54 s | rate-limited (~667 s @ 15 q/s cap; observed 9,180 s) |
-| Peak RSS @ N = 10,000 | 788 MB | 1,252 MB | 284 MB | N/A (HTTP client) |
-| Throughput @ N = 10,000 (q/s) | 5,847 | 6 | 1,326 | 1.09 (network-bound) |
-| Parallelism (OpenMP / threads) | Yes | No | No | N/A |
-| Plot-ready output schema | Yes | No | No | No |
-| Multi-species support | Yes (any GTF) | Yes (any Ensembl release) | Yes (hg19/hg38/mm9/mm10/...) | Yes (Ensembl-supported) |
-| Largest N tested | 1,000,000 | 10,000 | 10,000 | 1,000 (rate cap) |
-| Index / DB size on disk | 87 MB binary | 333 MB sqlite | 236 MB transvardb + 3 GB fasta | N/A (remote) |
+| Metric | fastCDS | ensembldb | Ensembl REST |
+|---|---|---|---|
+| Exact agreement vs fastCDS | ref | 100.00% (5,000 / 5,000) | 98.30% (983 / 1,000) |
+| Runtime @ N = 10,000 (1 thread) | 1.71 s | 1,558 s | rate-limited (~667 s @ 15 q/s cap; observed 9,180 s) |
+| Peak RSS @ N = 10,000 | 788 MB | 1,252 MB | N/A (HTTP client) |
+| Throughput @ N = 10,000 (q/s) | 5,847 | 6 | 1.09 (network-bound) |
+| Parallelism (OpenMP / threads) | Yes | No | N/A |
+| Plot-ready output schema | Yes | No | No |
+| Multi-species support | Yes (any GTF) | Yes (any Ensembl release) | Yes (Ensembl-supported) |
+| Largest N tested | 1,000,000 | 10,000 | 1,000 (rate cap) |
+| Index / DB size on disk | 87 MB binary | 333 MB sqlite | N/A (remote) |
 
-That is a ~970x end-to-end speedup over ensembldb at N = 10,000 (5,847 vs 6 q/s) with a smaller index, **more than 200x faster than GenomicFeatures** (5,847 vs 27.5 q/s), about 4.4x faster than TransVar with no FASTA required, and identical genomic intervals against every tool that returned data. On the matched-release 5,000-query set, fastCDS is **100% exact against both Bioconductor `proteinToGenome` methods** (ensembldb and GenomicFeatures), **100% against TransVar** on the single-CDS-block categories it can score (span-only elsewhere), and **99.06% against Ensembl REST** - where all 37 divergences are <= 2 nt off-by-ones confined to the exclusive incomplete-CDS category, and the other tools agree with fastCDS rather than REST on those rows.
+That is a ~970x end-to-end speedup over ensembldb at N = 10,000 (5,847 vs 6 q/s) with a smaller index, **more than 200x faster than GenomicFeatures** (5,847 vs 27.5 q/s), and identical genomic intervals against every tool that returned data. On the matched-release 5,000-query set, fastCDS is **100% exact against both Bioconductor `proteinToGenome` methods** (ensembldb and GenomicFeatures), **100% against TransVar** on the single-CDS-block categories it can score (span-only elsewhere), and **99.06% against Ensembl REST** - where all 37 divergences are <= 2 nt off-by-ones confined to the exclusive incomplete-CDS category, and the other tools agree with fastCDS rather than REST on those rows.
 
 Raw single-thread scaling:
 
@@ -173,9 +173,8 @@ A few notes on the external comparators. Ensembl REST is network-bound rather th
 
 At this N = 1,000 the end-to-end speedup is ~36x over GenomicFeatures (1.20 s vs 43.70 s) - smaller than the N = 10,000 headline only because fastCDS's 1.19 s load isn't amortized yet. GenomicFeatures is ~3.7x faster than ensembldb end-to-end, confirming the GRanges representation is the lighter of the two, and all three return identical coordinates on the 1,000-query set (see Accuracy above). One subtlety when reproducing: loading an EnsDb pulls in ensembldb's own `proteinToGenome` GRangesList method (which requires protein-sequence metadata on the CDS), so the runner fetches GenomicFeatures' method explicitly via `getMethod(..., where = asNamespace("GenomicFeatures"))`.
 
-### Other domain-on-gene tools (geneplot, VisProDom)
+### Other domain-on-gene tools (geneplot)
 
-Two other tools that "show domains on gene structure" are sometimes mentioned alongside these. Both are plot-oriented rather than proteome-scale mappers, so they sit outside the tables above, but tested here both do map coordinates internally:
+geneplot is sometimes mentioned alongside these. It is plot-oriented rather than a proteome-scale mapper, so it sits outside the tables above, but tested here it does map coordinates internally:
 
 - **geneplot** (Python; `gffutils` + BioPython) draws one gene at a time from a GFF3 plus an InterProScan domain file, and it *does* map internally: its `_transcriptpos_to_genomepos()` walks the gene's CDS to turn protein coordinates into genomic ones. Run on the human Ensembl-86 set, the end-to-end cost is ~14 genes/s: it first builds a `gffutils` SQLite database of the whole genome (minutes), then for each gene queries that database and re-reads the InterProScan domain file. It is built for single-gene figures, not proteome-scale batches.
-- **VisProDom** (R/Shiny) is a domain viewer, but its `CreDat(gff, annofile)` function *is* a real batch mapper (pure R/dplyr, cumulative-CDS arithmetic - the same idea fastCDS implements in C++). It has no prebuilt index, so it is **O(genome) per call**: it rebuilds every transcript's CDS layout on each invocation. On its bundled maize example it finishes in seconds, but on the human Ensembl-86 set the genome rebuild dominates: mapping the 1,000-query set takes **42.7 s at 2.3 GB**, since `CreDat` rebuilds every transcript's CDS layout on every call regardless of how many domains you ask for. That batch-recompute model is exactly what fastCDS's persistent binary index removes. Reproduce with [`visprodom_bench.R`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/visprodom_bench.R).

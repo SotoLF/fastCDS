@@ -2,9 +2,9 @@
 
 Single-core performance for each tool: throughput (queries per second) and peak
 resident set size, each measured at the tool's benchmark query count. fastCDS,
-GenomicFeatures, and ensembldb are benchmarked at N=10,000; VisProDom, geneplot,
-and the Ensembl REST API at N=1,000 (VisProDom/geneplot are slower and REST is
-rate-limited). Wall time is measured from process launch until all results are
+GenomicFeatures, and ensembldb are benchmarked at N=10,000; geneplot and the
+Ensembl REST API at N=1,000 (geneplot is slower and REST is rate-limited). Wall
+time is measured from process launch until all results are
 written, including index/database/annotation loading. REST's peak RSS reflects
 only the local client (mapping runs on the Ensembl server).
 
@@ -27,7 +27,7 @@ from pathlib import Path
 # Query count at which each tool is reported (matches the manuscript caption).
 BENCH_N = {
     "fastCDS": 10000, "GenomicFeatures": 10000, "ensembldb": 10000,
-    "VisProDom": 1000, "geneplot": 1000, "Ensembl_REST": 1000,
+    "geneplot": 1000, "Ensembl_REST": 1000,
 }
 DISPLAY = {"Ensembl_REST": "Ensembl REST", "GenomicFeatures": "GenomicFeatures (GRanges)"}
 

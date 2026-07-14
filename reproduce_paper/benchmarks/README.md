@@ -7,7 +7,7 @@ Reproduction harness for the correctness + speed comparisons reported in [[Perfo
 | Question | Result |
 |---|---|
 | Are the coordinates correct? | 100.00% exact match against both Bioconductor `proteinToGenome` methods (ensembldb and GenomicFeatures) on the 5,000-query set: zero off-by-ones, zero structural mismatches. |
-| Is it fast enough? | 5,847 q/s on one thread (N = 10,000, end-to-end): ~970x ensembldb, >200x GenomicFeatures, ~4.4x TransVar, ~5,400x Ensembl REST. |
+| Is it fast enough? | 5,847 q/s on one thread (N = 10,000, end-to-end): ~970x ensembldb, >200x GenomicFeatures, ~5,400x Ensembl REST. |
 
 ### How "speedup" is measured
 
@@ -21,7 +21,7 @@ is amortized over more queries as N rises, while ensembldb's per-query cost stay
 constant, so fastCDS-vs-ensembldb is ~130x at N = 1,000 and ~970x at N = 10,000.
 N = 10,000 is used as the headline figure throughout.
 
-See [`wiki/Performance-and-Benchmarking.md`](../../../wiki/Performance-and-Benchmarking.md) for the full result tables, the design rationale (9-category sampler, why each comparator), the GenomicFeatures / ensembldb / VisProDom comparison, and notes for reproducing.
+See [`wiki/Performance-and-Benchmarking.md`](../../../wiki/Performance-and-Benchmarking.md) for the full result tables, the design rationale (9-category sampler, why each comparator), the GenomicFeatures / ensembldb comparison, and notes for reproducing.
 
 ## Scripts
 
@@ -31,7 +31,6 @@ See [`wiki/Performance-and-Benchmarking.md`](../../../wiki/Performance-and-Bench
 | `ensembldb_query.R` | Batch `ensembldb::proteinToGenome` (EnsDb method) via R subprocess |
 | `genomicfeatures_query.R` | Batch `GenomicFeatures::proteinToGenome` (GRangesList method, in-memory) via R subprocess - the independent second reference implementation |
 | `proteintogenome_bench.R` | Speed + RAM for `ensembldb::proteinToGenome` (SQLite-backed) vs `GenomicFeatures::proteinToGenome` (GRangesList, in-memory) on the same queries |
-| `visprodom_bench.R` | Speed + RAM for VisProDom's `CreDat()` batch mapper (pure R/dplyr; O(genome) per call) |
 | `compare_intervals.py` | Per-query exact-segment agreement across mappers (ensembldb / GenomicFeatures / fastCDS) |
 | `validate_vs_ensembldb.py` | Runs fastCDS + ensembldb, classifies into the agreement buckets, emits Supplementary Table S1 |
 | `scaling_benchmark.py` | fastCDS vs ensembldb at N = 100 to 1 M |
@@ -42,7 +41,7 @@ See [`wiki/Performance-and-Benchmarking.md`](../../../wiki/Performance-and-Bench
 | `classify_external.py` | Bucket-classifier (use `--envelope-only` for TransVar) |
 | `make_scaling_outputs.py` | scaling.png + wall-time summary |
 | `make_table_s1.py` | **Table S1** - per-tool, per-category agreement (ensembldb, GenomicFeatures, TransVar, REST across the 9 categories; TransVar reported NA where a category has multi-CDS-block queries; REST split into exact / off-by-one / no-mapping) |
-| `make_table_s2.py` | **Table S2** - mapping speed and peak memory across the six tools (fastCDS, GenomicFeatures, VisProDom, geneplot, ensembldb, REST) |
+| `make_table_s2.py` | **Table S2** - mapping speed and peak memory across the five tools (fastCDS, GenomicFeatures, geneplot, ensembldb, REST) |
 
 ## Reproducing in one block
 
@@ -100,33 +99,25 @@ python reproduce_paper/benchmarks/compare_intervals.py \
     ensembldb=ensembldb_intervals.tsv \
     genomicfeatures=genomicfeatures_intervals.tsv \
     fastCDS=p2e_q1k/domain_cds_segments.tsv
-
-# 6) VisProDom CreDat() batch-mapper characterization (its own maize example data)
-git clone --depth 1 https://github.com/whweve/VisProDom /tmp/VisProDom
-Rscript reproduce_paper/benchmarks/visprodom_bench.R /tmp/VisProDom
 ```
 
-Total wall: validation ~5 min, scaling ~50 min (ensembldb N = 10K is ~26 min of that), parallel ~1 min, proteinToGenome head-to-head ~5 min (ensembldb N = 1K is ~3.5 min of that), VisProDom ~1 min.
+Total wall: validation ~5 min, scaling ~50 min (ensembldb N = 10K is ~26 min of that), parallel ~1 min, proteinToGenome head-to-head ~5 min (ensembldb N = 1K is ~3.5 min of that).
 
 Headline results (one machine, one thread): on 1,000 v86 queries fastCDS = ensembldb = GenomicFeatures at 1,000 / 1,000 exact-segment match; mapping time fastCDS 0.014 s vs GenomicFeatures 37.71 s vs ensembldb 160.12 s; see [`proteintogenome_results.tsv`](proteintogenome_results.tsv).
 
-## Other tools on human data (VisProDom, geneplot)
+## geneplot on human data
 
-VisProDom and geneplot ship only non-human example data (maize, fruit-fly), but
-both are general (any GFF + domain file), so we run them on the **same human
-Ensembl-86 set** for an apples-to-apples comparison. [`build_human_tool_inputs.py`](build_human_tool_inputs.py)
-turns the Ensembl-86 GFF3 + the Pfam-on-v86 domains into each tool's format
-(geneplot: InterProScan `.ipr`; VisProDom: a Phytozome-style GFF + RPS-BLAST
-`annofile`), then [`geneplot_human.py`](geneplot_human.py) and
-[`visprodom_human.R`](visprodom_human.R) run them.
+geneplot ships only non-human example data (fruit-fly), but it is general (any
+GFF + domain file), so we run it on the **same human Ensembl-86 set** for an
+apples-to-apples comparison. [`build_human_tool_inputs.py`](build_human_tool_inputs.py)
+turns the Ensembl-86 GFF3 + the Pfam-on-v86 domains into geneplot's InterProScan
+`.ipr` format, then [`geneplot_human.py`](geneplot_human.py) runs it.
 
-Neither has an index, and on the human genome it shows: VisProDom rebuilds the
-whole genome on every `CreDat` call (**42.7 s, 2.3 GB** for the 1,000-query set,
-~19 proteins/s), and geneplot builds a `gffutils` SQLite database of the genome
-first (minutes) then re-reads the domain file per gene (**~14 genes/s**
-end-to-end). On their bundled examples both finish in seconds; on human they
-land in the slow-tool range (vs fastCDS's ~830 q/s end-to-end on the same
-1,000-query set, index load included).
+geneplot has no index, and on the human genome it shows: it builds a `gffutils`
+SQLite database of the genome first (minutes) then re-reads the domain file per
+gene (**~14 genes/s** end-to-end). On its bundled example it finishes in seconds;
+on human it lands in the slow-tool range (vs fastCDS's ~830 q/s end-to-end on the
+same 1,000-query set, index load included).
 
 ## Reproduction notes
 

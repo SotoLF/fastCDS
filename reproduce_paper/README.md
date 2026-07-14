@@ -6,7 +6,7 @@ hand), and each step is **cache-aware**, so a re-run reuses what is already on
 disk.
 
 For the **speed / accuracy benchmarks** (vs `ensembldb`, `GenomicFeatures`,
-TransVar, Ensembl REST, VisProDom, geneplot) see
+TransVar, Ensembl REST, geneplot) see
 [`benchmarks/README.md`](benchmarks/README.md), which has its own one-block
 reproduction harness and covers `software_comparison.ipynb` and
 `scaling_and_ram.ipynb`.
