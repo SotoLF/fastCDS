@@ -43,7 +43,7 @@ def classify(ours, theirs) -> str:
     return "structural_mismatch"
 
 
-def load_p2e_intervals(cds_tsv: Path) -> dict:
+def load_fastcds_intervals(cds_tsv: Path) -> dict:
     by_qid: dict = defaultdict(list)
     with open(cds_tsv) as f:
         for row in csv.DictReader(f, delimiter="\t"):
@@ -79,7 +79,7 @@ def load_external(path: Path) -> dict:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--p2e-cds", required=True, type=Path,
+    ap.add_argument("--fastcds-cds", required=True, type=Path,
                     help="fastCDS domain_cds_segments.tsv")
     ap.add_argument("--external", required=True, type=Path,
                     help="External tool TSV (query_id, chrom, start, end, strand, status)")
@@ -92,7 +92,7 @@ def main():
     ap.add_argument("--out", required=True, type=Path)
     args = ap.parse_args()
 
-    ours = load_p2e_intervals(args.p2e_cds)
+    ours = load_fastcds_intervals(args.fastcds_cds)
     theirs = load_external(args.external)
     if args.envelope_only:
         ours = {k: envelope(v) for k, v in ours.items()}

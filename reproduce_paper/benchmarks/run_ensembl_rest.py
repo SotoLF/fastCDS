@@ -3,11 +3,24 @@
 as `ensembldb_query.R` so the comparison logic in validate_vs_ensembldb.py
 can reuse the same classifier.
 
-The public REST server is rate-limited (15 req/s, ~55K/hour). The script throttles
-to stay just under that with a small safety margin.
+The public REST server is rate-limited (15 req/s, ~55K/hour). The script paces
+itself to stay just under that with a small safety margin, whether it runs
+serially or across a thread pool.
+
+Two shapes of output, because the comparisons need different things:
+  * default    one row per exon segment, which is what the per-exon agreement
+               against fastCDS / ensembldb needs.
+  * --envelope one row per query, collapsed to (chrom, min start, max end).
+               Matches how TransVar reports, so it is the shape to use when
+               lining REST up against an envelope-only tool.
 
 Usage:
     python run_ensembl_rest.py <queries.bed> <out.tsv> [--limit N] [--qps 12]
+                               [--workers N] [--envelope]
+
+The 5,000-query agreement runs use --workers 12; serial (--workers 1, the
+default) is what the timing benchmark measures, since that is how a REST script
+is normally written. See matched/run_rest.py for the timing runner.
 """
 
 from __future__ import annotations
@@ -15,9 +28,11 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 
@@ -69,9 +84,20 @@ def main():
                     help="Cap queries (REST is rate-limited; PLAN says 1000)")
     ap.add_argument("--qps", type=float, default=12.0,
                     help="Requests per second (REST limit is 15; we stay under)")
+    ap.add_argument("--workers", type=int, default=1,
+                    help="Concurrent requests; --qps still caps the aggregate rate")
+    ap.add_argument("--envelope", action="store_true",
+                    help="One row per query, collapsed to (chrom, min start, max end), "
+                         "instead of one row per exon segment")
     args = ap.parse_args()
 
-    sleep_per = 1.0 / args.qps
+    if args.workers < 1:
+        raise SystemExit(
+            f"run_ensembl_rest.py: --workers must be >= 1, got {args.workers}")
+    if args.qps <= 0:
+        raise SystemExit(
+            f"run_ensembl_rest.py: --qps must be > 0, got {args.qps}")
+
     rows = []
     with open(args.bed) as f:
         for line in f:
@@ -85,23 +111,43 @@ def main():
             if len(rows) >= args.limit:
                 break
 
+    # One shared pacer, so the aggregate rate honors --qps no matter how many
+    # workers are in flight. Each worker reserves its slot in the schedule
+    # before it sleeps, which keeps them from bunching up at the same instant.
+    lock = threading.Lock()
+    next_slot = [0.0]
+    min_gap = 1.0 / args.qps
+
+    def pace():
+        with lock:
+            now = time.monotonic()
+            wait = max(0.0, next_slot[0] - now)
+            next_slot[0] = max(now, next_slot[0]) + min_gap
+        if wait:
+            time.sleep(wait)
+
+    def fetch(row):
+        pid, s, e, qid = row
+        pace()
+        intervals, status = query_one(pid, s, e)
+        if not intervals:
+            return [(qid, "NA", "NA", "NA", "NA", status)]
+        if args.envelope:
+            chrom = str(intervals[0][0])
+            lo = min(i[1] for i in intervals)
+            hi = max(i[2] for i in intervals)
+            return [(qid, chrom, str(lo), str(hi), ".", "ok")]
+        return [(qid, str(c), str(gs), str(ge), ".", "ok") for c, gs, ge in intervals]
+
     print(f"querying {len(rows):,} ENSPs at {args.qps:.1f} req/s "
+          f"across {args.workers} worker(s) "
           f"(estimated {len(rows)/args.qps:.0f}s)", file=sys.stderr)
     t0 = time.perf_counter()
-    with open(args.out, "w") as f:
+    with open(args.out, "w") as f, ThreadPoolExecutor(max_workers=args.workers) as ex:
         f.write("query_id\tchrom\tstart\tend\tstrand\tstatus\n")
-        for i, (pid, s, e, qid) in enumerate(rows, 1):
-            t_before = time.perf_counter()
-            intervals, status = query_one(pid, s, e)
-            if not intervals:
-                f.write(f"{qid}\tNA\tNA\tNA\tNA\t{status}\n")
-            else:
-                for c, gs, ge in intervals:
-                    f.write(f"{qid}\t{c}\t{gs}\t{ge}\t.\tok\n")
-            # Throttle to qps.
-            elapsed = time.perf_counter() - t_before
-            if elapsed < sleep_per:
-                time.sleep(sleep_per - elapsed)
+        for i, out_rows in enumerate(ex.map(fetch, rows), 1):
+            for r in out_rows:
+                f.write("\t".join(r) + "\n")
             if i % 100 == 0:
                 rate = i / (time.perf_counter() - t0)
                 print(f"  {i:,}/{len(rows):,}  ({rate:.1f} q/s effective)", file=sys.stderr)

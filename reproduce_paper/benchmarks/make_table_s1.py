@@ -19,7 +19,7 @@ The categories are the nine EXCLUSIVE strata from sample_validation_queries.py
 
 Usage:
     python make_table_s1.py \
-        --fastcds-cds       exclusive_v115/p2e/domain_cds_segments.tsv \
+        --fastcds-cds       exclusive_v115/fastcds/domain_cds_segments.tsv \
         --ensembldb-table   exclusive_v86/ensembldb_agreement.tsv \
         --genomicfeatures-table exclusive_v86/genomicfeatures_agreement.tsv \
         --transvar-table    exclusive_v95/transvar_agreement.tsv \

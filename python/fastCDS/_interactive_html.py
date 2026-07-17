@@ -1,13 +1,11 @@
-"""TFRegDB2-style standalone HTML renderer.
+"""Standalone interactive HTML renderer for a single isoform.
 
-Ported from `tfregdb2/src/components/tf/GenomicStructureView.tsx` (slate
-gene track + chevron introns + lane-packed coloured domain overlays +
-compact 80bp intron mode) and extended with a vCRE-style minimap + zoom
-(see `~/Documents/vCRE-vis-js/src/components/Dashboard.svelte`).
+Draws a slate gene track with chevron introns, lane-packed coloured domain
+overlays, and a compact 80 bp intron mode, plus a minimap with box-zoom,
+drag-pan and wheel-zoom.
 
-Implemented as a single self-contained HTML file — vanilla JS, inline
-CSS, no React, no CDN — so the output works offline and stays embed
-friendly.
+Implemented as a single self-contained HTML file (vanilla JS, inline CSS, no
+React, no CDN) so the output works offline and stays embed friendly.
 """
 
 from __future__ import annotations
@@ -1000,7 +998,7 @@ document.getElementById('show-utr').addEventListener('change', render);
 def _render_to_string(segs, *,
                       link_template: str | None = None,
                       plot_height: int = 80) -> str:
-    """Render the TFRegDB2 viewer to an HTML string (no file I/O)."""
+    """Render the interactive viewer to an HTML string (no file I/O)."""
     payload = _segments_to_payload(segs)
     if not payload:
         raise ValueError("no segments to plot")
@@ -1129,7 +1127,7 @@ def render_interactive_jupyter(source, *,
 
     global _JUPYTER_IFRAME_SEQ
     _JUPYTER_IFRAME_SEQ += 1
-    iframe_id = f"p2e-tfregdb2-{_JUPYTER_IFRAME_SEQ}"
+    iframe_id = f"fastcds-viewer-{_JUPYTER_IFRAME_SEQ}"
     # Generous fallback height so the panel never shows half-rendered if the
     # postMessage handshake is blocked (nbconvert static exports, some
     # JupyterLab CSP configs). The JS will shrink/grow as needed.

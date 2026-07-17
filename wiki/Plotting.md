@@ -176,5 +176,3 @@ To write standalone HTML files instead of embedding inline, use the file builder
 | `--height N` (CLI) | 2.6 | matplotlib figure height in inches (static path). |
 | `plot_height=` (Python) | 140 single / 40 stack | Main-track height in pixels for the Jupyter / standalone viewers. |
 | `height=` (Python) | auto | Pin the Jupyter iframe height in px (for static exports where the auto-resize handshake can't fire). |
-
-The `render_tfregdb2_*` Python functions are deprecated aliases for the `render_interactive_*` names, kept only for backwards compatibility and slated for removal.

@@ -5,8 +5,9 @@ heavy input is fetched by the notebook itself (nothing needs to be staged by
 hand), and each step is **cache-aware**, so a re-run reuses what is already on
 disk.
 
-For the **speed / accuracy benchmarks** (vs `ensembldb`, `GenomicFeatures`,
-TransVar, Ensembl REST, geneplot) see
+For the **speed / accuracy benchmarks** (speed vs `ensembldb`,
+`GenomicFeatures`, geneplot and Ensembl REST; coordinate agreement additionally
+vs TransVar) see
 [`benchmarks/README.md`](benchmarks/README.md), which has its own one-block
 reproduction harness and covers `software_comparison.ipynb` and
 `scaling_and_ram.ipynb`.
@@ -26,8 +27,9 @@ the API and does not depend on these.
 ## Data directory and outputs
 
 All notebooks read and write a single data directory,
-`~/Desktop/protein2genomic_data/` (set once at the top of each notebook as
-`DATA` - edit that line to relocate). The first run downloads the inputs there;
+`~/Desktop/fastCDS_data/` (set once at the top of each notebook as
+`DATA` - edit that line, or set `FASTCDS_DATA`, to relocate). The first run
+downloads the inputs there;
 later runs and the other notebooks reuse them. Figures are written as vector PDFs
 into [`figures/`](figures/), named for the manuscript panel they back (for
 example `Figure_1G_plddt_junctions.pdf`, `Figure_S2A_scaling.pdf`).
@@ -39,8 +41,9 @@ pip install fastCDS pandas numpy scipy matplotlib jupyter
 # the fastCDS C++ binary ships with the wheel; no separate build needed
 ```
 
-(The benchmark notebooks additionally need an R/Bioconductor + TransVar
-environment - see [`benchmarks/README.md`](benchmarks/README.md).)
+(The benchmark notebooks additionally need an R/Bioconductor environment, plus
+TransVar for the agreement table - see
+[`benchmarks/README.md`](benchmarks/README.md).)
 
 ## Data sources (all downloaded automatically)
 

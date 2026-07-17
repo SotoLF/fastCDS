@@ -491,8 +491,8 @@ from ._interactive_html import render_interactive_html
 def _expand_link_template(template: str, s0: Segment) -> str | None:
     """Fill `{protein_id}`, `{gene_name}`, `{transcript_id}`, `{chrom}`,
     `{start}`, `{end}` placeholders from the first plottable segment. Returns
-    None if any referenced placeholder is empty (so we don't generate a dead
-    link to TFRegDB2 etc.)."""
+    None if any referenced placeholder is empty, so we never emit a dead
+    link."""
     fields = {
         "protein_id":   s0.protein_id,
         "gene_name":    s0.gene_name,

@@ -53,16 +53,16 @@ The pip wheel bundles the compiled binary, so all four commands work immediately
 The workflow is three steps - get an index (`index` from a GTF, or `fetch` a pre-built one), `map` your domain queries onto it, then `plot`:
 
 ```mermaid
-flowchart LR
+flowchart TB
     GTF[GTF annotation] --> INDEX([fastCDS index])
     ZEN[Zenodo] --> FETCH([fastCDS fetch])
     INDEX --> IDX[index<br/>human.idx]
     FETCH --> IDX
-    IDX --> MAP([fastCDS map])
-    BED[query BED<br/>protein + aa range] --> MAP
+    BED[query BED<br/>protein + aa range] --> MAP([fastCDS map])
+    IDX --> MAP
     MAP --> TSV[isoform_structure.tsv]
-    MAP --> BEDS[BED tracks<br/>bed12 + coding / introns / span]
-    MAP --> TAB[feature + summary TSVs<br/>coding / introns / mapping_summary]
+    MAP --> BEDS[BED tracks<br/>bed12 + coding<br/>introns / span]
+    MAP --> TAB[feature + summary TSVs<br/>coding / introns<br/>mapping_summary]
     TSV --> PLOT([fastCDS plot])
     PLOT --> STATIC[static figure<br/>.pdf / .png / .svg]
     PLOT --> INTER[interactive viewer<br/>.html: js or plotly]
@@ -125,7 +125,7 @@ Full reference: [Building an index](https://github.com/SotoLF/fastCDS/wiki/Index
 ## Validation + benchmarks
 
 - **100.00 % exact match vs ensembldb** on 5,000 stratified queries (9 strata covering single/multi-exon, both strands, codon-split, selenoproteins, incomplete CDS) - zero off-by-ones, zero structural mismatches.
-- **~970x faster than ensembldb** (also ~5,400x Ensembl REST) - measured *end-to-end*: total wall time from process start to all results written, including the one-time index load, over N = 10,000 queries on one thread (fastCDS 5,847 q/s vs ensembldb 6 q/s). The gap grows with N because fastCDS amortizes its ~1.2 s index load; the per-query mapping itself, once loaded, is faster still.
+- **~980x faster than ensembldb** (also ~4,560x Ensembl REST) - measured *end-to-end*: total wall time from process start to all results written, including the one-time index load, over N = 10,000 queries on one thread (fastCDS 5,886 q/s vs ensembldb 6.0 q/s; REST at N = 1,000, the largest it finishes). The gap grows with N because fastCDS amortizes its ~1.5 s index load; the per-query mapping itself, once loaded, is faster still.
 - Full design, numbers, and scaling curves: [Performance and benchmarking](https://github.com/SotoLF/fastCDS/wiki/Performance-and-Benchmarking). Reproduce via [`reproduce_paper/benchmarks/README.md`](reproduce_paper/benchmarks/README.md).
 
 ## Notebooks

@@ -33,7 +33,7 @@ def run_once(cmd: list[str]) -> dict:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--bin", required=True, type=Path)
-    ap.add_argument("--p2e-index", required=True, type=Path)
+    ap.add_argument("--fastcds-index", required=True, type=Path)
     ap.add_argument("--bed", required=True, type=Path, help="Query BED (use the 100k subset)")
     ap.add_argument("--work-dir", required=True, type=Path)
     ap.add_argument("--threads", type=int, nargs="+", default=[1, 2, 4, 8])
@@ -51,7 +51,7 @@ def main():
                 subprocess.run(["rm", "-rf", str(out_dir)], check=True)
             r = run_once([
                 str(args.bin),
-                "map", "--index", str(args.p2e_index),
+                "map", "--index", str(args.fastcds_index),
                 "--bed", str(args.bed),
                 "--out-dir", str(out_dir),
                 "--output", "coding",

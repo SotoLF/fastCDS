@@ -123,43 +123,45 @@ A few practical points matter when reproducing this. Installing ensembldb is bes
 
 The same 5,000-query query set drives a head-to-head against the three most common alternatives: ensembldb (the R/Bioconductor canonical), TransVar (the HGVS-based variant-annotation perspective, popular with clinical teams), and Ensembl REST (the no-install zero-overhead path). Tools considered and rejected include GeneMANIA (no per-domain output), peptidomics tools (a different problem), and VEP (genome->protein, the opposite direction). Reproduce with [`scaling_benchmark.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/scaling_benchmark.py), [`run_transvar.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/run_transvar.py), [`run_ensembl_rest.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/run_ensembl_rest.py), and the [`software_comparison.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/notebooks/software_comparison.ipynb) notebook.
 
-> **~970x faster than ensembldb**, measured end-to-end at N = 10,000, single
+> **~980x faster than ensembldb**, measured end-to-end at N = 10,000, single
 > thread: total wall time from process start until all results are written,
 > including the one-time index load, divided by N. This basis charges fastCDS for
 > its own index load. State N when quoting the ratio, because it grows with N:
-> fastCDS's ~1.2 s index load is amortized over more queries, so
-> fastCDS-vs-ensembldb is ~130x at N = 1,000 and ~970x at N = 10,000. N = 10,000
+> fastCDS's ~1.5 s index load is amortized over more queries, so
+> fastCDS-vs-ensembldb is ~130x at N = 1,000 and ~980x at N = 10,000. N = 10,000
 > is used throughout as the headline figure.
 
 | Metric | fastCDS | ensembldb | Ensembl REST |
 |---|---|---|---|
-| Exact agreement vs fastCDS | ref | 100.00% (5,000 / 5,000) | 98.30% (983 / 1,000) |
-| Runtime @ N = 10,000 (1 thread) | 1.71 s | 1,558 s | rate-limited (~667 s @ 15 q/s cap; observed 9,180 s) |
-| Peak RSS @ N = 10,000 | 788 MB | 1,252 MB | N/A (HTTP client) |
-| Throughput @ N = 10,000 (q/s) | 5,847 | 6 | 1.09 (network-bound) |
+| Exact agreement vs fastCDS | ref | 100.00% (5,000 / 5,000) | 99.06% (4,953 / 5,000) |
+| Runtime (1 thread) | 1.70 s @ N = 10,000 | 1,672 s @ N = 10,000 | 773 s @ N = 1,000 (network-bound) |
+| Peak RSS | 808 MB @ N = 10,000 | 1,191 MB @ N = 10,000 | 28 MB (HTTP client only) |
+| Throughput (q/s) | 5,886 @ N = 10,000 | 6.0 @ N = 10,000 | 1.29 @ N = 1,000 |
 | Parallelism (OpenMP / threads) | Yes | No | N/A |
 | Plot-ready output schema | Yes | No | No |
 | Multi-species support | Yes (any GTF) | Yes (any Ensembl release) | Yes (Ensembl-supported) |
 | Largest N tested | 1,000,000 | 10,000 | 1,000 (rate cap) |
 | Index / DB size on disk | 87 MB binary | 333 MB sqlite | N/A (remote) |
 
-That is a ~970x end-to-end speedup over ensembldb at N = 10,000 (5,847 vs 6 q/s) with a smaller index, **more than 200x faster than GenomicFeatures** (5,847 vs 27.5 q/s), and identical genomic intervals against every tool that returned data. On the matched-release 5,000-query set, fastCDS is **100% exact against both Bioconductor `proteinToGenome` methods** (ensembldb and GenomicFeatures), **100% against TransVar** on the single-CDS-block categories it can score (span-only elsewhere), and **99.06% against Ensembl REST** - where all 37 divergences are <= 2 nt off-by-ones confined to the exclusive incomplete-CDS category, and the other tools agree with fastCDS rather than REST on those rows.
+Every number above is the same run reported in **Supplementary Table S2** (see [`table_S2_speed_memory.tsv`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/table_S2_speed_memory.tsv)). REST is quoted at N = 1,000 because that is the largest N it finishes in a practical time.
+
+That is a ~980x end-to-end speedup over ensembldb at N = 10,000 (5,886 vs 6.0 q/s) with a smaller index, **more than 200x faster than GenomicFeatures** (5,886 vs 27.5 q/s), and identical genomic intervals against every tool that returned data. On the matched-release 5,000-query set, fastCDS is **100% exact against both Bioconductor `proteinToGenome` methods** (ensembldb and GenomicFeatures), **100% against TransVar** on the single-CDS-block categories it can score (span-only elsewhere), and **99.06% against Ensembl REST** - where all 37 divergences are <= 2 nt off-by-ones confined to the exclusive incomplete-CDS category, and the other tools agree with fastCDS rather than REST on those rows.
 
 Raw single-thread scaling:
 
-| N | fastCDS wall (median, s) | fastCDS RSS (MB) | ensembldb wall (s) | ensembldb RSS (MB) |
+| N | fastCDS wall (s) | fastCDS RSS (MB) | ensembldb wall (s) | ensembldb RSS (MB) |
 |---:|---:|---:|---:|---:|
-| 100 | 1.33 | 659 | 23.3 | 979 |
-| 1,000 | 1.37 | 671 | 168.8 | 988 |
-| 10,000 | 1.71 | 788 | 1,558.2 | 1,252 |
-| 100,000 | 4.66 | 1,959 | (skipped) | - |
-| 1,000,000 | 129.4 | 11,045 | (skipped) | - |
+| 100 | 1.54 | 661 | 23.8 | 1,152 |
+| 1,000 | 1.49 | 673 | 187.3 | 1,160 |
+| 10,000 | 1.70 | 808 | 1,671.9 | 1,191 |
+| 100,000 | 5.23 | 1,927 | (not run) | - |
+| 1,000,000 | 204.4 | 7,972 | (not run) | - |
 
-ensembldb was capped at N = 10K - linear extrapolation puts its N = 100K at ~4.3 h and N = 1M at ~43 h, so continuing past 10K would have contributed nothing beyond time burned. The fastCDS side at small N is dominated by the ~1.3 s one-time index load, so the actual mapping work for the first 1,000 queries is essentially free and wall time at N = 100 ~ N = 1,000; this is why per-query throughput is misleading at small N, since it counts index load against per-query work.
+ensembldb was capped at N = 10K - linear extrapolation puts its N = 100K at ~4.6 h and N = 1M at ~46 h, so continuing past 10K would have contributed nothing beyond time burned. The fastCDS side at small N is dominated by the ~1.5 s one-time index load, so the actual mapping work for the first 1,000 queries is essentially free and wall time at N = 100 ~ N = 1,000; this is why per-query throughput is misleading at small N, since it counts index load against per-query work.
 
 The parallel scaling matches the numbers in the **Parallelism and memory** section above (~1.4-1.65x by 2-4 threads, plateauing past 4 as page-cache flushing and disk bandwidth dominate). For RAM-bounded large-N runs, the same 1M benchmark shows the large peak-RSS reduction from `--batch-size 10000` described there.
 
-A few notes on the external comparators. Ensembl REST is network-bound rather than rate-limited - the 15 q/s cap is not the bottleneck, the ~900 ms per-request HTTP round-trip is, and a concurrent keep-alive client could push closer to the cap but at the cost of measuring something other than how anyone actually writes a REST script. TransVar reports only the genomic envelope (one `chrN:g.start_end` per query, introns included) rather than per-CDS intervals, so the comparison collapses both sides to `(chrom, min_start, max_end)` via [`classify_external.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/classify_external.py) `--envelope-only` for an apples-to-apples result, meaning fastCDS is doing the harder per-exon decomposition while TransVar answers an easier question. TransVar also keys on ENST and silently returns empty for ENSP input, so it is fed ENSTs from the query metadata, and `transvar config` is interactive on first run (pipe an empty string to satisfy the FASTA prompt).
+A few notes on the external comparators. Ensembl REST is network-bound rather than rate-limited - the 15 q/s cap is not the bottleneck, the ~900 ms per-request HTTP round-trip is, and a concurrent keep-alive client could push closer to the cap but at the cost of measuring something other than how anyone actually writes a REST script. TransVar reports only the genomic envelope (one `chrN:g.start_end` per query, introns included) rather than per-CDS intervals, so the comparison collapses both sides to `(chrom, min_start, max_end)` via [`classify_external.py`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/benchmarks/classify_external.py) `--envelope-only` so both sides are scored on the same question, meaning fastCDS is doing the harder per-exon decomposition while TransVar answers an easier one. TransVar also keys on ENST and silently returns empty for ENSP input, so it is fed ENSTs from the query metadata, and `transvar config` is interactive on first run (pipe an empty string to satisfy the FASTA prompt).
 
 ### GenomicFeatures::proteinToGenome - the GRanges path
 

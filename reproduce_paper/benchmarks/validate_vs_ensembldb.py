@@ -143,9 +143,9 @@ def main():
             rscript = shutil.which("Rscript") or "Rscript"
 
     # 1) fastCDS
-    p2e_out = args.out_dir / "fastCDS"
+    fastcds_out = args.out_dir / "fastCDS"
     print("[1/3] running fastCDS ...", file=sys.stderr)
-    run_fastCDS(args.fastCDS_bin, args.fastCDS_index, args.queries_bed, p2e_out)
+    run_fastCDS(args.fastCDS_bin, args.fastCDS_index, args.queries_bed, fastcds_out)
 
     # 2) ensembldb (via R subprocess)
     ens_out = args.out_dir / "ensembldb_intervals.tsv"
@@ -162,7 +162,7 @@ def main():
 
     # 3) Compare and bucket
     print("[3/3] classifying ...", file=sys.stderr)
-    p2e_intervals = load_fastCDS_intervals(p2e_out)
+    fastcds_intervals = load_fastCDS_intervals(fastcds_out)
     ens_intervals = load_ensembldb_intervals(ens_out)
 
     # Load categories
@@ -186,12 +186,12 @@ def main():
     discrepancies = []
     for qid in all_qids:
         cat = categories.get(qid, "UNKNOWN")
-        bucket = classify(p2e_intervals.get(qid, []), ens_intervals.get(qid, []))
+        bucket = classify(fastcds_intervals.get(qid, []), ens_intervals.get(qid, []))
         by_cat[cat][bucket] += 1
         by_cat["OVERALL"][bucket] += 1
         if bucket not in ("exact_match", "neither_mapped"):
             discrepancies.append((qid, cat, bucket,
-                                  p2e_intervals.get(qid, []),
+                                  fastcds_intervals.get(qid, []),
                                   ens_intervals.get(qid, [])))
 
     # Write Supplementary Table S1.

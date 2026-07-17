@@ -71,7 +71,7 @@ def sample_bed(src_bed: Path, n: int, dst_bed: Path, seed: int):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--bin", required=True, type=Path, help="fastCDS binary")
-    ap.add_argument("--p2e-index", required=True, type=Path)
+    ap.add_argument("--fastcds-index", required=True, type=Path)
     ap.add_argument("--ensdb", required=True, type=Path, help="EnsDb sqlite")
     ap.add_argument("--rscript", required=True, type=Path)
     ap.add_argument("--r-helper", required=True, type=Path, help="ensembldb_query.R")
@@ -81,7 +81,7 @@ def main():
                     default=[100, 1000, 10000, 100000, 1000000])
     ap.add_argument("--ensembldb-max-n", type=int, default=100000,
                     help="Skip ensembldb for sizes above this (it's too slow)")
-    ap.add_argument("--p2e-reps", type=int, default=3)
+    ap.add_argument("--fastcds-reps", type=int, default=3)
     ap.add_argument("--ensembldb-reps", type=int, default=2)
     ap.add_argument("--ensembldb-reps-large", type=int, default=1,
                     help="Reps for ensembldb at N >= 100,000")
@@ -98,16 +98,16 @@ def main():
         print(f"[N={n:>7,}] BED ready ({bed.stat().st_size:,} bytes)", file=sys.stderr)
 
         # --- fastCDS ---
-        p2e_out = args.work_dir / f"p2e_n{n}"
-        for rep in range(1, args.p2e_reps + 1):
+        fastcds_out = args.work_dir / f"fastcds_n{n}"
+        for rep in range(1, args.fastcds_reps + 1):
             # Fresh outdir per rep so we time mapping, not "overwrite warnings".
-            if p2e_out.exists():
-                subprocess.run(["rm", "-rf", str(p2e_out)], check=True)
+            if fastcds_out.exists():
+                subprocess.run(["rm", "-rf", str(fastcds_out)], check=True)
             r = run_with_time([
                 str(args.bin),
-                "map", "--index", str(args.p2e_index),
+                "map", "--index", str(args.fastcds_index),
                 "--bed", str(bed),
-                "--out-dir", str(p2e_out),
+                "--out-dir", str(fastcds_out),
                 "--output", "coding",
                 "--threads", "1",
             ])

@@ -1,6 +1,4 @@
-"""Multi-isoform variant of the TFRegDB2 viewer.
-
-Ported from `tfregdb2/src/components/tf/IsoformViewer.tsx` + `GenomicStructureView.tsx`.
+"""Multi-isoform variant of the interactive viewer.
 
 Key idea: all isoforms render on a **single shared axis** built from the
 union of every isoform's features. Compact mode collapses the gaps
@@ -9,8 +7,8 @@ is missing an exon appear as empty space aligned with the same
 coordinate column on every other row, so you can compare exon usage at
 a glance.
 
-The single-isoform viewer in `_tfregdb_html.py` is untouched — this
-module emits a separate self-contained HTML page for the stack case.
+The single-isoform viewer in `_interactive_html.py` is independent of this
+module, which emits its own self-contained HTML page for the stack case.
 """
 
 from __future__ import annotations
@@ -989,7 +987,7 @@ def render_interactive_jupyter_stack(source,
 
     global _JUPYTER_STACK_SEQ
     _JUPYTER_STACK_SEQ += 1
-    iframe_id = f"p2e-tfregdb2-stack-{_JUPYTER_STACK_SEQ}"
+    iframe_id = f"fastcds-viewer-stack-{_JUPYTER_STACK_SEQ}"
     # Generous fallback; postMessage will tighten to the actual height.
     initial_h = int(height) if height is not None else max(
         320, 200 + plot_height * len(segs_by_id) + 60)

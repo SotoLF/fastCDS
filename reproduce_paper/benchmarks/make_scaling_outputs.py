@@ -3,7 +3,7 @@
 Inputs:
   --scaling-tsv     output of scaling_benchmark.py (per-rep timings)
   --parallel-tsv    output of parallel_benchmark.py (per-rep timings at varying threads)
-  --p2e-index-size  bytes - `ls -l human_v86.idx` (or any fastCDS index)
+  --fastcds-index-size  bytes - `ls -l human_v86.idx` (or any fastCDS index)
   --ensdb-size      bytes - EnsDb sqlite file size
   --agreement       OVERALL exact-match percentage from matched-annotation validation (e.g. 100.00)
 
@@ -53,7 +53,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scaling-tsv", required=True, type=Path)
     ap.add_argument("--parallel-tsv", required=True, type=Path)
-    ap.add_argument("--p2e-index-size", type=int, required=True, help="bytes")
+    ap.add_argument("--fastcds-index-size", type=int, required=True, help="bytes")
     ap.add_argument("--ensdb-size", type=int, required=True, help="bytes")
     ap.add_argument("--agreement", type=float, default=100.0,
                     help="OVERALL exact-match percentage from matched-annotation validation")
@@ -84,7 +84,7 @@ def main():
         return f"{int(n / w):,} q/s" if w else "-"
 
     # Largest N each tool covered.
-    p2e_max_n = max((n for (t, n) in med_wall if t == "fastCDS"), default=0)
+    fastcds_max_n = max((n for (t, n) in med_wall if t == "fastCDS"), default=0)
     ens_max_n = max((n for (t, n) in med_wall if t == "ensembldb"), default=0)
 
     table_path = args.out_dir / "table1.tsv"
@@ -94,8 +94,8 @@ def main():
         f.write(f"Runtime N={REF_N:,} (1 thread, median)\t{fmt_runtime('fastCDS', REF_N)}\t{fmt_runtime('ensembldb', REF_N)}\n")
         f.write(f"Peak RSS N={REF_N:,}\t{fmt_rss('fastCDS', REF_N)}\t{fmt_rss('ensembldb', REF_N)}\n")
         f.write(f"Throughput N={REF_N:,}\t{fmt_throughput('fastCDS', REF_N)}\t{fmt_throughput('ensembldb', REF_N)}\n")
-        f.write(f"Largest N benchmarked\t{p2e_max_n:,}\t{ens_max_n:,}\n")
-        f.write(f"Index size on disk\t{args.p2e_index_size/(1024*1024):.1f} MB\t{args.ensdb_size/(1024*1024):.1f} MB\n")
+        f.write(f"Largest N benchmarked\t{fastcds_max_n:,}\t{ens_max_n:,}\n")
+        f.write(f"Index size on disk\t{args.fastcds_index_size/(1024*1024):.1f} MB\t{args.ensdb_size/(1024*1024):.1f} MB\n")
         f.write(f"Parallelism (OpenMP)\tYes\tNo\n")
         f.write(f"Plot-ready output\tYes\tNo\n")
         f.write(f"Multi-species support\tYes (any GTF)\tYes (any Ensembl release)\n")
