@@ -136,7 +136,6 @@ Worked examples under [`tutorial/`](tutorial/) - each opens in [Colab](https://c
 |---|---|
 | [`walkthrough_end_to_end.ipynb`](tutorial/walkthrough_end_to_end.ipynb) ([view on nbviewer](https://nbviewer.org/github/SotoLF/fastCDS/blob/main/tutorial/walkthrough_end_to_end.ipynb)) | Zero-to-figure tour: `fetch_index` -> BED prep -> `map_batch` -> all plot styles. The interactive HTML viewers only render on **nbviewer**, not GitHub. |
 | [`isoform_domain_conservation_analysis.ipynb`](reproduce_paper/notebooks/isoform_domain_conservation_analysis.ipynb) | Projects every source-isoform Pfam domain onto a gene's alternative protein-coding isoforms and scores retention (intact / partially trimmed / skipped) - the analysis behind **Figure 1C-F**. |
-| [`alphafold_plddt_junctions.ipynb`](reproduce_paper/notebooks/alphafold_plddt_junctions.ipynb) | AlphaFold per-residue pLDDT vs distance to the nearest exon-exon junction (2D density), across the canonical human proteome. |
 | [`software_comparison.ipynb`](reproduce_paper/notebooks/software_comparison.ipynb) | **Accuracy + speed**: per-category agreement vs `ensembldb` / GenomicFeatures / TransVar / Ensembl REST (Table S1), and end-to-end throughput + RSS vs ensembldb / GenomicFeatures / geneplot / REST (Table S2), on the same human set. |
 | [`scaling_and_ram.ipynb`](reproduce_paper/notebooks/scaling_and_ram.ipynb) | fastCDS measured against itself (not other tools): wall-clock + peak-RSS scaling curves, OpenMP speedup, and the `--batch-size` RAM cap at N = 1 M. |
 

@@ -17,8 +17,7 @@ reproduction harness and covers `software_comparison.ipynb` and
 | Notebook | Backs (manuscript) |
 |---|---|
 | `notebooks/isoform_domain_conservation_analysis.ipynb` | Projects every source-isoform Pfam domain onto the gene's alternative protein-coding isoforms and scores retention (intact / partially trimmed / skipped). The analysis behind **Figure 1C-F** (the final panels are composed from this output). |
-| `notebooks/alphafold_plddt_junctions.ipynb` | AlphaFold per-residue pLDDT vs distance to the nearest exon-exon junction across the canonical human proteome (**Figure 1G**). |
-| `notebooks/scaling_and_ram.ipynb` | Runtime scaling, throughput, and the thread x batch-size sweep (**Figure 1B**, **Figure S2**, **Table S2**). |
+| `notebooks/scaling_and_ram.ipynb` | Runtime scaling, throughput, and the thread x batch-size sweep (**Figure 1B**, **Figure S2**). |
 | `notebooks/software_comparison.ipynb` | Per-tool, per-category coordinate agreement (**Table S1**) and mapping speed / peak memory (**Table S2**). |
 
 `../tutorial/walkthrough_end_to_end.ipynb` is a standalone zero-to-figure tour of
@@ -32,7 +31,7 @@ All notebooks read and write a single data directory,
 downloads the inputs there;
 later runs and the other notebooks reuse them. Figures are written as vector PDFs
 into [`figures/`](figures/), named for the manuscript panel they back (for
-example `Figure_1G_plddt_junctions.pdf`, `Figure_S2A_scaling.pdf`).
+example `Figure_S2A_scaling.pdf`, `Figure_S2B_throughput.pdf`).
 
 ## Environment
 
@@ -49,10 +48,8 @@ TransVar for the agreement table - see
 
 | Data | Source | Fetched by |
 |---|---|---|
-| Ensembl release-115 GTF -> binary index | `ftp.ensembl.org/pub/release-115` | conservation, alphafold |
+| Ensembl release-115 GTF -> binary index | `ftp.ensembl.org/pub/release-115` | conservation |
 | Pfam-A domains per protein (ENSP, aa range) | Ensembl **BioMart** (release 115) | conservation |
-| ENSP -> UniProt accession | Ensembl **BioMart** (release 115) | alphafold |
-| Per-residue pLDDT (AlphaFold DB) | `alphafold.ebi.ac.uk` | alphafold |
 
 ## Counting convention
 

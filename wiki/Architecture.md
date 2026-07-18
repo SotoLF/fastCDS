@@ -20,10 +20,11 @@ fastCDS/
 ├── parsing/                  input adapters: prepare_from_{interpro,uniprot,pfam}, append_custom_proteins
 ├── tutorial/                 worked examples
 │   ├── walkthrough_end_to_end.ipynb   zero-to-figure API tour
-│   ├── examples/             small fixtures (tp53_isoforms.tsv, ...)
-│   └── reproduce_paper/      reproduce the paper end to end
-│       ├── benchmarks/       1M-query + scaling + validation harness
-│       └── notebooks/       atlas / ClinVar / AlphaFold / validation notebooks
+│   └── examples/             small fixtures (tp53_isoforms.tsv, ...)
+├── reproduce_paper/          reproduce the paper end to end
+│   ├── benchmarks/           1M-query + scaling + validation harness (+ matched/)
+│   ├── figures/              vector PDFs, one per manuscript panel
+│   └── notebooks/            conservation / software comparison / scaling notebooks
 ├── software_tests/           pytest suite (golden-file + integration)
 └── wiki/                     these pages
 ```

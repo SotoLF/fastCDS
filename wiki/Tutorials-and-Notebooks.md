@@ -53,9 +53,3 @@ Notebook: [`walkthrough_end_to_end.ipynb`](https://github.com/SotoLF/fastCDS/blo
 This notebook projects every Pfam-A domain defined on a gene's reference isoform (MANE Select / Ensembl canonical) onto the gene's other protein-coding isoforms and scores whether each domain is retained - and in the same reading frame - classifying it as intact, partially trimmed, or skipped. It is the analysis behind the manuscript's **Figure 1C-F** (domain retention, per-isoform intactness distribution, and Pfam-clan intactness / exon architecture).
 
 Notebook: [`isoform_domain_conservation_analysis.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/notebooks/isoform_domain_conservation_analysis.ipynb)
-
-## AlphaFold pLDDT at splice junctions
-
-Per-residue AlphaFold pLDDT against distance (in nucleotides) to the nearest exon-exon junction, across the canonical human proteome - a 2D density showing model confidence dipping right at the splice site.
-
-Notebook: [`alphafold_plddt_junctions.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/notebooks/alphafold_plddt_junctions.ipynb)
