@@ -50,9 +50,4 @@ dist/
 .idea/
 
 
-# Reproduce-paper conservation analysis: large, regenerable outputs kept local
-# (the isoform_domain_conservation notebook rebuilds them, cache-aware). The
-# notebook and its benchmark scripts ARE tracked; only the heavy data/figures are not.
-reproduce_paper/conservation/*
-!reproduce_paper/conservation/domain_conservation_master.tsv
 tutorial/generate_notebooks.py

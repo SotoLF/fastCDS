@@ -50,6 +50,6 @@ Notebook: [`walkthrough_end_to_end.ipynb`](https://github.com/SotoLF/fastCDS/blo
 
 ## Domain conservation across isoforms
 
-This notebook projects every Pfam-A domain defined on a gene's reference isoform (MANE Select / Ensembl canonical) onto the gene's other protein-coding isoforms and scores whether each domain is retained - and in the same reading frame - classifying it as intact, partially trimmed, or skipped. It is the analysis behind the manuscript's **Figure 1C-F** (domain retention, per-isoform intactness distribution, and Pfam-clan intactness / exon architecture).
+These notebooks project every Pfam-A domain defined on a gene's reference isoform (MANE Select / Ensembl canonical) onto the gene's other protein-coding isoforms and score whether each domain is retained - and in the same reading frame - classifying it as intact, partially trimmed, or skipped. It is the analysis behind the manuscript's **Figure 1C-F** (domain retention, per-isoform intactness distribution, and Pfam-clan intactness / exon architecture).
 
-Notebook: [`isoform_domain_conservation_analysis.ipynb`](https://github.com/SotoLF/fastCDS/blob/main/reproduce_paper/notebooks/isoform_domain_conservation_analysis.ipynb)
+See [`reproduce_isoform_figures/`](https://github.com/SotoLF/fastCDS/tree/main/reproduce_isoform_figures)

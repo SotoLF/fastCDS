@@ -126,18 +126,18 @@ Full reference: [Building an index](https://github.com/SotoLF/fastCDS/wiki/Index
 
 - **100.00 % exact match vs ensembldb** on 5,000 stratified queries (9 strata covering single/multi-exon, both strands, codon-split, selenoproteins, incomplete CDS) - zero off-by-ones, zero structural mismatches.
 - **~980x faster than ensembldb** (also ~4,560x Ensembl REST) - measured *end-to-end*: total wall time from process start to all results written, including the one-time index load, over N = 10,000 queries on one thread (fastCDS 5,886 q/s vs ensembldb 6.0 q/s; REST at N = 1,000, the largest it finishes). The gap grows with N because fastCDS amortizes its ~1.5 s index load; the per-query mapping itself, once loaded, is faster still.
-- Full design, numbers, and scaling curves: [Performance and benchmarking](https://github.com/SotoLF/fastCDS/wiki/Performance-and-Benchmarking). Reproduce via [`reproduce_paper/benchmarks/README.md`](reproduce_paper/benchmarks/README.md).
+- Full design, numbers, and scaling curves: [Performance and benchmarking](https://github.com/SotoLF/fastCDS/wiki/Performance-and-Benchmarking). Reproduce via [`reproduce_benchmarking_figures/benchmarks/README.md`](reproduce_benchmarking_figures/benchmarks/README.md).
 
 ## Notebooks
 
-Worked examples under [`tutorial/`](tutorial/) - each opens in [Colab](https://colab.research.google.com/github/SotoLF/fastCDS) or [nbviewer](https://nbviewer.org/github/SotoLF/fastCDS). They reproduce the manuscript's example analyses **end to end, from data download to figure**; see [`reproduce_paper/README.md`](reproduce_paper/README.md) for the data sources, run order, and runtimes.
+Worked examples under [`tutorial/`](tutorial/) - each opens in [Colab](https://colab.research.google.com/github/SotoLF/fastCDS) or [nbviewer](https://nbviewer.org/github/SotoLF/fastCDS). They reproduce the manuscript's example analyses; see [`reproduce_benchmarking_figures/README.md`](reproduce_benchmarking_figures/README.md) and [`reproduce_isoform_figures/README.md`](reproduce_isoform_figures/README.md) for run order.
 
 | Notebook | What it covers |
 |---|---|
 | [`walkthrough_end_to_end.ipynb`](tutorial/walkthrough_end_to_end.ipynb) ([view on nbviewer](https://nbviewer.org/github/SotoLF/fastCDS/blob/main/tutorial/walkthrough_end_to_end.ipynb)) | Zero-to-figure tour: `fetch_index` -> BED prep -> `map_batch` -> all plot styles. The interactive HTML viewers only render on **nbviewer**, not GitHub. |
-| [`isoform_domain_conservation_analysis.ipynb`](reproduce_paper/notebooks/isoform_domain_conservation_analysis.ipynb) | Projects every source-isoform Pfam domain onto a gene's alternative protein-coding isoforms and scores retention (intact / partially trimmed / skipped) - the analysis behind **Figure 1C-F**. |
-| [`software_comparison.ipynb`](reproduce_paper/notebooks/software_comparison.ipynb) | **Accuracy + speed**: per-category agreement vs `ensembldb` / GenomicFeatures / TransVar / Ensembl REST (Table S1), and end-to-end throughput + RSS vs ensembldb / GenomicFeatures / geneplot / REST (Table S2), on the same human set. |
-| [`scaling_and_ram.ipynb`](reproduce_paper/notebooks/scaling_and_ram.ipynb) | fastCDS measured against itself (not other tools): wall-clock + peak-RSS scaling curves, OpenMP speedup, and the `--batch-size` RAM cap at N = 1 M. |
+| [`reproduce_isoform_figures/`](reproduce_isoform_figures/) | Projects every source-isoform Pfam domain onto a gene's alternative isoforms and scores retention (intact / skipped / trimmed) - the analysis behind **Figure 1C-F**. |
+| [`software_comparison.ipynb`](reproduce_benchmarking_figures/notebooks/software_comparison.ipynb) | **Accuracy + speed**: per-category agreement vs `ensembldb` / GenomicFeatures / TransVar / Ensembl REST (Table S1), and throughput + RSS vs ensembldb / GenomicFeatures / geneplot / REST (Table S2), on the same human set. |
+| [`scaling_and_ram.ipynb`](reproduce_benchmarking_figures/notebooks/scaling_and_ram.ipynb) | fastCDS measured against itself (not other tools): wall-clock + peak-RSS scaling curves, OpenMP speedup, and the `--batch-size` RAM cap at N = 1 M. |
 
 ## Citation
 

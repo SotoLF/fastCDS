@@ -1,10 +1,10 @@
 name: fastCDS
 # Env for reproducing the correctness + scaling benchmarks in
-# reproduce_paper/benchmarks/README.md (and on the Performance and Benchmarking
+# reproduce_benchmarking_figures/benchmarks/README.md (and on the Performance and Benchmarking
 # wiki page).
 #
 # Usage:
-#   conda env create -f reproduce_paper/benchmarks/environment.yml
+#   conda env create -f reproduce_benchmarking_figures/benchmarks/environment.yml
 #   conda activate fastCDS
 #   Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org"); \
 #               BiocManager::install(c("ensembldb", "GenomicFeatures", \
@@ -40,7 +40,7 @@ dependencies:
   - pandas>=2.0
   - matplotlib-base>=3.7
   - numpy>=1.24
-  - requests>=2.30          # reproduce_paper/benchmarks/run_ensembl_rest.py
+  - requests>=2.30          # reproduce_benchmarking_figures/benchmarks/run_ensembl_rest.py
   - tqdm
   - pip
   - pip:

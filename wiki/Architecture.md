@@ -21,10 +21,11 @@ fastCDS/
 ├── tutorial/                 worked examples
 │   ├── walkthrough_end_to_end.ipynb   zero-to-figure API tour
 │   └── examples/             small fixtures (tp53_isoforms.tsv, ...)
-├── reproduce_paper/          reproduce the paper end to end
+├── reproduce_benchmarking_figures/   reproduce the benchmarking figures (1B, S2, tables)
 │   ├── benchmarks/           1M-query + scaling + validation harness (+ matched/)
 │   ├── figures/              vector PDFs, one per manuscript panel
-│   └── notebooks/            conservation / software comparison / scaling notebooks
+│   └── notebooks/            software comparison / scaling notebooks
+├── reproduce_isoform_figures/   reproduce the isoform / domain figures (1C-F)
 ├── software_tests/           pytest suite (golden-file + integration)
 └── wiki/                     these pages
 ```

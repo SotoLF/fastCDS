@@ -49,7 +49,6 @@ Homepage      = "https://github.com/SotoLF/fastCDS"
 Repository    = "https://github.com/SotoLF/fastCDS"
 Documentation = "https://github.com/SotoLF/fastCDS/wiki"
 Issues        = "https://github.com/SotoLF/fastCDS/issues"
-Changelog     = "https://github.com/SotoLF/fastCDS/blob/main/CHANGELOG.md"
 
 [project.scripts]
 # The unified CLI: a cross-platform Python dispatcher (mirrors bin/fastCDS)
